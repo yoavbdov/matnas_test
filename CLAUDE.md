@@ -44,3 +44,13 @@ npx ts-node scripts/seed.ts   # seed Firestore with demo data
 
 Its very important that all of the code will be easy to understand for a human, comments etc...
 Make sure to keep the components short, and if needed devide them.
+every component should be small and single-purpose.
+If a file exceeds 150-200 lines - split it.
+
+each folder should have one responsibility.
+Note that i dont want to use vercel, only firebase.
+Duplication is acceptable if it improves clarity
+Avoid premature abstraction
+
+If a new developer cannot understand a file in 30 seconds, it is too complex.
+Make sure to add comments!

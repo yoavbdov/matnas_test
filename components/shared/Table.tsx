@@ -1,17 +1,87 @@
-/*
-  TABLE — reusable sortable data table.
+"use client";
+import { useState } from "react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
-  Props:
-  - columns    : array of { key, label, render? }
-                 render? is an optional function to format a cell (e.g. show a badge)
-  - rows       : array of data objects
-  - onRowClick : called with the row's data when user clicks a row
-  - sortable   : if true, clicking a column header sorts by that column
+export interface Column<T> {
+  key: keyof T | string;
+  label: string;
+  render?: (row: T) => React.ReactNode;
+}
 
-  Behavior:
-  - Clicking a header sorts ascending; clicking again sorts descending
-  - Row click opens whatever modal the parent page wants to show
-  - If rows is empty: shows a "אין נתונים" message
+interface TableProps<T extends { id: string }> {
+  columns: Column<T>[];
+  rows: T[];
+  onRowClick?: (row: T) => void;
+  sortable?: boolean;
+}
 
-  Keep this file under 80 lines. Cell rendering logic stays in the parent page.
-*/
+export default function Table<T extends { id: string }>({
+  columns,
+  rows,
+  onRowClick,
+  sortable = false,
+}: TableProps<T>) {
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortAsc, setSortAsc] = useState(true);
+
+  function handleSort(key: string) {
+    if (!sortable) return;
+    if (sortKey === key) setSortAsc((v) => !v);
+    else { setSortKey(key); setSortAsc(true); }
+  }
+
+  const sorted = sortKey
+    ? [...rows].sort((a, b) => {
+        const av = (a as Record<string, unknown>)[sortKey];
+        const bv = (b as Record<string, unknown>)[sortKey];
+        const cmp = String(av ?? "").localeCompare(String(bv ?? ""), "he");
+        return sortAsc ? cmp : -cmp;
+      })
+    : rows;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      {sorted.length === 0 ? (
+        <div className="p-10 text-center text-sm text-gray-400">אין נתונים להצגה</div>
+      ) : (
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-xs">
+              {columns.map((col) => (
+                <th
+                  key={String(col.key)}
+                  className={`text-right px-4 py-3 font-medium select-none ${sortable ? "cursor-pointer hover:text-gray-700" : ""}`}
+                  onClick={() => handleSort(String(col.key))}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {col.label}
+                    {sortable && sortKey === String(col.key) && (
+                      sortAsc ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                    )}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((row) => (
+              <tr
+                key={row.id}
+                onClick={() => onRowClick?.(row)}
+                className={`border-b border-gray-50 last:border-0 ${onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
+              >
+                {columns.map((col) => (
+                  <td key={String(col.key)} className="px-4 py-3 text-gray-700">
+                    {col.render
+                      ? col.render(row)
+                      : String((row as Record<string, unknown>)[String(col.key)] ?? "—")}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
