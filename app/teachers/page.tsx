@@ -1,7 +1,3 @@
-/*
-  TEACHERS PAGE — composes the teachers management UI.
-
-  Modals: TeacherFormModal, TeacherDetailModal
-  Data from useData().
-  No logic of its own.
-*/
+export default function TeachersPage() {
+  return <div className="p-6 text-gray-400">מדריכים — בפיתוח</div>;
+}

@@ -1,12 +1,40 @@
-/*
-  FIRESTORE SINGLE DOCUMENT HOOK — reads one document in real time.
-  Used when you need details for a specific item (e.g. open a detail modal).
+"use client";
+import { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
-  Usage: useDocument<Class>("classes", classId)
-  Returns: { data: Class | null, loading: boolean, error: string | null }
+export function useDocument<T extends { id: string }>(
+  collectionName: string,
+  docId: string | null
+) {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  How it works:
-  - On mount: open a real-time listener on the specific doc
-  - Updates live if the doc changes while the modal is open
-  - On unmount: close the listener
-*/
+  useEffect(() => {
+    if (!docId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    const ref = doc(db, collectionName, docId);
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
+        if (snap.exists()) {
+          setData({ id: snap.id, ...snap.data() } as T);
+        } else {
+          setData(null);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      }
+    );
+    return unsubscribe;
+  }, [collectionName, docId]);
+
+  return { data, loading, error };
+}

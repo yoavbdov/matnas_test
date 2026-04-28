@@ -1,15 +1,19 @@
-/*
-  AUTH STATE HOOK
-  Listens to Firebase for whether a user is logged in or not.
+"use client";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "../firebase";
 
-  Returns: { user, loading }
-    - user    : the Firebase user object if logged in, null if not
-    - loading : true while Firebase is still checking (prevents flash-redirect)
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  How it works:
-  - On mount: subscribe to Firebase onAuthStateChanged
-  - When Firebase fires: update user + set loading to false
-  - On unmount: unsubscribe (cleanup)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
 
-  Used by: AuthContext (which wraps the whole app)
-*/
+  return { user, loading };
+}

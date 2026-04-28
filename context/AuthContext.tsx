@@ -1,12 +1,20 @@
-/*
-  AUTH CONTEXT — makes the logged-in user available to the whole app.
+"use client";
+import { createContext, useContext } from "react";
+import type { User } from "firebase/auth";
+import { useAuth } from "@/firebase/hooks/useAuth";
 
-  Wraps the app in a React context that provides: { user, loading }
-  Uses useAuth hook internally.
+interface AuthContextValue {
+  user: User | null;
+  loading: boolean;
+}
 
-  Also exports a helper: useAuthContext() — any component calls this
-  instead of useContext(AuthContext) directly.
+const AuthContext = createContext<AuthContextValue>({ user: null, loading: true });
 
-  Why: so every page/component can easily check "is someone logged in?"
-  without prop drilling or repeating Firebase calls.
-*/
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const auth = useAuth();
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+}
+
+export function useAuthContext() {
+  return useContext(AuthContext);
+}

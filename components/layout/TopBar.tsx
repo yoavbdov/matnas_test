@@ -1,10 +1,17 @@
-/*
-  TOP BAR — the horizontal bar at the top of every page (except login).
+"use client";
+import { useAuthContext } from "@/context/AuthContext";
 
-  Shows:
-  - Current page title (e.g. "תלמידים", "לוח זמנים")
-  - Logged-in user's email on the right
+interface TopBarProps {
+  title: string;
+}
 
-  Receives the page title as a prop (each page passes its own title).
-  Gets user email from AuthContext.
-*/
+export default function TopBar({ title }: TopBarProps) {
+  const { user } = useAuthContext();
+
+  return (
+    <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6" dir="rtl">
+      <h1 className="text-base font-semibold text-gray-800">{title}</h1>
+      <span className="text-sm text-gray-400">{user?.email}</span>
+    </header>
+  );
+}

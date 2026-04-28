@@ -41,3 +41,6 @@ npm run dev        # start dev server
 npm run build      # production build
 npx ts-node scripts/seed.ts   # seed Firestore with demo data
 ```
+
+Its very important that all of the code will be easy to understand for a human, comments etc...
+Make sure to keep the components short, and if needed devide them.

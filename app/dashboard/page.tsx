@@ -1,25 +1,96 @@
-/*
-  DASHBOARD PAGE — first thing the admin sees after logging in.
+"use client";
+import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Users, BookOpen, Clock, TrendingUp } from "lucide-react";
+import Sidebar from "@/components/layout/Sidebar";
+import TopBar from "@/components/layout/TopBar";
+import StatCard from "@/components/shared/StatCard";
+import TodaySessionsTable from "@/components/dashboard/TodaySessionsTable";
+import EnrollmentStatusList from "@/components/dashboard/EnrollmentStatusList";
+import { useData } from "@/context/DataContext";
+import { slotOccursOnDate } from "@/lib/scheduleHelpers";
 
-  Composed of 3 sections:
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
-  ── Section 1: Stat Cards (top row) ──
-  Two StatCards:
-  - Count of active students → clicking goes to /students?status=active
-  - Count of active classes → clicking goes to /classes?status=active
+export default function DashboardPage() {
+  const router = useRouter();
+  const { students, classes, enrollments, loading } = useData();
 
-  ── Section 2: Today's Sessions ──
-  Lists all classes that have a scheduled slot occurring today.
-  Each row shows: time range, room name, teacher name, enrolled / capacity.
-  Sorted by start time.
-  Uses slotOccursOnDate() from scheduleHelpers to figure out which slots are today.
+  const todayStr = today();
 
-  ── Section 3: Class Enrollment Status ──
-  Lists all active classes with a progress bar showing enrolled / capacity.
-  Bar color:
-    teal   = normal
-    orange = above CLASS_NEAR_FULL_THRESHOLD (almost full)
-    red    = at capacity (full)
+  const activeStudents = useMemo(() => students.filter((s) => s.status === "פעיל"), [students]);
+  const activeClasses = useMemo(() => classes.filter((c) => c.status === "פעיל"), [classes]);
 
-  All data comes from useData() context — no direct Firestore calls here.
-*/
+  const todaySessionCount = useMemo(() => {
+    let count = 0;
+    for (const cls of activeClasses) {
+      for (const slot of cls.slots ?? []) {
+        if (slotOccursOnDate(slot, todayStr)) count++;
+      }
+    }
+    return count;
+  }, [activeClasses, todayStr]);
+
+  const newThisMonth = useMemo(() => {
+    const now = new Date();
+    const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    return students.filter((s) => (s.created_at ?? "") >= monthStart).length;
+  }, [students]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center text-gray-400">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <span className="text-sm">טוען...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden" dir="rtl">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <TopBar title="לוח בקרה" />
+
+        <main className="flex-1 p-6 space-y-8">
+          <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <StatCard
+              icon={Users}
+              value={activeStudents.length}
+              label="תלמידים פעילים"
+              sub={newThisMonth > 0 ? `${newThisMonth} חדשים החודש` : undefined}
+              color="teal"
+              onClick={() => router.push("/students?status=active")}
+            />
+            <StatCard
+              icon={BookOpen}
+              value={activeClasses.length}
+              label="חוגים פעילים"
+              color="indigo"
+              onClick={() => router.push("/classes?status=active")}
+            />
+            <StatCard
+              icon={Clock}
+              value={todaySessionCount}
+              label="מפגשים היום"
+              color="orange"
+            />
+            <StatCard
+              icon={TrendingUp}
+              value={enrollments.filter((e) => e.status === "פעיל").length}
+              label="רישומים פעילים"
+              color="teal"
+            />
+          </section>
+
+          <TodaySessionsTable />
+          <EnrollmentStatusList />
+        </main>
+      </div>
+    </div>
+  );
+}

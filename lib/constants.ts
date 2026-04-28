@@ -1,11 +1,21 @@
-/*
-  FIXED VALUES THAT NEVER CHANGE — no logic, just named constants.
+export const CLASS_COLORS = [
+  "#14b8a6", // teal
+  "#6366f1", // indigo
+  "#f97316", // orange
+  "#ec4899", // pink
+  "#84cc16", // lime
+  "#8b5cf6", // violet
+];
 
-  Defined here:
-  - CLASS_COLORS      : 6 hex colors used to visually distinguish classes on the schedule
-  - DAYS              : ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"]
-  - RECURRENCE_OPTIONS: ["חד פעמי", "יומי", "שבועי", "דו שבועי", "תלת שבועי", "חודשי"]
-  - CHESS_TITLES      : ["GM", "IM", "FM", "CM", "NM", "WGM", "WIM", "WFM", "WCM"]
+export const DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
-  If a value might ever be changed by an admin → it belongs in config.ts, not here.
-*/
+export const RECURRENCE_OPTIONS = [
+  "חד פעמי",
+  "יומי",
+  "שבועי",
+  "פעם בשבועיים",
+  "פעם בשלושה שבועות",
+  "פעם בחודש",
+];
+
+export const CHESS_TITLES = ["GM", "IM", "FM", "CM", "NM", "WGM", "WIM", "WFM", "WCM"];

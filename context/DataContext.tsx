@@ -1,16 +1,56 @@
-/*
-  DATA CONTEXT — one place that holds ALL the app's live Firestore data.
+"use client";
+import { createContext, useContext } from "react";
+import { useCollection } from "@/firebase/hooks/useCollection";
+import { useDocument } from "@/firebase/hooks/useDocument";
+import type { Child, Teacher, Room, Resource, Class, Enrollment, CustomEventType, AppSettings } from "@/lib/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
-  Internally calls useCollection for every collection:
-    students, classes, teachers, rooms, physicalEquipment, enrollments, competitions, customEventTypes
+interface DataContextValue {
+  students: Child[];
+  classes: Class[];
+  teachers: Teacher[];
+  rooms: Room[];
+  resources: Resource[];
+  enrollments: Enrollment[];
+  customEventTypes: CustomEventType[];
+  settings: Required<AppSettings>;
+  loading: boolean;
+}
 
-  Exposes them all via context so any component can grab what it needs
-  without each component making its own Firestore calls.
+const DataContext = createContext<DataContextValue>({
+  students: [],
+  classes: [],
+  teachers: [],
+  rooms: [],
+  resources: [],
+  enrollments: [],
+  customEventTypes: [],
+  settings: DEFAULT_SETTINGS,
+  loading: true,
+});
 
-  Also holds app settings (loaded once from Firestore "settings" doc).
+export function DataProvider({ children }: { children: React.ReactNode }) {
+  const { data: students, loading: l1 } = useCollection<Child>("students");
+  const { data: classes, loading: l2 } = useCollection<Class>("classes");
+  const { data: teachers, loading: l3 } = useCollection<Teacher>("teachers");
+  const { data: rooms, loading: l4 } = useCollection<Room>("rooms");
+  const { data: resources, loading: l5 } = useCollection<Resource>("physicalEquipment");
+  const { data: enrollments, loading: l6 } = useCollection<Enrollment>("enrollments");
+  const { data: customEventTypes, loading: l7 } = useCollection<CustomEventType>("customEventTypes");
+  const { data: settingsDoc, loading: l8 } = useDocument<AppSettings & { id: string }>("settings", "main");
 
-  Exports: useData() helper — call this anywhere to get the data.
+  const loading = l1 || l2 || l3 || l4 || l5 || l6 || l7 || l8;
+  const settings: Required<AppSettings> = { ...DEFAULT_SETTINGS, ...(settingsDoc ?? {}) };
 
-  Example use in a component:
-    const { students, classes } = useData()
-*/
+  return (
+    <DataContext.Provider
+      value={{ students, classes, teachers, rooms, resources, enrollments, customEventTypes, settings, loading }}
+    >
+      {children}
+    </DataContext.Provider>
+  );
+}
+
+export function useData() {
+  return useContext(DataContext);
+}
