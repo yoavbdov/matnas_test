@@ -6,10 +6,14 @@
   Fields:
   - שם פרטי     (required, maxLength MAX_STRING_LENGTH)
   - שם משפחה    (required, maxLength MAX_STRING_LENGTH)
-                 checks that full name isn't a duplicate
+                 checks that full name isn't a duplicate\
+  - מד כושר ישראלי  
+  - מד כושר בין לאומי
+  - מין
+  - סטטוס האם מלמד ואיפה
+  - שנת לידה
+  
   - טלפון        (maxLength MAX_PHONE_LENGTH)
-  - תחום         (maxLength MAX_STRING_LENGTH)
-  - הסמכות       (TagInput: maxTags, maxTagLength)
 
   Saves with addDocument or updateDocument.
 */

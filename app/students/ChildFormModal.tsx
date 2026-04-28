@@ -16,6 +16,7 @@
   - טלפון איש קשר   (10 digits, must start with 05)
   - הערות            (textarea, maxLength MAX_NOTE_LENGTH)
   - סטטוס            (dropdown — edit mode only)
+  - מועדון בית
   - דירוג ישראלי     (read-only, filled by sync; can be manually overridden)
   - דירוג FIDE       (read-only, filled by sync; can be manually overridden)
   - מזהה שחמט ישראלי (number — used to match this student in the monthly sync)

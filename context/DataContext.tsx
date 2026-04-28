@@ -2,7 +2,7 @@
   DATA CONTEXT — one place that holds ALL the app's live Firestore data.
 
   Internally calls useCollection for every collection:
-    students, classes, teachers, rooms, resources, enrollments, customEventTypes
+    students, classes, teachers, rooms, physicalEquipment, enrollments, competitions, customEventTypes
 
   Exposes them all via context so any component can grab what it needs
   without each component making its own Firestore calls.

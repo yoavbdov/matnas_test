@@ -4,7 +4,7 @@
 
   Types defined here:
   - Child         : a student (name, dob, israeli ID, contact, chess ratings, status)
-  - Teacher       : instructor (name, phone, subject, certifications)
+  - Teacher       : teacher (name, phone, subject, certifications)
   - Room          : a physical room (name, number, capacity, features list)
   - Resource      : equipment/items (name, type, quantity, min required)
   - Class         : a course (name, teacher, age range, capacity, schedule slots, resources)

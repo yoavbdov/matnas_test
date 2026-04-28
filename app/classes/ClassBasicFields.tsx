@@ -10,6 +10,4 @@
   - קיבולת     (1 – MAX_INT_INPUT)
   - גיל מינימלי / גיל מקסימלי  (0 – MAX_AGE)
   - דירוג מינימלי / דירוג מקסימלי (0 – 3000, for isreali chess rating filter)
-  - סטטוס      (פעיל / לא פעיל — only shown in edit mode)
-  - תאריך סיום (optional date picker, or preset: month / 3mo / 6mo / year / 2yr / 3yr)
 */

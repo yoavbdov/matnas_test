@@ -2,7 +2,6 @@
   SETTINGS PAGE — admin can change configurable limits stored in Firestore.
 
   Shows a form with all AppSettings fields (numeric inputs with min/max):
-  - אורך הערה מקסימלי      (1 – 2000)
   - גיל מינימלי ברירת מחדל (0 – MAX_AGE)
   - גיל מקסימלי ברירת מחדל (0 – MAX_AGE)
   - סף "כמעט מלא"           (0.1 – 1.0, step 0.05)
