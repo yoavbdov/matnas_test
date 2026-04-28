@@ -1,3 +1,5 @@
+/*This is a file where you can edit the typescript configurations*/
+
 {
   "compilerOptions": {
     "target": "ES2017",

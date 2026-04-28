@@ -1,0 +1,1 @@
+public folder is for static assets. We will store here static data and images.
