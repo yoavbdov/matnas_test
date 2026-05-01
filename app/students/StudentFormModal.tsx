@@ -8,7 +8,7 @@
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
-import { CHESS_TITLES } from "@/lib/constants";
+import { CHESS_TITLES, GRADE_LABELS } from "@/lib/constants";
 import { gradeFromDob } from "@/lib/utils";
 import type { Student, AppSettings } from "@/lib/types";
 
@@ -99,6 +99,18 @@ export default function StudentFormModal({
           >
             <option>פעיל</option>
             <option>לא פעיל</option>
+          </select>
+        </Field>
+
+        {/* Manual grade override — leave empty to auto-compute from DOB */}
+        <Field label="כיתה (ידני)" hint={gradeLabel ? `חישוב אוטומטי: ${gradeLabel}` : "מחושב אוטומטית מתאריך לידה"}>
+          <select
+            className={inp}
+            value={form.grade_override ?? ""}
+            onChange={(e) => set("grade_override", e.target.value || undefined)}
+          >
+            <option value="">— אוטומטי —</option>
+            {GRADE_LABELS.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
         </Field>
 

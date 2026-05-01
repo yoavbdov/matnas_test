@@ -1,5 +1,6 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import PageShell from "@/components/shared/PageShell";
 import ClassesToolbar from "./ClassesToolbar";
 import ClassesTable from "./ClassesTable";
@@ -15,12 +16,35 @@ function emptyForm(): Omit<Class, "id"> {
   return { name: "", teacher_id: "", capacity: 10, status: "פעיל", color: CLASS_COLORS[0], slots: [], resource_ids: [] };
 }
 
+// Map URL param value to Hebrew status filter
+function parseStatusParam(raw: string | null): "הכל" | "פעיל" | "לא פעיל" {
+  if (raw === "active") return "פעיל";
+  if (raw === "inactive") return "לא פעיל";
+  return "הכל";
+}
+
 export default function ClassesPage() {
   const { classes, teachers, rooms, resources, students, enrollments, settings } = useData();
   const { showToast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"הכל" | "פעיל" | "לא פעיל">("הכל");
+  // Initialize filters from URL params (e.g. ?status=active from dashboard links)
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
+  const [statusFilter, setStatusFilter] = useState<"הכל" | "פעיל" | "לא פעיל">(
+    parseStatusParam(searchParams.get("status"))
+  );
+
+  // Keep URL in sync whenever filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (statusFilter === "פעיל") params.set("status", "active");
+    else if (statusFilter === "לא פעיל") params.set("status", "inactive");
+    if (search) params.set("search", search);
+
+    const qs = params.toString();
+    router.replace(qs ? `/classes?${qs}` : "/classes", { scroll: false });
+  }, [statusFilter, search, router]);
 
   const [formModal, setFormModal] = useState<"add" | "edit" | null>(null);
   const [detailClass, setDetailClass] = useState<Class | null>(null);

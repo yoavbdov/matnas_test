@@ -19,3 +19,11 @@ export const RECURRENCE_OPTIONS = [
 ];
 
 export const CHESS_TITLES = ["GM", "IM", "FM", "CM", "NM", "WGM", "WIM", "WFM", "WCM"];
+
+// All possible grade labels (matches gradeFromDob output)
+export const GRADE_LABELS = [
+  "גן ילדים",
+  "כיתה א׳", "כיתה ב׳", "כיתה ג׳", "כיתה ד׳", "כיתה ה׳", "כיתה ו׳",
+  "כיתה ז׳", "כיתה ח׳", "כיתה ט׳", "כיתה י׳", "כיתה י״א", "כיתה י״ב",
+  "מבוגר",
+];

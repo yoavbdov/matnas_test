@@ -16,6 +16,7 @@ export interface Student {
   israeli_rating?: number;
   fide_rating?: number;
   chess_title?: string;
+  grade_override?: string; // manual כיתה override (overrides auto-computed grade)
   created_at?: string;
 }
 
