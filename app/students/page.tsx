@@ -3,20 +3,20 @@ import { useState, useMemo } from "react";
 import PageShell from "@/components/shared/PageShell";
 import StudentsToolbar from "./StudentsToolbar";
 import StudentsTable from "./StudentsTable";
-import ChildFormModal from "./ChildFormModal";
-import ChildDetailModal from "./ChildDetailModal";
+import StudentFormModal from "./StudentFormModal";
+import StudentDetailModal from "./StudentDetailModal";
 import ExcelUploadPanel from "./ExcelUploadPanel";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument } from "@/firebase/firestore";
-import type { Child } from "@/lib/types";
+import type { Student } from "@/lib/types";
 
-function emptyForm(): Omit<Child, "id"> {
+function emptyForm(): Omit<Student, "id"> {
   return { first_name: "", last_name: "", dob: "", status: "פעיל" };
 }
 
 // Export visible students as CSV
-function exportCSV(students: Child[]) {
+function exportCSV(students: Student[]) {
   const headers = ["שם פרטי", "שם משפחה", "תאריך לידה", "טלפון", "שם הורה", "טלפון הורה", "דירוג ישראלי", "סטטוס"];
   const rows = students.map((s) => [
     s.first_name, s.last_name, s.dob, s.phone ?? "", s.parent_name ?? "",
@@ -40,11 +40,11 @@ export default function StudentsPage() {
 
   // Which modal is open
   const [formModal, setFormModal] = useState<"add" | "edit" | null>(null);
-  const [detailStudent, setDetailStudent] = useState<Child | null>(null);
+  const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
-  const [form, setForm] = useState<Omit<Child, "id">>(emptyForm());
-  const [editTarget, setEditTarget] = useState<Child | null>(null);
+  const [form, setForm] = useState<Omit<Student, "id">>(emptyForm());
+  const [editTarget, setEditTarget] = useState<Student | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Filter students
@@ -53,7 +53,7 @@ export default function StudentsPage() {
     return students.filter((s) => {
       if (statusFilter !== "הכל" && s.status !== statusFilter) return false;
       if (classFilter) {
-        const enrolled = enrollments.some((e) => e.child_id === s.id && e.class_id === classFilter && e.status === "פעיל");
+        const enrolled = enrollments.some((e) => e.student_id === s.id && e.class_id === classFilter && e.status === "פעיל");
         if (!enrolled) return false;
       }
       if (!q) return true;
@@ -63,7 +63,7 @@ export default function StudentsPage() {
   }, [students, search, statusFilter, classFilter, enrollments]);
 
   function openAdd() { setForm(emptyForm()); setEditTarget(null); setFormModal("add"); }
-  function openEdit(s: Child) { setEditTarget(s); setForm({ ...s }); setFormModal("edit"); setDetailStudent(null); }
+  function openEdit(s: Student) { setEditTarget(s); setForm({ ...s }); setFormModal("edit"); setDetailStudent(null); }
 
   async function handleSave() {
     if (!form.first_name.trim() || !form.last_name.trim() || !form.dob) {
@@ -110,7 +110,7 @@ export default function StudentsPage() {
 
       {/* Add / Edit form */}
       {formModal && (
-        <ChildFormModal
+        <StudentFormModal
           mode={formModal}
           form={form}
           setForm={setForm}
@@ -123,8 +123,8 @@ export default function StudentsPage() {
 
       {/* Detail view */}
       {detailStudent && (
-        <ChildDetailModal
-          child={detailStudent}
+        <StudentDetailModal
+          student={detailStudent}
           classes={classes}
           enrollments={enrollments}
           onClose={() => setDetailStudent(null)}

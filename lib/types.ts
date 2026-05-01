@@ -1,4 +1,4 @@
-export interface Child {
+export interface Student {
   id: string;
   first_name: string;
   last_name: string;
@@ -79,7 +79,7 @@ export interface Class {
 
 export interface Enrollment {
   id: string;
-  child_id: string;
+  student_id: string;
   class_id: string;
   enrolled_at: string;
   status: "פעיל" | "לא פעיל";

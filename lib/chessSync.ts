@@ -14,7 +14,7 @@
 
 import { db } from "@/firebase/firebase";
 import { collection, getDocs, writeBatch, doc } from "firebase/firestore";
-import type { Child } from "./types";
+import type { Student } from "./types";
 
 // ── Shared types ──
 
@@ -144,14 +144,14 @@ export async function syncRatingsToFirestore(
   const israeliMap = new Map(israeliData.map((r) => [r.israeli_player_id, r]));
 
   const snap = await getDocs(collection(db, "students"));
-  const students = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Child));
+  const students = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Student));
 
   const BATCH_SIZE = 400;
   let batch = writeBatch(db);
   let batchCount = 0;
 
   for (const student of students) {
-    const updates: Partial<Child> = {};
+    const updates: Partial<Student> = {};
 
     if (student.israeli_chess_id) {
       const match = israeliMap.get(student.israeli_chess_id);

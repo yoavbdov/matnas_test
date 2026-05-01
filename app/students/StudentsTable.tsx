@@ -1,12 +1,12 @@
 // טבלת התלמידים — מציגה את כל התלמידים המסוננים
 import Badge from "@/components/shared/Badge";
 import { calcAge, gradeFromDob } from "@/lib/utils";
-import type { Child, Enrollment, AppSettings } from "@/lib/types";
+import type { Student, Enrollment, AppSettings } from "@/lib/types";
 
 interface Props {
-  students: Child[];
+  students: Student[];
   enrollments: Enrollment[];
-  onRowClick: (s: Child) => void;
+  onRowClick: (s: Student) => void;
   settings: Required<AppSettings>;
 }
 
@@ -36,7 +36,7 @@ export default function StudentsTable({ students, enrollments, onRowClick, setti
           {students.map((s) => {
             const age = s.dob ? calcAge(s.dob) : null;
             const grade = s.dob ? gradeFromDob(s.dob, settings.GRADE_FIRST_AGE, settings.GRADE_ADULT_AGE) : "—";
-            const classCount = enrollments.filter((e) => e.child_id === s.id && e.status === "פעיל").length;
+            const classCount = enrollments.filter((e) => e.student_id === s.id && e.status === "פעיל").length;
 
             return (
               <tr

@@ -1,6 +1,6 @@
-import type { Child } from "@/lib/types";
+import type { Student } from "@/lib/types";
 
-export default function UnenrolledStudents({ students }: { students: Child[] }) {
+export default function UnenrolledStudents({ students }: { students: Student[] }) {
   if (students.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center text-sm text-gray-400">

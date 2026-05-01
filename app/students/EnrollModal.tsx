@@ -6,10 +6,10 @@ import Btn from "@/components/shared/Btn";
 import { calcAge } from "@/lib/utils";
 import { addDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
-import type { Child, Class, Enrollment } from "@/lib/types";
+import type { Student, Class, Enrollment } from "@/lib/types";
 
 interface Props {
-  child: Child;
+  student: Student;
   allClasses: Class[];
   enrollments: Enrollment[];
   onClose: () => void;
@@ -17,11 +17,11 @@ interface Props {
 }
 
 // Returns why a student can't enroll, or null if they can
-function ineligibleReason(child: Child, cls: Class, enrollments: Enrollment[]): string | null {
-  if (enrollments.some((e) => e.child_id === child.id && e.class_id === cls.id && e.status === "פעיל")) {
+function ineligibleReason(student: Student, cls: Class, enrollments: Enrollment[]): string | null {
+  if (enrollments.some((e) => e.student_id === student.id && e.class_id === cls.id && e.status === "פעיל")) {
     return "כבר רשום";
   }
-  const age = child.dob ? calcAge(child.dob) : null;
+  const age = student.dob ? calcAge(student.dob) : null;
   if (age !== null && cls.age_min !== undefined && age < cls.age_min) return "צעיר מדי";
   if (age !== null && cls.age_max !== undefined && age > cls.age_max) return "מבוגר מדי";
   const enrolled = enrollments.filter((e) => e.class_id === cls.id && e.status === "פעיל").length;
@@ -29,7 +29,7 @@ function ineligibleReason(child: Child, cls: Class, enrollments: Enrollment[]): 
   return null;
 }
 
-export default function EnrollModal({ child, allClasses, enrollments, onClose, onSaved }: Props) {
+export default function EnrollModal({ student, allClasses, enrollments, onClose, onSaved }: Props) {
   const { showToast } = useToast();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -50,7 +50,7 @@ export default function EnrollModal({ child, allClasses, enrollments, onClose, o
     try {
       await Promise.all([...selected].map((classId) =>
         addDocument("enrollments", {
-          child_id: child.id,
+          student_id: student.id,
           class_id: classId,
           enrolled_at: new Date().toISOString().slice(0, 10),
           status: "פעיל",
@@ -68,7 +68,7 @@ export default function EnrollModal({ child, allClasses, enrollments, onClose, o
 
   return (
     <Modal
-      title={`רישום ${child.first_name} ${child.last_name} לחוג`}
+      title={`רישום ${student.first_name} ${student.last_name} לחוג`}
       onClose={onClose}
       size="md"
       footer={
@@ -85,7 +85,7 @@ export default function EnrollModal({ child, allClasses, enrollments, onClose, o
           <p className="text-sm text-gray-400 text-center py-6">אין חוגים פעילים</p>
         )}
         {activeClasses.map((cls) => {
-          const reason = ineligibleReason(child, cls, enrollments);
+          const reason = ineligibleReason(student, cls, enrollments);
           const canEnroll = !reason;
           const isChecked = selected.has(cls.id);
 

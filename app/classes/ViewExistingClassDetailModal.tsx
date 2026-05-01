@@ -8,14 +8,14 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { getConflictingClassIds } from "@/lib/classHelpers";
-import type { Class, Teacher, Room, Resource, Child, Enrollment } from "@/lib/types";
+import type { Class, Teacher, Room, Resource, Student, Enrollment } from "@/lib/types";
 
 interface Props {
   classItem: Class;
   teachers: Teacher[];
   rooms: Room[];
   resources: Resource[];
-  students: Child[];
+  students: Student[];
   enrollments: Enrollment[];
   allClasses: Class[];
   onClose: () => void;
@@ -160,7 +160,7 @@ export default function ViewExistingClassDetailModal({
                   </thead>
                   <tbody>
                     {activeEnrollments.map((enr) => {
-                      const student = students.find((s) => s.id === enr.child_id);
+                      const student = students.find((s) => s.id === enr.student_id);
                       return (
                         <tr key={enr.id} className="border-b border-gray-50 last:border-0">
                           <td className="px-4 py-2 text-gray-800">

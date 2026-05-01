@@ -10,22 +10,22 @@ import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
 import { CHESS_TITLES } from "@/lib/constants";
 import { gradeFromDob } from "@/lib/utils";
-import type { Child, AppSettings } from "@/lib/types";
+import type { Student, AppSettings } from "@/lib/types";
 
 const inp =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   mode: "add" | "edit";
-  form: Omit<Child, "id">;
-  setForm: React.Dispatch<React.SetStateAction<Omit<Child, "id">>>;
+  form: Omit<Student, "id">;
+  setForm: React.Dispatch<React.SetStateAction<Omit<Student, "id">>>;
   saving: boolean;
   onClose: () => void;
   onSave: () => void;
   settings: Required<AppSettings>;
 }
 
-export default function ChildFormModal({
+export default function StudentFormModal({
   mode,
   form,
   setForm,
@@ -95,7 +95,7 @@ export default function ChildFormModal({
           <select
             className={inp}
             value={form.status}
-            onChange={(e) => set("status", e.target.value as Child["status"])}
+            onChange={(e) => set("status", e.target.value as Student["status"])}
           >
             <option>פעיל</option>
             <option>לא פעיל</option>

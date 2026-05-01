@@ -3,15 +3,15 @@ import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
 import { CHESS_TITLES } from "@/lib/constants";
-import type { Child } from "@/lib/types";
+import type { Student } from "@/lib/types";
 import type { AppSettings } from "@/lib/types";
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   mode: "add" | "edit";
-  form: Omit<Child, "id">;
-  setForm: React.Dispatch<React.SetStateAction<Omit<Child, "id">>>;
+  form: Omit<Student, "id">;
+  setForm: React.Dispatch<React.SetStateAction<Omit<Student, "id">>>;
   saving: boolean;
   onClose: () => void;
   onSave: () => void;
@@ -41,7 +41,7 @@ export default function StudentFormModal({ mode, form, setForm, saving, onClose,
           <input type="date" className={inp} value={form.dob} onChange={(e) => set("dob", e.target.value)} />
         </Field>
         <Field label="סטטוס">
-          <select className={inp} value={form.status} onChange={(e) => set("status", e.target.value as Child["status"])}>
+          <select className={inp} value={form.status} onChange={(e) => set("status", e.target.value as Student["status"])}>
             <option>פעיל</option><option>לא פעיל</option>
           </select>
         </Field>
