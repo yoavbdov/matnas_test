@@ -14,10 +14,11 @@ interface Props {
   saving: boolean;
   onClose: () => void;
   onSave: () => void;
+  onDelete?: () => void; // זמין רק במצב עריכה
   settings: Required<AppSettings>;
 }
 
-export default function ResourceFormModal({ mode, form, setForm, saving, onClose, onSave, settings }: Props) {
+export default function ResourceFormModal({ mode, form, setForm, saving, onClose, onSave, onDelete, settings }: Props) {
   function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
@@ -27,22 +28,24 @@ export default function ResourceFormModal({ mode, form, setForm, saving, onClose
       title={mode === "add" ? "הוספת ציוד" : "עריכת ציוד"}
       onClose={onClose}
       size="sm"
-      footer={<><Btn variant="secondary" onClick={onClose}>ביטול</Btn><Btn onClick={onSave} loading={saving}>שמור</Btn></>}
+      footer={
+        <>
+          {/* כפתור מחיקה — מוצג רק בעריכה */}
+          {mode === "edit" && onDelete && (
+            <Btn variant="ghost" className="text-red-500 hover:bg-red-50 ml-auto" onClick={onDelete}>מחיקה</Btn>
+          )}
+          <Btn variant="secondary" onClick={onClose}>ביטול</Btn>
+          <Btn onClick={onSave} loading={saving}>שמור</Btn>
+        </>
+      }
     >
       <div className="space-y-4">
         <Field label="שם" required>
           <input className={inp} value={form.name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("name", e.target.value)} />
         </Field>
-        <Field label="סוג" hint="לדוגמה: לוח שחמט, שעון שחמט">
-          <input className={inp} value={form.type} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("type", e.target.value)} />
-        </Field>
         <Field label="כמות זמינה">
           <input type="number" className={inp} value={form.quantity} min={0} max={settings.MAX_INT_INPUT}
             onChange={(e) => set("quantity", Math.max(0, Number(e.target.value)))} />
-        </Field>
-        <Field label="כמות נדרשת מינימלית" hint="אזהרה כשהמלאי נמוך מכך">
-          <input type="number" className={inp} value={form.min_required ?? ""} min={0} max={settings.MAX_INT_INPUT}
-            onChange={(e) => set("min_required", e.target.value ? Number(e.target.value) : undefined)} />
         </Field>
         <Field label="הערות">
           <textarea className={inp} rows={2} value={form.notes ?? ""} maxLength={settings.MAX_NOTE_LENGTH}

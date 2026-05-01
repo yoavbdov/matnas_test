@@ -5,6 +5,7 @@ import TeachersToolbar from "./TeachersToolbar";
 import TeachersTable from "./TeachersTable";
 import TeacherFormModal from "./TeacherFormModal";
 import TeacherDetailModal from "./TeacherDetailModal";
+import TeacherUploadPanel from "./TeacherUploadPanel";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument } from "@/firebase/firestore";
@@ -26,6 +27,7 @@ export default function TeachersPage() {
   const [editTarget, setEditTarget] = useState<Teacher | null>(null);
   const [form, setForm] = useState<Omit<Teacher, "id">>(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -58,12 +60,21 @@ export default function TeachersPage() {
     finally { setSaving(false); }
   }
 
+  // ייצוא מלא — כולל כל השדות + ספירת חוגים פעילים
   function exportCSV() {
+    const headers = ["שם פרטי", "שם משפחה", "סטטוס", "טלפון", "אימייל", "הסמכות", "הערות", "חוגים פעילים"];
     const rows = filtered.map((t) => {
-      const count = classes.filter((c) => c.teacher_id === t.id && c.status === "פעיל").length;
-      return [t.first_name, t.last_name, t.phone ?? "", t.email ?? "", count, t.status].join(",");
+      const activeClasses = classes.filter((c) => c.teacher_id === t.id && c.status === "פעיל").length;
+      // סטטוס נגזר: 0 חוגים פעילים = לא פעיל
+      const status = activeClasses === 0 ? "לא פעיל" : t.status;
+      return [
+        t.first_name, t.last_name, status,
+        t.phone ?? "", t.email ?? "",
+        (t.certifications ?? []).join("|"),
+        t.notes ?? "", activeClasses,
+      ];
     });
-    const csv = ["שם פרטי,שם משפחה,טלפון,אימייל,חוגים פעילים,סטטוס", ...rows].join("\n");
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "מדריכים.csv"; a.click();
   }
@@ -77,6 +88,7 @@ export default function TeachersPage() {
         onFilterStatus={setStatusFilter}
         onAddTeacher={openAdd}
         onExport={exportCSV}
+        onImport={() => setImportOpen(true)}
         maxSearchLength={settings.MAX_SEARCH_LENGTH}
       />
 
@@ -98,6 +110,10 @@ export default function TeachersPage() {
           onSave={handleSave}
           settings={settings}
         />
+      )}
+
+      {importOpen && (
+        <TeacherUploadPanel onClose={() => setImportOpen(false)} />
       )}
 
       {detailTeacher && (

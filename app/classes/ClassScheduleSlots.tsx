@@ -49,7 +49,7 @@ export default function ClassScheduleSlots({ slots, rooms, allClasses, currentCl
         {slots.map((slot, idx) => {
           const conflictWith = findConflict(slot, allClasses, currentClassId);
           return (
-            <div key={slot.id} className={`border rounded-xl p-4 bg-gray-50 ${conflictWith ? "border-yellow-300" : "border-gray-100"}`}>
+            <div key={slot.id ?? idx} className={`border rounded-xl p-4 bg-gray-50 ${conflictWith ? "border-yellow-300" : "border-gray-100"}`}>
               {/* Conflict warning */}
               {conflictWith && (
                 <div className="flex items-center gap-2 text-xs text-yellow-700 bg-yellow-50 rounded-lg px-3 py-2 mb-3">

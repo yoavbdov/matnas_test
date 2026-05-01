@@ -71,7 +71,7 @@ export default function ClassResources({ assignments, resources, allClasses, cur
                   <select className={inp} value={a.resource_id} onChange={(e) => setField(idx, { resource_id: e.target.value })}>
                     {resources.map((r) => (
                       <option key={r.id} value={r.id} disabled={chosen.has(r.id) && r.id !== a.resource_id}>
-                        {r.name} ({r.type})
+                        {r.name}
                       </option>
                     ))}
                   </select>

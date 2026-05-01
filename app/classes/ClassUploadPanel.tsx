@@ -1,0 +1,171 @@
+"use client";
+// ייבוא חוגים מקובץ CSV — גרור-שחרר, אימות, ייבוא שורות תקינות
+// שים לב: מפגשים וציוד לא ניתנים לייבוא מ-CSV — יש להוסיפם ידנית דרך הטופס
+import { useState, useRef } from "react";
+import { Upload, Download, X, CheckCircle, AlertCircle, Info } from "lucide-react";
+import Btn from "@/components/shared/Btn";
+import { addDocument } from "@/firebase/firestore";
+import { useToast } from "@/context/ToastContext";
+import { parseClassCSV, CLASS_TEMPLATE_HEADERS, CLASS_TEMPLATE_EXAMPLE } from "./parseClassCSV";
+import { CLASS_COLORS } from "@/lib/constants";
+import type { Teacher } from "@/lib/types";
+
+interface Props {
+  teachers: Teacher[];
+  onClose: () => void;
+}
+
+// הורדת קובץ תבנית CSV לדוגמה
+function downloadTemplate() {
+  const csv = [CLASS_TEMPLATE_HEADERS.join(","), CLASS_TEMPLATE_EXAMPLE.join(",")].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "תבנית_ייבוא_חוגים.csv";
+  a.click();
+}
+
+export default function ClassUploadPanel({ teachers, onClose }: Props) {
+  const { showToast } = useToast();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [rows, setRows] = useState<ReturnType<typeof parseClassCSV> | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
+  function handleFile(file: File) {
+    if (!file.name.endsWith(".csv")) { showToast("יש לבחור קובץ CSV", "error"); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => setRows(parseClassCSV(e.target?.result as string, teachers));
+    reader.readAsText(file, "utf-8");
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  }
+
+  async function handleImport() {
+    if (!rows) return;
+    // אם יש שגיאות בכל שורה שהיא — חוסמים את כל הייבוא
+    if (errorCount > 0) {
+      showToast(`תקן ${errorCount} שגיאות לפני הייבוא`, "error");
+      return;
+    }
+    const valid = rows.filter((r) => r.errors.length === 0);
+    if (valid.length === 0) { showToast("אין שורות תקינות לייבוא", "error"); return; }
+    setSaving(true);
+    try {
+      await Promise.all(valid.map((r) => {
+        // Firestore זורק שגיאה על שדות undefined — מסננים אותם
+        const doc: Record<string, unknown> = {
+          name: r.name!,
+          teacher_id: r.teacher_id!,
+          capacity: r.capacity!,
+          status: r.status ?? "פעיל",
+          color: CLASS_COLORS[0], // צבע ברירת מחדל — ניתן לשינוי דרך הטופס
+          slots: [],
+          resource_ids: [],
+        };
+        if (r.age_min !== undefined)    doc.age_min = r.age_min;
+        if (r.age_max !== undefined)    doc.age_max = r.age_max;
+        if (r.rating_min !== undefined) doc.rating_min = r.rating_min;
+        if (r.rating_max !== undefined) doc.rating_max = r.rating_max;
+        if (r.notes)                    doc.notes = r.notes;
+        return addDocument("classes", doc);
+      }));
+      showToast(`${valid.length} חוגים יובאו בהצלחה`, "success");
+      onClose();
+    } catch { showToast("שגיאה בייבוא, נסה שוב", "error"); }
+    finally { setSaving(false); }
+  }
+
+  const validCount = rows?.filter((r) => r.errors.length === 0).length ?? 0;
+  const errorCount = rows?.filter((r) => r.errors.length > 0).length ?? 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-800">ייבוא חוגים מ-CSV</h2>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={18} /></button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+
+          {/* הודעת מגבלה */}
+          <div className="flex gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-200">
+            <Info size={14} className="shrink-0 mt-0.5" />
+            <span>מפגשים (ימים ושעות) וציוד לא ניתנים לייבוא מ-CSV. לאחר הייבוא, ערוך כל חוג דרך הטופס להוספתם.</span>
+          </div>
+
+          {/* שלב 1 — הורד תבנית */}
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">שלב 1 — הורד תבנית</p>
+            <p className="text-xs text-gray-400 mb-2">
+              התבנית מכילה את כל השדות. עמודות עם <span className="text-red-400 font-bold">*</span> הן חובה.
+              שם המדריך חייב להתאים בדיוק לשם מדריך קיים במערכת.
+            </p>
+            <Btn variant="secondary" onClick={downloadTemplate} className="text-xs px-3 py-2">
+              <Download size={13} />הורד תבנית CSV
+            </Btn>
+          </div>
+
+          {/* שלב 2 — העלה קובץ */}
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">שלב 2 — העלה קובץ</p>
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={onDrop}
+              onClick={() => inputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+                dragging ? "border-teal-400 bg-teal-50" : "border-gray-200 hover:border-teal-300"
+              }`}
+            >
+              <Upload size={28} className="mx-auto mb-2 text-gray-300" />
+              <p className="text-sm text-gray-500">גרור קובץ CSV לכאן</p>
+              <p className="text-xs text-gray-400">או לחץ לבחירת קובץ</p>
+            </div>
+            <input ref={inputRef} type="file" accept=".csv" className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+          </div>
+
+          {/* שלב 3 — תוצאות */}
+          {rows !== null && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">שלב 3 — תוצאות</p>
+              <div className="flex gap-3 mb-3">
+                <div className="flex items-center gap-1.5 text-sm text-teal-600">
+                  <CheckCircle size={15} />{validCount} שורות תקינות
+                </div>
+                {errorCount > 0 && (
+                  <div className="flex items-center gap-1.5 text-sm text-red-500">
+                    <AlertCircle size={15} />{errorCount} שורות עם שגיאות
+                  </div>
+                )}
+              </div>
+              {rows.filter((r) => r.errors.length > 0).map((r) => (
+                <div key={r.lineNum} className="mb-1 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-1.5">
+                  <span className="font-medium">שורה {r.lineNum}:</span> {r.errors.join(" · ")}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+          <Btn variant="secondary" onClick={onClose}>ביטול</Btn>
+          <Btn onClick={handleImport} loading={saving} disabled={validCount === 0 || errorCount > 0}>
+            ייבא {validCount > 0 ? `${validCount} חוגים` : ""}
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}

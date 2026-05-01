@@ -43,9 +43,6 @@ export default function TeacherFormModal({ mode, form, setForm, saving, onClose,
         <Field label="אימייל">
           <input type="email" className={inp} value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} />
         </Field>
-        <Field label="תחום התמחות">
-          <input className={inp} value={form.subject ?? ""} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("subject", e.target.value)} />
-        </Field>
         <Field label="סטטוס">
           <select className={inp} value={form.status} onChange={(e) => set("status", e.target.value as Teacher["status"])}>
             <option>פעיל</option><option>לא פעיל</option>

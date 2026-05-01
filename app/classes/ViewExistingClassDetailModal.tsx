@@ -101,13 +101,13 @@ export default function ViewExistingClassDetailModal({
               <p className="text-sm text-gray-400">אין מפגשים מוגדרים</p>
             ) : (
               <div className="space-y-1.5">
-                {(classItem.slots ?? []).map((slot) => {
+                {(classItem.slots ?? []).map((slot, i) => {
                   const room = rooms.find((r) => r.id === slot.room_id);
                   // Check if this slot has a conflict with another class
                   const hasConflict = conflictIds.length > 0;
                   return (
                     <div
-                      key={slot.id}
+                      key={slot.id ?? i}
                       className={`flex items-center gap-3 text-sm px-3 py-2 rounded-lg ${
                         hasConflict ? "bg-red-50 border border-red-200" : "bg-gray-50"
                       }`}

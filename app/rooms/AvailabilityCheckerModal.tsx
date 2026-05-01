@@ -79,7 +79,7 @@ export default function AvailabilityCheckerModal({ resources, classes, onClose }
               <Field label="משאב">
                 <select className={inp} value={resourceId} onChange={(e) => setResourceId(e.target.value)}>
                   {resources.map((r) => (
-                    <option key={r.id} value={r.id}>{r.name} ({r.type}) — {r.quantity} יחידות</option>
+                    <option key={r.id} value={r.id}>{r.name} — {r.quantity} יחידות</option>
                   ))}
                 </select>
               </Field>

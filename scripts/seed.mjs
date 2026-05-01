@@ -29,7 +29,7 @@ async function clearCollection(name) {
 
 async function seed() {
   // Collections must match what the app reads from Firestore
-  const COLLECTIONS = ["teachers", "rooms", "resources", "classes", "students", "enrollments"];
+  const COLLECTIONS = ["teachers", "rooms", "physicalEquipment", "classes", "students", "enrollments"];
 
   console.log("Clearing existing data...");
   for (const col of COLLECTIONS) await clearCollection(col);
@@ -106,14 +106,14 @@ async function seed() {
   // Fields match the Resource interface in lib/types.ts
   console.log("\nSeeding resources...");
   const resources = [
-    { name: "לוחות שחמט",     type: "ציוד", quantity: 50, min_required: 10, notes: "" },
-    { name: "שעוני שחמט",     type: "ציוד", quantity: 30, min_required: 5,  notes: "" },
-    { name: "שעוני DGT",      type: "ציוד", quantity: 20, min_required: 5,  notes: "" },
-    { name: "לוחות DGT",      type: "ציוד", quantity: 30, min_required: 5,  notes: "" },
-    { name: "כיסאות מתקפלים", type: "ריהוט", quantity: 40, min_required: 10, notes: "" },
+    { name: "לוחות שחמט",     quantity: 50, notes: "" },
+    { name: "שעוני שחמט",     quantity: 30, notes: "" },
+    { name: "שעוני DGT",      quantity: 20, notes: "" },
+    { name: "לוחות DGT",      quantity: 30, notes: "" },
+    { name: "כיסאות מתקפלים", quantity: 40, notes: "" },
   ];
   for (const res of resources) {
-    const ref = await db.collection("resources").add(res);
+    const ref = await db.collection("physicalEquipment").add(res);
     console.log(`  + ${res.name} (${ref.id})`);
   }
 

@@ -1,6 +1,6 @@
 "use client";
 // סרגל כלים מעל טבלת המדריכים
-import { Search, Plus, Download } from "lucide-react";
+import { Search, Plus, Download, Upload } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 
 interface Props {
@@ -10,11 +10,12 @@ interface Props {
   onFilterStatus: (v: "הכל" | "פעיל" | "לא פעיל") => void;
   onAddTeacher: () => void;
   onExport: () => void;
+  onImport: () => void;
   maxSearchLength: number;
 }
 
 export default function TeachersToolbar({
-  search, onSearch, statusFilter, onFilterStatus, onAddTeacher, onExport, maxSearchLength,
+  search, onSearch, statusFilter, onFilterStatus, onAddTeacher, onExport, onImport, maxSearchLength,
 }: Props) {
   const sel = "border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400";
 
@@ -36,8 +37,11 @@ export default function TeachersToolbar({
       </div>
 
       <div className="flex gap-2">
+        <Btn variant="secondary" onClick={onImport} className="text-xs px-3 py-2">
+          <Upload size={13} />העלאת מידע דרך CSV
+        </Btn>
         <Btn variant="secondary" onClick={onExport} className="text-xs px-3 py-2">
-          <Download size={13} />ייצוא
+          <Download size={13} />ייצוא מידע לCSV
         </Btn>
         <Btn onClick={onAddTeacher}>
           <Plus size={15} />הוסף מדריך

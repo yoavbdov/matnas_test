@@ -35,7 +35,7 @@ export default function Btn({
       disabled={disabled || loading}
       className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors
         ${variantMap[variant]}
-        ${disabled || loading ? "opacity-50 cursor-not-allowed" : ""}
+        ${disabled || loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
         ${className}`}
     >
       {loading && (

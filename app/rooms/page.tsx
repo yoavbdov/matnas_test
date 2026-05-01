@@ -1,13 +1,14 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Search, Plus } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import Table, { Column } from "@/components/shared/Table";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import Btn from "@/components/shared/Btn";
 import RoomFormModal from "./RoomFormModal";
 import ResourceFormModal from "./ResourceFormModal";
 import AvailabilityCheckerModal from "./AvailabilityCheckerModal";
+import RoomUploadPanel from "./RoomUploadPanel";
+import RoomsToolbar from "./RoomsToolbar";
+import ResourcesToolbar from "./ResourcesToolbar";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
@@ -16,22 +17,32 @@ import type { Room, Resource } from "@/lib/types";
 type ActiveTab = "rooms" | "resources";
 
 function emptyRoom(): Omit<Room, "id"> { return { name: "", capacity: 10, features: [] }; }
-function emptyResource(): Omit<Resource, "id"> { return { name: "", type: "", quantity: 0 }; }
+function emptyResource(): Omit<Resource, "id"> { return { name: "", quantity: 0 }; }
 
 export default function RoomsPage() {
   const { rooms, resources, classes, settings } = useData();
   const { showToast } = useToast();
 
   const [tab, setTab] = useState<ActiveTab>("rooms");
-  const [search, setSearch] = useState("");
 
-  // Room state
+  // ── פילטרי חדרים ──
+  const [roomSearch, setRoomSearch] = useState("");
+  const [featureFilter, setFeatureFilter] = useState("");
+  const [minCapacity, setMinCapacity] = useState("");
+  const [maxCapacity, setMaxCapacity] = useState("");
+
+  // ── פילטרי ציוד ──
+  const [resourceSearch, setResourceSearch] = useState("");
+  const [minQuantity, setMinQuantity] = useState("");
+  const [maxQuantity, setMaxQuantity] = useState("");
+
+  // ── מצב מודאל חדר ──
   const [roomModal, setRoomModal] = useState<"add" | "edit" | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [roomForm, setRoomForm] = useState<Omit<Room, "id">>(emptyRoom());
   const [roomDeleteTarget, setRoomDeleteTarget] = useState<Room | null>(null);
 
-  // Resource state
+  // ── מצב מודאל ציוד ──
   const [resourceModal, setResourceModal] = useState<"add" | "edit" | null>(null);
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [resourceForm, setResourceForm] = useState<Omit<Resource, "id">>(emptyResource());
@@ -39,19 +50,55 @@ export default function RoomsPage() {
 
   const [saving, setSaving] = useState(false);
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
-  // Filter by search
+  // ── ייצוא חדרים ──
+  function exportRoomsCSV() {
+    const headers = ["שם החדר", "קיבולת", "מספר חדר", "תכונות", "הערות"];
+    const rows = filteredRooms.map((r) => [
+      r.name, r.capacity, r.number ?? "",
+      (r.features ?? []).join("|"), r.notes ?? "",
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "חדרים.csv"; a.click();
+  }
+
+  // ── ערכים ייחודיים לדרופדאונים ──
+  const allFeatures = useMemo(() => {
+    const set = new Set<string>();
+    rooms.forEach((r) => (r.features ?? []).forEach((f) => set.add(f)));
+    return Array.from(set).sort();
+  }, [rooms]);
+
+  // ── סינון חדרים ──
   const filteredRooms = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return rooms.filter((r) => !q || r.name.toLowerCase().includes(q) || (r.number ?? "").includes(q));
-  }, [rooms, search]);
+    const q = roomSearch.trim().toLowerCase();
+    const minC = minCapacity ? Number(minCapacity) : null;
+    const maxC = maxCapacity ? Number(maxCapacity) : null;
+    return rooms.filter((r) => {
+      if (q && !r.name.toLowerCase().includes(q) && !(r.number ?? "").includes(q)) return false;
+      if (featureFilter && !(r.features ?? []).includes(featureFilter)) return false;
+      if (minC !== null && r.capacity < minC) return false;
+      if (maxC !== null && r.capacity > maxC) return false;
+      return true;
+    });
+  }, [rooms, roomSearch, featureFilter, minCapacity, maxCapacity]);
 
+  // ── סינון ציוד ──
   const filteredResources = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return resources.filter((r) => !q || r.name.toLowerCase().includes(q) || r.type.toLowerCase().includes(q));
-  }, [resources, search]);
+    const q = resourceSearch.trim().toLowerCase();
+    const minQ = minQuantity ? Number(minQuantity) : null;
+    const maxQ = maxQuantity ? Number(maxQuantity) : null;
+    return resources.filter((r) => {
+      if (q && !r.name.toLowerCase().includes(q)) return false;
+      if (minQ !== null && r.quantity < minQ) return false;
+      if (maxQ !== null && r.quantity > maxQ) return false;
+      return true;
+    });
+  }, [resources, resourceSearch, minQuantity, maxQuantity]);
 
-  // ── Room handlers ──
+  // ── פעולות חדר ──
   function openAddRoom() { setRoomForm(emptyRoom()); setSelectedRoom(null); setRoomModal("add"); }
   function openEditRoom(r: Room) { setSelectedRoom(r); setRoomForm({ ...r, features: r.features ?? [] }); setRoomModal("edit"); }
 
@@ -68,10 +115,10 @@ export default function RoomsPage() {
   async function handleDeleteRoom() {
     if (!roomDeleteTarget) return;
     try { await deleteDocument("rooms", roomDeleteTarget.id); showToast("החדר נמחק", "success"); }
-    catch { showToast("שגיאה במחיקה", "error"); } finally { setRoomDeleteTarget(null); }
+    catch { showToast("שגיאה במחיקה", "error"); } finally { setRoomDeleteTarget(null); setRoomModal(null); }
   }
 
-  // ── Resource handlers ──
+  // ── פעולות ציוד ──
   function openAddResource() { setResourceForm(emptyResource()); setSelectedResource(null); setResourceModal("add"); }
   function openEditResource(r: Resource) { setSelectedResource(r); setResourceForm({ ...r }); setResourceModal("edit"); }
 
@@ -88,50 +135,31 @@ export default function RoomsPage() {
   async function handleDeleteResource() {
     if (!resourceDeleteTarget) return;
     try { await deleteDocument("physicalEquipment", resourceDeleteTarget.id); showToast("הציוד נמחק", "success"); }
-    catch { showToast("שגיאה במחיקה", "error"); } finally { setResourceDeleteTarget(null); }
+    catch { showToast("שגיאה במחיקה", "error"); } finally { setResourceDeleteTarget(null); setResourceModal(null); }
   }
 
+  // ── עמודות טבלאות (ללא עריכה/מחיקה — הכל בתוך המודאל) ──
   const roomColumns: Column<Room>[] = [
     { key: "name", label: "שם החדר" },
     { key: "number", label: "מספר", render: (r) => r.number || "—" },
     { key: "capacity", label: "קיבולת" },
     { key: "features", label: "תכונות", render: (r) => (r.features ?? []).join(", ") || "—" },
-    {
-      key: "actions", label: "",
-      render: (r) => (
-        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-          <Btn variant="ghost" className="text-xs px-2 py-1" onClick={() => openEditRoom(r)}>עריכה</Btn>
-          <Btn variant="ghost" className="text-xs px-2 py-1 text-red-500 hover:bg-red-50" onClick={() => setRoomDeleteTarget(r)}>מחיקה</Btn>
-        </div>
-      ),
-    },
   ];
 
   const resourceColumns: Column<Resource>[] = [
     { key: "name", label: "שם" },
-    { key: "type", label: "סוג" },
     { key: "quantity", label: "כמות" },
-    { key: "min_required", label: "מינימום", render: (r) => r.min_required !== undefined ? String(r.min_required) : "—" },
     { key: "notes", label: "הערות", render: (r) => r.notes || "—" },
-    {
-      key: "actions", label: "",
-      render: (r) => (
-        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-          <Btn variant="ghost" className="text-xs px-2 py-1" onClick={() => openEditResource(r)}>עריכה</Btn>
-          <Btn variant="ghost" className="text-xs px-2 py-1 text-red-500 hover:bg-red-50" onClick={() => setResourceDeleteTarget(r)}>מחיקה</Btn>
-        </div>
-      ),
-    },
   ];
 
   return (
     <PageShell title="חדרים וציוד">
-      {/* Tabs */}
+      {/* טאבים */}
       <div className="flex gap-6 border-b border-gray-200 mb-5">
         {(["rooms", "resources"] as ActiveTab[]).map((t) => (
           <button
             key={t}
-            onClick={() => { setTab(t); setSearch(""); }}
+            onClick={() => setTab(t)}
             className={`pb-2.5 text-sm font-medium border-b-2 transition-colors ${
               tab === t ? "border-teal-500 text-teal-700" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
@@ -141,59 +169,77 @@ export default function RoomsPage() {
         ))}
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative max-w-xs flex-1">
-          <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value.slice(0, settings.MAX_SEARCH_LENGTH))}
-            placeholder={tab === "rooms" ? "חיפוש לפי שם או מספר…" : "חיפוש לפי שם או סוג…"}
-            className="w-full border border-gray-200 rounded-lg pr-8 pl-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-          />
-        </div>
-        <div className="flex gap-2">
-          {tab === "resources" && (
-            <Btn variant="secondary" className="text-xs px-3 py-2" onClick={() => setAvailabilityOpen(true)}>
-              בדוק זמינות
-            </Btn>
-          )}
-          <Btn onClick={tab === "rooms" ? openAddRoom : openAddResource}>
-            <Plus size={15} />{tab === "rooms" ? "הוסף חדר" : "הוסף ציוד"}
-          </Btn>
-        </div>
-      </div>
-
-      {/* Table */}
+      {/* סרגל כלים לפי טאב */}
       {tab === "rooms" ? (
         <>
+          <RoomsToolbar
+            search={roomSearch} onSearch={setRoomSearch}
+            minCapacity={minCapacity} onFilterMinCapacity={setMinCapacity}
+            maxCapacity={maxCapacity} onFilterMaxCapacity={setMaxCapacity}
+            featureFilter={featureFilter} onFilterFeature={setFeatureFilter}
+            allFeatures={allFeatures}
+            onAdd={openAddRoom}
+            onImport={() => setImportOpen(true)}
+            onExport={exportRoomsCSV}
+            maxSearchLength={settings.MAX_SEARCH_LENGTH}
+          />
           <p className="text-xs text-gray-400 mb-3">{filteredRooms.length} חדרים</p>
           <Table columns={roomColumns} rows={filteredRooms} onRowClick={openEditRoom} sortable />
         </>
       ) : (
         <>
+          <ResourcesToolbar
+            search={resourceSearch} onSearch={setResourceSearch}
+            minQuantity={minQuantity} onFilterMinQuantity={setMinQuantity}
+            maxQuantity={maxQuantity} onFilterMaxQuantity={setMaxQuantity}
+            onAdd={openAddResource}
+            onCheckAvailability={() => setAvailabilityOpen(true)}
+            maxSearchLength={settings.MAX_SEARCH_LENGTH}
+          />
           <p className="text-xs text-gray-400 mb-3">{filteredResources.length} פריטי ציוד</p>
           <Table columns={resourceColumns} rows={filteredResources} onRowClick={openEditResource} sortable />
         </>
       )}
 
-      {/* Modals */}
+      {/* מודאלים */}
       {roomModal && (
-        <RoomFormModal mode={roomModal} form={roomForm} setForm={setRoomForm} saving={saving} onClose={() => setRoomModal(null)} onSave={handleSaveRoom} settings={settings} />
+        <RoomFormModal
+          mode={roomModal} form={roomForm} setForm={setRoomForm}
+          saving={saving} onClose={() => setRoomModal(null)} onSave={handleSaveRoom}
+          onDelete={roomModal === "edit" && selectedRoom ? () => setRoomDeleteTarget(selectedRoom) : undefined}
+          settings={settings}
+        />
       )}
       {roomDeleteTarget && (
-        <ConfirmDialog message={`למחוק את החדר "${roomDeleteTarget.name}"?`} onConfirm={handleDeleteRoom} onCancel={() => setRoomDeleteTarget(null)} />
+        <ConfirmDialog
+          message={`למחוק את החדר "${roomDeleteTarget.name}"?`}
+          onConfirm={handleDeleteRoom}
+          onCancel={() => setRoomDeleteTarget(null)}
+        />
       )}
 
       {resourceModal && (
-        <ResourceFormModal mode={resourceModal} form={resourceForm} setForm={setResourceForm} saving={saving} onClose={() => setResourceModal(null)} onSave={handleSaveResource} settings={settings} />
+        <ResourceFormModal
+          mode={resourceModal} form={resourceForm} setForm={setResourceForm}
+          saving={saving} onClose={() => setResourceModal(null)} onSave={handleSaveResource}
+          onDelete={resourceModal === "edit" && selectedResource ? () => setResourceDeleteTarget(selectedResource) : undefined}
+          settings={settings}
+        />
       )}
       {resourceDeleteTarget && (
-        <ConfirmDialog message={`למחוק את "${resourceDeleteTarget.name}"?`} onConfirm={handleDeleteResource} onCancel={() => setResourceDeleteTarget(null)} />
+        <ConfirmDialog
+          message={`למחוק את "${resourceDeleteTarget.name}"?`}
+          onConfirm={handleDeleteResource}
+          onCancel={() => setResourceDeleteTarget(null)}
+        />
       )}
 
       {availabilityOpen && (
         <AvailabilityCheckerModal resources={resources} classes={classes} onClose={() => setAvailabilityOpen(false)} />
+      )}
+
+      {importOpen && (
+        <RoomUploadPanel onClose={() => setImportOpen(false)} />
       )}
     </PageShell>
   );

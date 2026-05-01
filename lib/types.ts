@@ -26,7 +26,6 @@ export interface Teacher {
   last_name: string;
   phone?: string;
   email?: string;
-  subject?: string;
   certifications?: string[];
   notes?: string;
   status: "פעיל" | "לא פעיל";
@@ -44,9 +43,7 @@ export interface Room {
 export interface Resource {
   id: string;
   name: string;
-  type: string;
   quantity: number;
-  min_required?: number;
   notes?: string;
 }
 

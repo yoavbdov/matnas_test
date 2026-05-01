@@ -15,10 +15,11 @@ interface Props {
   saving: boolean;
   onClose: () => void;
   onSave: () => void;
+  onDelete?: () => void; // זמין רק במצב עריכה
   settings: Required<AppSettings>;
 }
 
-export default function RoomFormModal({ mode, form, setForm, saving, onClose, onSave, settings }: Props) {
+export default function RoomFormModal({ mode, form, setForm, saving, onClose, onSave, onDelete, settings }: Props) {
   function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
@@ -28,7 +29,16 @@ export default function RoomFormModal({ mode, form, setForm, saving, onClose, on
       title={mode === "add" ? "הוספת חדר" : "עריכת חדר"}
       onClose={onClose}
       size="md"
-      footer={<><Btn variant="secondary" onClick={onClose}>ביטול</Btn><Btn onClick={onSave} loading={saving}>שמור</Btn></>}
+      footer={
+      <>
+        {/* כפתור מחיקה — מוצג רק בעריכה */}
+        {mode === "edit" && onDelete && (
+          <Btn variant="ghost" className="text-red-500 hover:bg-red-50 ml-auto" onClick={onDelete}>מחיקה</Btn>
+        )}
+        <Btn variant="secondary" onClick={onClose}>ביטול</Btn>
+        <Btn onClick={onSave} loading={saving}>שמור</Btn>
+      </>
+    }
     >
       <div className="grid grid-cols-2 gap-4">
         <Field label="שם החדר" required>

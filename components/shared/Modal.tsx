@@ -31,7 +31,7 @@ export default function Modal({ title, onClose, size = "md", children, footer }:
       <div className={`relative bg-white rounded-2xl shadow-xl flex flex-col max-h-[90vh] w-full ${sizeMap[size]}`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
           <h2 className="text-base font-semibold text-gray-800">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer">
             <X size={18} />
           </button>
         </div>

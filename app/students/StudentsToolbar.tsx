@@ -65,8 +65,8 @@ export default function StudentsToolbar({
           />
         </div>
         <div className="flex gap-2">
-          <Btn variant="secondary" onClick={onImport} className="text-xs px-3 py-2"><Upload size={13} />ייבוא</Btn>
-          <Btn variant="secondary" onClick={onExport} className="text-xs px-3 py-2"><Download size={13} />ייצוא</Btn>
+          <Btn variant="secondary" onClick={onImport} className="text-xs px-3 py-2"><Upload size={13} />העלאת מידע דרך CSV</Btn>
+          <Btn variant="secondary" onClick={onExport} className="text-xs px-3 py-2"><Download size={13} />ייצוא מידע לCSV</Btn>
           <Btn onClick={onAddStudent}><Plus size={15} />הוסף תלמיד</Btn>
         </div>
       </div>

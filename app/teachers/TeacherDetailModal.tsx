@@ -61,13 +61,16 @@ export default function TeacherDetailModal({ teacher, classes, enrollments, onCl
         }
       >
         <div className="mb-3">
-          <Badge label={teacher.status} color={teacher.status === "פעיל" ? "green" : "gray"} />
+          {/* סטטוס נגזר: 0 חוגים פעילים = לא פעיל */}
+          {(() => {
+            const status = activeClasses.length === 0 ? "לא פעיל" : teacher.status;
+            return <Badge label={status} color={status === "פעיל" ? "green" : "gray"} />;
+          })()}
         </div>
 
         <Row label="שם מלא" value={`${teacher.first_name} ${teacher.last_name}`} />
         <Row label="טלפון" value={teacher.phone} />
         <Row label="אימייל" value={teacher.email} />
-        <Row label="תחום" value={teacher.subject} />
 
         {(teacher.certifications ?? []).length > 0 && (
           <div className="py-1.5 border-b border-gray-50">
