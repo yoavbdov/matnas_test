@@ -1,47 +1,69 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Search, Plus } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
-import Table, { Column } from "@/components/shared/Table";
-import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import Badge from "@/components/shared/Badge";
-import Btn from "@/components/shared/Btn";
-import StudentFormModal from "@/components/students/StudentFormModal";
+import StudentsToolbar from "./StudentsToolbar";
+import StudentsTable from "./StudentsTable";
+import ChildFormModal from "./ChildFormModal";
+import ChildDetailModal from "./ChildDetailModal";
+import ExcelUploadPanel from "./ExcelUploadPanel";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { addDocument, updateDocument, deleteDocument, deleteWhere } from "@/firebase/firestore";
+import { addDocument, updateDocument } from "@/firebase/firestore";
 import type { Child } from "@/lib/types";
-
-type StatusFilter = "הכל" | "פעיל" | "לא פעיל";
 
 function emptyForm(): Omit<Child, "id"> {
   return { first_name: "", last_name: "", dob: "", status: "פעיל" };
 }
 
+// Export visible students as CSV
+function exportCSV(students: Child[]) {
+  const headers = ["שם פרטי", "שם משפחה", "תאריך לידה", "טלפון", "שם הורה", "טלפון הורה", "דירוג ישראלי", "סטטוס"];
+  const rows = students.map((s) => [
+    s.first_name, s.last_name, s.dob, s.phone ?? "", s.parent_name ?? "",
+    s.parent_phone ?? "", s.israeli_rating ?? "", s.status,
+  ]);
+  const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "תלמידים.csv";
+  a.click();
+}
+
 export default function StudentsPage() {
-  const { students, settings } = useData();
+  const { students, classes, enrollments, settings } = useData();
   const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("הכל");
-  const [modal, setModal] = useState<"add" | "edit" | null>(null);
-  const [selected, setSelected] = useState<Child | null>(null);
-  const [form, setForm] = useState<Omit<Child, "id">>(emptyForm());
-  const [saving, setSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Child | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"הכל" | "פעיל" | "לא פעיל">("הכל");
+  const [classFilter, setClassFilter] = useState("");
 
+  // Which modal is open
+  const [formModal, setFormModal] = useState<"add" | "edit" | null>(null);
+  const [detailStudent, setDetailStudent] = useState<Child | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+
+  const [form, setForm] = useState<Omit<Child, "id">>(emptyForm());
+  const [editTarget, setEditTarget] = useState<Child | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Filter students
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return students.filter((s) => {
       if (statusFilter !== "הכל" && s.status !== statusFilter) return false;
+      if (classFilter) {
+        const enrolled = enrollments.some((e) => e.child_id === s.id && e.class_id === classFilter && e.status === "פעיל");
+        if (!enrolled) return false;
+      }
       if (!q) return true;
       return `${s.first_name} ${s.last_name}`.toLowerCase().includes(q) ||
         (s.israeli_id ?? "").includes(q) || (s.phone ?? "").includes(q);
     });
-  }, [students, search, statusFilter]);
+  }, [students, search, statusFilter, classFilter, enrollments]);
 
-  function openAdd() { setForm(emptyForm()); setSelected(null); setModal("add"); }
-  function openEdit(s: Child) { setSelected(s); setForm({ ...s }); setModal("edit"); }
+  function openAdd() { setForm(emptyForm()); setEditTarget(null); setFormModal("add"); }
+  function openEdit(s: Child) { setEditTarget(s); setForm({ ...s }); setFormModal("edit"); setDetailStudent(null); }
 
   async function handleSave() {
     if (!form.first_name.trim() || !form.last_name.trim() || !form.dob) {
@@ -49,83 +71,71 @@ export default function StudentsPage() {
     }
     setSaving(true);
     try {
-      if (modal === "add") {
+      if (formModal === "add") {
         await addDocument("students", { ...form, created_at: new Date().toISOString().slice(0, 10) });
         showToast("התלמיד נוסף בהצלחה", "success");
-      } else if (selected) {
-        await updateDocument("students", selected.id, form);
+      } else if (editTarget) {
+        await updateDocument("students", editTarget.id, form);
         showToast("הפרטים עודכנו בהצלחה", "success");
       }
-      setModal(null);
+      setFormModal(null);
     } catch { showToast("שגיאה בשמירה, נסה שוב", "error"); }
     finally { setSaving(false); }
   }
 
-  async function handleDelete() {
-    if (!deleteTarget) return;
-    try {
-      await deleteDocument("students", deleteTarget.id);
-      await deleteWhere("enrollments", "child_id", deleteTarget.id);
-      showToast("התלמיד נמחק", "success");
-    } catch { showToast("שגיאה במחיקה", "error"); }
-    finally { setDeleteTarget(null); }
-  }
-
-  const columns: Column<Child>[] = [
-    { key: "first_name", label: "שם פרטי" },
-    { key: "last_name", label: "שם משפחה" },
-    { key: "dob", label: "ת. לידה" },
-    { key: "phone", label: "טלפון", render: (r) => r.phone || "—" },
-    { key: "parent_name", label: "הורה", render: (r) => r.parent_name || "—" },
-    { key: "israeli_rating", label: "דירוג", render: (r) => r.israeli_rating ? String(r.israeli_rating) : "—" },
-    { key: "status", label: "סטטוס", render: (r) => <Badge label={r.status} color={r.status === "פעיל" ? "green" : "gray"} /> },
-    {
-      key: "actions", label: "",
-      render: (r) => (
-        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-          <Btn variant="ghost" className="text-xs px-2 py-1" onClick={() => openEdit(r)}>עריכה</Btn>
-          <Btn variant="ghost" className="text-xs px-2 py-1 text-red-500 hover:bg-red-50" onClick={() => setDeleteTarget(r)}>מחיקה</Btn>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <PageShell title="תלמידים">
-      <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2 flex-1">
-          <div className="relative flex-1 max-w-xs">
-            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value.slice(0, settings.MAX_SEARCH_LENGTH))} placeholder="חיפוש לפי שם, ת״ז, טלפון…" className="w-full border border-gray-200 rounded-lg pr-8 pl-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400" />
-          </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-            {(["הכל", "פעיל", "לא פעיל"] as StatusFilter[]).map((s) => <option key={s}>{s}</option>)}
-          </select>
-        </div>
-        <Btn onClick={openAdd}><Plus size={15} />הוסף תלמיד</Btn>
-      </div>
+      <StudentsToolbar
+        search={search}
+        onSearch={setSearch}
+        statusFilter={statusFilter}
+        onFilterStatus={setStatusFilter}
+        classFilter={classFilter}
+        onFilterClass={setClassFilter}
+        classes={classes}
+        onAddStudent={openAdd}
+        onExport={() => exportCSV(filtered)}
+        onImport={() => setImportOpen(true)}
+        maxSearchLength={settings.MAX_SEARCH_LENGTH}
+      />
 
       <p className="text-xs text-gray-400 mb-3">{filtered.length} תלמידים</p>
-      <Table columns={columns} rows={filtered} onRowClick={openEdit} sortable />
 
-      {modal && (
-        <StudentFormModal
-          mode={modal}
+      <StudentsTable
+        students={filtered}
+        enrollments={enrollments}
+        onRowClick={setDetailStudent}
+        settings={settings}
+      />
+
+      {/* Add / Edit form */}
+      {formModal && (
+        <ChildFormModal
+          mode={formModal}
           form={form}
           setForm={setForm}
           saving={saving}
-          onClose={() => setModal(null)}
+          onClose={() => setFormModal(null)}
           onSave={handleSave}
           settings={settings}
         />
       )}
 
-      {deleteTarget && (
-        <ConfirmDialog
-          message={`למחוק את ${deleteTarget.first_name} ${deleteTarget.last_name}? כל הרישומים שלו/ה יימחקו גם כן.`}
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
+      {/* Detail view */}
+      {detailStudent && (
+        <ChildDetailModal
+          child={detailStudent}
+          classes={classes}
+          enrollments={enrollments}
+          onClose={() => setDetailStudent(null)}
+          onEdit={openEdit}
+          settings={settings}
         />
+      )}
+
+      {/* CSV import panel */}
+      {importOpen && (
+        <ExcelUploadPanel onClose={() => setImportOpen(false)} settings={settings} />
       )}
     </PageShell>
   );

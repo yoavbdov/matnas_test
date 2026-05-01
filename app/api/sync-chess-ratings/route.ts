@@ -1,23 +1,49 @@
-/*Right now no logic, but the idea of the file is that someone sends a request that looks like this:
+/*
+  POST /api/sync-chess-ratings
 
-POST /api/sync-chess-rating(the route) with a bearer secret token:
-we run this function, which tries to confirm the token against our CRON_SECRET in our /.env.local, and if it works - it will do something which is not specified yet.
+  Triggered by a monthly cron job (or manually).
+  Requires a Bearer token matching CRON_SECRET in .env.local.
+
+  Steps:
+  1. Validate Bearer token
+  2. Scrape Israeli ratings from chess.org.il
+  3. Download FIDE ratings
+  4. Sync matched players to Firestore
+  5. Return a summary
 */
 
 import { NextResponse } from "next/server";
+import { scrapeIsraeliRatings, fetchFideRatings, syncRatingsToFirestore } from "@/lib/chessSync";
 
 export async function POST(request: Request) {
+  // Validate the secret token so only our cron job can trigger this
   const authHeader = request.headers.get("authorization");
   const expected = `Bearer ${process.env.CRON_SECRET}`;
-  if (authHeader !== expected) {
+  if (!process.env.CRON_SECRET || authHeader !== expected) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Chess sync implementation pending
-  return NextResponse.json({
-    updated: 0,
-    skipped: 0,
-    errors: [],
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    // Fetch data from both sources in parallel
+    const [israeliData, fideData] = await Promise.all([
+      scrapeIsraeliRatings(),
+      fetchFideRatings(),
+    ]);
+
+    // Write matching updates to Firestore
+    const summary = await syncRatingsToFirestore(israeliData, fideData);
+
+    return NextResponse.json({
+      ...summary,
+      israeliPlayersFound: israeliData.length,
+      fidePlayersFound: fideData.size,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("Chess sync failed:", err);
+    return NextResponse.json(
+      { error: String(err) },
+      { status: 500 }
+    );
+  }
 }
