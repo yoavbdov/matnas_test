@@ -1,147 +1,170 @@
 "use client";
 import { useState, useMemo } from "react";
-import { ChevronRight, ChevronLeft } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
-import ScheduleCard from "./ScheduleCard";
+import CalendarGrid from "./CalendarGrid";
+import MiniCalendar from "./MiniCalendar";
 import ViewExistingClassDetailModal from "@/app/classes/ViewExistingClassDetailModal";
+import ClassFormModal from "@/app/classes/ClassFormModal";
 import { useData } from "@/context/DataContext";
-import { getSlotsForWeek } from "@/lib/scheduleHelpers";
+import { useToast } from "@/context/ToastContext";
+import { updateDocument } from "@/firebase/firestore";
+import { getSlotsForDates } from "@/lib/scheduleHelpers";
 import { getConflictingClassIds } from "@/lib/classHelpers";
-import { DAYS } from "@/lib/constants";
 import type { Class } from "@/lib/types";
+import type { DayData } from "./calendarTypes";
 
-function getMondayOfWeek(date: Date): Date {
-  // Week starts on Sunday in Israel
-  const d = new Date(date);
-  d.setDate(d.getDate() - d.getDay()); // go to Sunday
-  d.setHours(0, 0, 0, 0);
-  return d;
+// --- helpers ---
+
+// Use local date parts — toISOString() returns UTC and shifts the date in UTC+2/3 (Israel)
+function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function addDays(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
+/** Returns the Set of date strings for the whole week that contains `date` (Sun–Sat) */
+function weekOf(date: Date): Set<string> {
+  const sunday = new Date(date);
+  sunday.setDate(date.getDate() - date.getDay()); // go to Sunday
+  sunday.setHours(0, 0, 0, 0);
+  const set = new Set<string>();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
+    set.add(toDateStr(d));
+  }
+  return set;
 }
+
+// --- page ---
 
 export default function SchedulePage() {
-  const { classes, teachers, rooms, resources, students, enrollments } = useData();
-  const [weekStart, setWeekStart] = useState(() => getMondayOfWeek(new Date()));
+  const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings } = useData();
+
+  // Selected dates — default: current week (Sun–Sat)
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(() => weekOf(new Date()));
   const [detailClass, setDetailClass] = useState<Class | null>(null);
+  // editTarget — החוג שעורכים כרגע; כשהוא מוגדר מוצג ClassFormModal
+  const [editTarget, setEditTarget] = useState<Class | null>(null);
+  const [saving, setSaving] = useState(false);
+  const { showToast } = useToast();
 
-  const weekDates = useMemo(() =>
-    Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
-    [weekStart]
-  );
+  const todayStr = toDateStr(new Date());
 
-  const slots = useMemo(() =>
-    getSlotsForWeek(classes, weekStart.toISOString().slice(0, 10)),
-    [classes, weekStart]
-  );
+  // Replace the selection with a dragged consecutive range (always at least 1 date)
+  const selectRange = (dates: string[]) => {
+    if (dates.length > 0) setSelectedDates(new Set(dates));
+  };
 
-  // Build conflict set for all classes
+  // Conflict detection
   const conflictIds = useMemo(() => {
     const ids = new Set<string>();
     for (const cls of classes) {
-      const conflicting = getConflictingClassIds(cls, classes);
-      if (conflicting.length > 0) ids.add(cls.id);
+      if (getConflictingClassIds(cls, classes).length > 0) ids.add(cls.id);
     }
     return ids;
   }, [classes]);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  // Fetch slots for exactly the selected dates
+  const slots = useMemo(
+    () => getSlotsForDates(classes, Array.from(selectedDates)),
+    [classes, selectedDates]
+  );
 
-  const weekLabel = `${weekDates[0].toLocaleDateString("he-IL", { day: "numeric", month: "long" })} – ${
-    weekDates[6].toLocaleDateString("he-IL", { day: "numeric", month: "long", year: "numeric" })
-  }`;
+  // Build DayData for the grid — sorted Sun→Sat, then reversed so Sunday appears on the right in RTL
+  const days: DayData[] = useMemo(() => {
+    // Ascending order (Sun→Sat); dir="rtl" on the grid puts Sunday on the right naturally
+    const sortedDates = Array.from(selectedDates).sort();
+    return sortedDates.map((dateStr) => {
+      const date = new Date(dateStr + "T00:00:00");
+      const events = slots
+        .filter((s) => s.date === dateStr)
+        .map(({ classId, slot }) => {
+          const classItem = classes.find((c) => c.id === classId);
+          if (!classItem) return null;
+          return {
+            classItem,
+            slot,
+            teacher: teachers.find((t) => t.id === classItem.teacher_id),
+            room: rooms.find((r) => r.id === slot.room_id),
+            enrollCount: enrollments.filter(
+              (e) => e.class_id === classId && e.status === "פעיל"
+            ).length,
+            hasConflict: conflictIds.has(classId),
+          };
+        })
+        .filter(Boolean) as DayData["events"];
+
+      return { date, dateStr, isToday: dateStr === todayStr, events };
+    });
+  }, [selectedDates, slots, classes, teachers, rooms, enrollments, conflictIds, todayStr]);
+
+  const totalEvents = days.reduce((n, d) => n + d.events.length, 0);
 
   return (
     <PageShell title="לוח זמנים">
-      {/* Navigation bar */}
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => setWeekStart((d) => addDays(d, -7))} className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50">
-          <ChevronRight size={16} />
-        </button>
-        <button onClick={() => setWeekStart((d) => addDays(d, 7))} className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50">
-          <ChevronLeft size={16} />
-        </button>
-        <span className="text-sm font-medium text-gray-700">{weekLabel}</span>
-        <button
-          onClick={() => setWeekStart(getMondayOfWeek(new Date()))}
-          className="mr-2 text-xs text-teal-600 hover:text-teal-800 border border-teal-200 rounded-lg px-2.5 py-1"
-        >
-          היום
-        </button>
-        <span className="text-xs text-gray-400 mr-auto">{slots.length} מפגשים השבוע</span>
+
+      {/* Summary line */}
+      <p className="text-xs text-gray-400 mb-3 text-right">
+        {selectedDates.size === 1
+          ? `תאריך אחד נבחר`
+          : `${selectedDates.size} ימים נבחרו`}
+        {" • "}
+        {totalEvents} מפגשים
+      </p>
+
+      {/* Two-column layout: mini calendar (right) + grid (left) */}
+      <div className="flex gap-4 items-start" dir="rtl">
+
+        {/* Mini calendar sidebar */}
+        <MiniCalendar
+          selectedDates={selectedDates}
+          onSelectRange={selectRange}
+        />
+
+        {/* Main calendar grid — takes remaining space */}
+        <div className="flex-1 min-w-0">
+          <CalendarGrid days={days} onEventClick={setDetailClass} />
+        </div>
+
       </div>
 
-      {/* 7-day grid */}
-      <div className="grid grid-cols-7 gap-2">
-        {weekDates.map((date) => {
-          const dateStr = date.toISOString().slice(0, 10);
-          const dayName = DAYS[date.getDay()];
-          const isToday = dateStr === todayStr;
-
-          const daySlots = slots
-            .filter((s) => s.date === dateStr)
-            .sort((a, b) => a.slot.start_time.localeCompare(b.slot.start_time));
-
-          return (
-            <div
-              key={dateStr}
-              className={`min-h-[180px] rounded-xl border p-2 ${
-                isToday ? "border-teal-400 bg-teal-50/40" : "border-gray-100 bg-white"
-              }`}
-            >
-              {/* Day header */}
-              <div className={`text-center mb-2 pb-2 border-b ${isToday ? "border-teal-200" : "border-gray-100"}`}>
-                <p className={`text-xs font-semibold ${isToday ? "text-teal-700" : "text-gray-500"}`}>{dayName}</p>
-                <p className={`text-lg font-bold ${isToday ? "text-teal-600" : "text-gray-700"}`}>{date.getDate()}</p>
-              </div>
-
-              {/* Slot cards */}
-              <div className="space-y-1.5">
-                {daySlots.length === 0 && (
-                  <p className="text-center text-xs text-gray-300 mt-4">—</p>
-                )}
-                {daySlots.map(({ classId, slot }) => {
-                  const cls = classes.find((c) => c.id === classId);
-                  if (!cls) return null;
-                  const teacher = teachers.find((t) => t.id === cls.teacher_id);
-                  const room = rooms.find((r) => r.id === slot.room_id);
-                  const enrolled = enrollments.filter((e) => e.class_id === classId && e.status === "פעיל").length;
-
-                  return (
-                    <ScheduleCard
-                      key={`${classId}-${slot.id}`}
-                      classItem={cls}
-                      slot={slot}
-                      teacher={teacher}
-                      room={room}
-                      enrollCount={enrolled}
-                      hasConflict={conflictIds.has(classId)}
-                      onClick={() => setDetailClass(cls)}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Class detail modal (opened by clicking a card) */}
+      {/* Class detail modal */}
       {detailClass && (
         <ViewExistingClassDetailModal
           classItem={detailClass}
           teachers={teachers}
           rooms={rooms}
-          resources={resources}
+          physicalEquipment={physicalEquipment}
           students={students}
           enrollments={enrollments}
           allClasses={classes}
           onClose={() => setDetailClass(null)}
-          onEdit={() => setDetailClass(null)} // edit opens in classes page
+          onEdit={(c) => { setEditTarget(c); setDetailClass(null); }}
+        />
+      )}
+
+      {/* Edit class modal — נפתח בלחיצה על "עריכה" בחלון הפרטים */}
+      {editTarget && (
+        <ClassFormModal
+          mode="edit"
+          classItem={editTarget}
+          teachers={teachers}
+          rooms={rooms}
+          physicalEquipment={physicalEquipment}
+          allClasses={classes}
+          settings={settings}
+          saving={saving}
+          onClose={() => setEditTarget(null)}
+          onSave={async (form) => {
+            if (!form.name.trim()) { showToast("שם החוג הוא שדה חובה", "error"); return; }
+            if (!form.teacher_id) { showToast("יש לבחור מדריך", "error"); return; }
+            setSaving(true);
+            try {
+              await updateDocument("classes", editTarget.id, form);
+              showToast("החוג עודכן בהצלחה", "success");
+              setEditTarget(null);
+            } catch { showToast("שגיאה בשמירה, נסה שוב", "error"); }
+            finally { setSaving(false); }
+          }}
         />
       )}
     </PageShell>

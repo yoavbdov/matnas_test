@@ -11,7 +11,7 @@ import type {
   Student,
   Teacher,
   Room,
-  Resource,
+  PhysicalEquipment,
   Class,
   Enrollment,
   CustomEventType,
@@ -24,7 +24,7 @@ interface DataContextProps {
   classes: Class[];
   teachers: Teacher[];
   rooms: Room[];
-  resources: Resource[];
+  physicalEquipment: PhysicalEquipment[];
   enrollments: Enrollment[];
   customEventTypes: CustomEventType[];
   settings: Required<AppSettings>;
@@ -37,7 +37,7 @@ const DataContext = createContext<DataContextProps>({
   classes: [],
   teachers: [],
   rooms: [],
-  resources: [],
+  physicalEquipment: [],
   enrollments: [],
   customEventTypes: [],
   settings: DEFAULT_SETTINGS,
@@ -50,8 +50,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const { data: classes, loading: l2, error: e2 } = useCollection<Class>("classes");
   const { data: teachers, loading: l3 } = useCollection<Teacher>("teachers");
   const { data: rooms, loading: l4 } = useCollection<Room>("rooms");
-  const { data: resources, loading: l5 } =
-    useCollection<Resource>("physicalEquipment");
+  const { data: physicalEquipment, loading: l5 } =
+    useCollection<PhysicalEquipment>("physicalEquipment");
   const { data: enrollments, loading: l6 } =
     useCollection<Enrollment>("enrollments");
   const { data: customEventTypes, loading: l7 } =
@@ -76,7 +76,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         classes,
         teachers,
         rooms,
-        resources,
+        physicalEquipment,
         enrollments,
         customEventTypes,
         settings,

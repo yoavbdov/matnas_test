@@ -40,7 +40,7 @@ export interface Room {
   notes?: string;
 }
 
-export interface Resource {
+export interface PhysicalEquipment {
   id: string;
   name: string;
   quantity: number;

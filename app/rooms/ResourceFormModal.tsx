@@ -3,14 +3,14 @@
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
-import type { Resource, AppSettings } from "@/lib/types";
+import type { PhysicalEquipment, AppSettings } from "@/lib/types";
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   mode: "add" | "edit";
-  form: Omit<Resource, "id">;
-  setForm: React.Dispatch<React.SetStateAction<Omit<Resource, "id">>>;
+  form: Omit<PhysicalEquipment, "id">;
+  setForm: React.Dispatch<React.SetStateAction<Omit<PhysicalEquipment, "id">>>;
   saving: boolean;
   onClose: () => void;
   onSave: () => void;

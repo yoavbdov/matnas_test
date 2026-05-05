@@ -6,8 +6,11 @@ import PageShell from "@/components/shared/PageShell";
 import StatCard from "@/components/shared/StatCard";
 import TodaySessionsTable from "@/components/dashboard/TodaySessionsTable";
 import EnrollmentStatusList from "@/components/dashboard/EnrollmentStatusList";
+import RatingDistribution from "@/components/dashboard/RatingDistribution";
 import { useData } from "@/context/DataContext";
 import { slotOccursOnDate } from "@/lib/scheduleHelpers";
+import { useRatingThresholds } from "@/firebase/hooks/useRatingThresholds";
+import type { RatingBucketConfig } from "@/firebase/hooks/useRatingThresholds";
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -16,6 +19,7 @@ function today(): string {
 export default function DashboardPage() {
   const router = useRouter();
   const { students, classes, enrollments, loading, error } = useData();
+  const { buckets: bucketConfigs, saveBuckets } = useRatingThresholds();
 
   const todayStr = today();
 
@@ -44,6 +48,38 @@ export default function DashboardPage() {
     return students.filter((s) => (s.created_at ?? "") >= monthStart).length;
   }, [students]);
 
+  // Build display buckets from the saved bucket configs (each has label, min, max).
+  // min=null means no lower bound; max=null means no upper bound.
+  const ratingData = useMemo(() => {
+    const studentsWithRating = activeStudents.filter((s) => s.israeli_rating);
+
+    const buckets = bucketConfigs.map((cfg: RatingBucketConfig) => {
+      const count = studentsWithRating.filter((s) => {
+        const r = s.israeli_rating ?? 0;
+        const aboveMin = cfg.min === null || r >= cfg.min;
+        const belowMax = cfg.max === null || r <= cfg.max;
+        return aboveMin && belowMax;
+      }).length;
+
+      // Build URL params for click-through to students page
+      const params = new URLSearchParams({ status: "active" });
+      if (cfg.min !== null) params.set("minRating", String(cfg.min));
+      if (cfg.max !== null) params.set("maxRating", String(cfg.max));
+
+      return {
+        label: cfg.label,
+        count,
+        onClick: () => router.push(`/students?${params.toString()}`),
+      };
+    });
+
+    return {
+      buckets,
+      withRating: studentsWithRating.length,
+      withoutRating: activeStudents.length - studentsWithRating.length,
+    };
+  }, [activeStudents, router, bucketConfigs]);
+
   if (error) {
     return (
       <div className="flex h-screen items-center justify-center text-red-500">
@@ -68,7 +104,7 @@ export default function DashboardPage() {
 
   return (
     <PageShell title="לוח בקרה">
-      {/* space-y-8 spaces out the three dashboard sections vertically */}
+      {/* space-y-8 spaces out the dashboard sections vertically */}
       <div className="space-y-8">
         <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatCard
@@ -97,6 +133,20 @@ export default function DashboardPage() {
             value={enrollments.filter((e) => e.status === "פעיל").length}
             label="רישומים פעילים"
             color="teal"
+          />
+        </section>
+
+        {/* Rating distribution — click a bucket to navigate to students filtered by that range */}
+        <section>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            התפלגות דירוגים
+          </h2>
+          <RatingDistribution
+            buckets={ratingData.buckets}
+            withRating={ratingData.withRating}
+            withoutRating={ratingData.withoutRating}
+            bucketConfigs={bucketConfigs}
+            onSaveBuckets={saveBuckets}
           />
         </section>
 

@@ -12,15 +12,15 @@ import ResourcesToolbar from "./ResourcesToolbar";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
-import type { Room, Resource } from "@/lib/types";
+import type { Room, PhysicalEquipment } from "@/lib/types";
 
-type ActiveTab = "rooms" | "resources";
+type ActiveTab = "rooms" | "equipment";
 
 function emptyRoom(): Omit<Room, "id"> { return { name: "", capacity: 10, features: [] }; }
-function emptyResource(): Omit<Resource, "id"> { return { name: "", quantity: 0 }; }
+function emptyEquipment(): Omit<PhysicalEquipment, "id"> { return { name: "", quantity: 0 }; }
 
 export default function RoomsPage() {
-  const { rooms, resources, classes, settings } = useData();
+  const { rooms, physicalEquipment, classes, settings } = useData();
   const { showToast } = useToast();
 
   const [tab, setTab] = useState<ActiveTab>("rooms");
@@ -32,7 +32,7 @@ export default function RoomsPage() {
   const [maxCapacity, setMaxCapacity] = useState("");
 
   // ── פילטרי ציוד ──
-  const [resourceSearch, setResourceSearch] = useState("");
+  const [equipmentSearch, setEquipmentSearch] = useState("");
   const [minQuantity, setMinQuantity] = useState("");
   const [maxQuantity, setMaxQuantity] = useState("");
 
@@ -43,10 +43,10 @@ export default function RoomsPage() {
   const [roomDeleteTarget, setRoomDeleteTarget] = useState<Room | null>(null);
 
   // ── מצב מודאל ציוד ──
-  const [resourceModal, setResourceModal] = useState<"add" | "edit" | null>(null);
-  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
-  const [resourceForm, setResourceForm] = useState<Omit<Resource, "id">>(emptyResource());
-  const [resourceDeleteTarget, setResourceDeleteTarget] = useState<Resource | null>(null);
+  const [equipmentModal, setEquipmentModal] = useState<"add" | "edit" | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<PhysicalEquipment | null>(null);
+  const [equipmentForm, setEquipmentForm] = useState<Omit<PhysicalEquipment, "id">>(emptyEquipment());
+  const [equipmentDeleteTarget, setEquipmentDeleteTarget] = useState<PhysicalEquipment | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
@@ -86,17 +86,17 @@ export default function RoomsPage() {
   }, [rooms, roomSearch, featureFilter, minCapacity, maxCapacity]);
 
   // ── סינון ציוד ──
-  const filteredResources = useMemo(() => {
-    const q = resourceSearch.trim().toLowerCase();
+  const filteredEquipment = useMemo(() => {
+    const q = equipmentSearch.trim().toLowerCase();
     const minQ = minQuantity ? Number(minQuantity) : null;
     const maxQ = maxQuantity ? Number(maxQuantity) : null;
-    return resources.filter((r) => {
+    return physicalEquipment.filter((r) => {
       if (q && !r.name.toLowerCase().includes(q)) return false;
       if (minQ !== null && r.quantity < minQ) return false;
       if (maxQ !== null && r.quantity > maxQ) return false;
       return true;
     });
-  }, [resources, resourceSearch, minQuantity, maxQuantity]);
+  }, [physicalEquipment, equipmentSearch, minQuantity, maxQuantity]);
 
   // ── פעולות חדר ──
   function openAddRoom() { setRoomForm(emptyRoom()); setSelectedRoom(null); setRoomModal("add"); }
@@ -119,23 +119,23 @@ export default function RoomsPage() {
   }
 
   // ── פעולות ציוד ──
-  function openAddResource() { setResourceForm(emptyResource()); setSelectedResource(null); setResourceModal("add"); }
-  function openEditResource(r: Resource) { setSelectedResource(r); setResourceForm({ ...r }); setResourceModal("edit"); }
+  function openAddEquipment() { setEquipmentForm(emptyEquipment()); setSelectedEquipment(null); setEquipmentModal("add"); }
+  function openEditEquipment(r: PhysicalEquipment) { setSelectedEquipment(r); setEquipmentForm({ ...r }); setEquipmentModal("edit"); }
 
-  async function handleSaveResource() {
-    if (!resourceForm.name.trim()) { showToast("שם הציוד הוא שדה חובה", "error"); return; }
+  async function handleSaveEquipment() {
+    if (!equipmentForm.name.trim()) { showToast("שם הציוד הוא שדה חובה", "error"); return; }
     setSaving(true);
     try {
-      if (resourceModal === "add") { await addDocument("physicalEquipment", resourceForm); showToast("הציוד נוסף", "success"); }
-      else if (selectedResource) { await updateDocument("physicalEquipment", selectedResource.id, resourceForm); showToast("הציוד עודכן", "success"); }
-      setResourceModal(null);
+      if (equipmentModal === "add") { await addDocument("physicalEquipment", equipmentForm); showToast("הציוד נוסף", "success"); }
+      else if (selectedEquipment) { await updateDocument("physicalEquipment", selectedEquipment.id, equipmentForm); showToast("הציוד עודכן", "success"); }
+      setEquipmentModal(null);
     } catch { showToast("שגיאה בשמירה", "error"); } finally { setSaving(false); }
   }
 
-  async function handleDeleteResource() {
-    if (!resourceDeleteTarget) return;
-    try { await deleteDocument("physicalEquipment", resourceDeleteTarget.id); showToast("הציוד נמחק", "success"); }
-    catch { showToast("שגיאה במחיקה", "error"); } finally { setResourceDeleteTarget(null); setResourceModal(null); }
+  async function handleDeleteEquipment() {
+    if (!equipmentDeleteTarget) return;
+    try { await deleteDocument("physicalEquipment", equipmentDeleteTarget.id); showToast("הציוד נמחק", "success"); }
+    catch { showToast("שגיאה במחיקה", "error"); } finally { setEquipmentDeleteTarget(null); setEquipmentModal(null); }
   }
 
   // ── עמודות טבלאות (ללא עריכה/מחיקה — הכל בתוך המודאל) ──
@@ -146,7 +146,7 @@ export default function RoomsPage() {
     { key: "features", label: "תכונות", render: (r) => (r.features ?? []).join(", ") || "—" },
   ];
 
-  const resourceColumns: Column<Resource>[] = [
+  const equipmentColumns: Column<PhysicalEquipment>[] = [
     { key: "name", label: "שם" },
     { key: "quantity", label: "כמות" },
     { key: "notes", label: "הערות", render: (r) => r.notes || "—" },
@@ -156,7 +156,7 @@ export default function RoomsPage() {
     <PageShell title="חדרים וציוד">
       {/* טאבים */}
       <div className="flex gap-6 border-b border-gray-200 mb-5">
-        {(["rooms", "resources"] as ActiveTab[]).map((t) => (
+        {(["rooms", "equipment"] as ActiveTab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -164,7 +164,7 @@ export default function RoomsPage() {
               tab === t ? "border-teal-500 text-teal-700" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
-            {t === "rooms" ? `חדרים (${rooms.length})` : `ציוד (${resources.length})`}
+            {t === "rooms" ? `חדרים (${rooms.length})` : `ציוד (${physicalEquipment.length})`}
           </button>
         ))}
       </div>
@@ -189,15 +189,15 @@ export default function RoomsPage() {
       ) : (
         <>
           <ResourcesToolbar
-            search={resourceSearch} onSearch={setResourceSearch}
+            search={equipmentSearch} onSearch={setEquipmentSearch}
             minQuantity={minQuantity} onFilterMinQuantity={setMinQuantity}
             maxQuantity={maxQuantity} onFilterMaxQuantity={setMaxQuantity}
-            onAdd={openAddResource}
+            onAdd={openAddEquipment}
             onCheckAvailability={() => setAvailabilityOpen(true)}
             maxSearchLength={settings.MAX_SEARCH_LENGTH}
           />
-          <p className="text-xs text-gray-400 mb-3">{filteredResources.length} פריטי ציוד</p>
-          <Table columns={resourceColumns} rows={filteredResources} onRowClick={openEditResource} sortable />
+          <p className="text-xs text-gray-400 mb-3">{filteredEquipment.length} פריטי ציוד</p>
+          <Table columns={equipmentColumns} rows={filteredEquipment} onRowClick={openEditEquipment} sortable />
         </>
       )}
 
@@ -218,24 +218,24 @@ export default function RoomsPage() {
         />
       )}
 
-      {resourceModal && (
+      {equipmentModal && (
         <ResourceFormModal
-          mode={resourceModal} form={resourceForm} setForm={setResourceForm}
-          saving={saving} onClose={() => setResourceModal(null)} onSave={handleSaveResource}
-          onDelete={resourceModal === "edit" && selectedResource ? () => setResourceDeleteTarget(selectedResource) : undefined}
+          mode={equipmentModal} form={equipmentForm} setForm={setEquipmentForm}
+          saving={saving} onClose={() => setEquipmentModal(null)} onSave={handleSaveEquipment}
+          onDelete={equipmentModal === "edit" && selectedEquipment ? () => setEquipmentDeleteTarget(selectedEquipment) : undefined}
           settings={settings}
         />
       )}
-      {resourceDeleteTarget && (
+      {equipmentDeleteTarget && (
         <ConfirmDialog
-          message={`למחוק את "${resourceDeleteTarget.name}"?`}
-          onConfirm={handleDeleteResource}
-          onCancel={() => setResourceDeleteTarget(null)}
+          message={`למחוק את "${equipmentDeleteTarget.name}"?`}
+          onConfirm={handleDeleteEquipment}
+          onCancel={() => setEquipmentDeleteTarget(null)}
         />
       )}
 
       {availabilityOpen && (
-        <AvailabilityCheckerModal resources={resources} classes={classes} onClose={() => setAvailabilityOpen(false)} />
+        <AvailabilityCheckerModal physicalEquipment={physicalEquipment} classes={classes} onClose={() => setAvailabilityOpen(false)} />
       )}
 
       {importOpen && (

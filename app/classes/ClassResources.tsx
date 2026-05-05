@@ -4,7 +4,7 @@ import { Plus, X } from "lucide-react";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
 import { calcResourceAvailability } from "@/lib/classHelpers";
-import type { Resource, Class } from "@/lib/types";
+import type { PhysicalEquipment, Class } from "@/lib/types";
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
@@ -16,18 +16,18 @@ interface Assignment {
 
 interface Props {
   assignments: Assignment[];
-  resources: Resource[];
+  physicalEquipment: PhysicalEquipment[];
   allClasses: Class[];       // to check current usage
   currentClassId?: string;   // excluded from usage count
   onChange: (assignments: Assignment[]) => void;
 }
 
-export default function ClassResources({ assignments, resources, allClasses, currentClassId, onChange }: Props) {
+export default function ClassResources({ assignments, physicalEquipment, allClasses, currentClassId, onChange }: Props) {
   // IDs already chosen (to prevent duplicates in the dropdown)
   const chosen = new Set(assignments.map((a) => a.resource_id));
 
   function addRow() {
-    const first = resources.find((r) => !chosen.has(r.id));
+    const first = physicalEquipment.find((r) => !chosen.has(r.id));
     if (!first) return;
     onChange([...assignments, { resource_id: first.id, quantity: 1 }]);
   }
@@ -44,7 +44,7 @@ export default function ClassResources({ assignments, resources, allClasses, cur
     <div>
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">ציוד נדרש</p>
-        <Btn variant="secondary" className="text-xs px-2 py-1" onClick={addRow} disabled={resources.length === 0 || chosen.size >= resources.length}>
+        <Btn variant="secondary" className="text-xs px-2 py-1" onClick={addRow} disabled={physicalEquipment.length === 0 || chosen.size >= physicalEquipment.length}>
           <Plus size={13} />הוסף משאב
         </Btn>
       </div>
@@ -55,7 +55,7 @@ export default function ClassResources({ assignments, resources, allClasses, cur
 
       <div className="space-y-2">
         {assignments.map((a, idx) => {
-          const res = resources.find((r) => r.id === a.resource_id);
+          const res = physicalEquipment.find((r) => r.id === a.resource_id);
           // Peak simultaneous usage of this resource in other classes
           const usedElsewhere = res
             ? calcResourceAvailability(res, allClasses, currentClassId)
@@ -69,7 +69,7 @@ export default function ClassResources({ assignments, resources, allClasses, cur
               <div className="flex-1">
                 <Field label="משאב">
                   <select className={inp} value={a.resource_id} onChange={(e) => setField(idx, { resource_id: e.target.value })}>
-                    {resources.map((r) => (
+                    {physicalEquipment.map((r) => (
                       <option key={r.id} value={r.id} disabled={chosen.has(r.id) && r.id !== a.resource_id}>
                         {r.name}
                       </option>

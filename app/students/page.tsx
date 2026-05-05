@@ -67,8 +67,8 @@ export default function StudentsPage() {
   );
   const [classFilter, setClassFilter] = useState(searchParams.get("class") ?? "");
   const [gradeFilter, setGradeFilter] = useState("");   // grade label or ""
-  const [minRating, setMinRating] = useState("");       // numeric string or ""
-  const [maxRating, setMaxRating] = useState("");       // numeric string or ""
+  const [minRating, setMinRating] = useState(searchParams.get("minRating") ?? "");   // numeric string or ""
+  const [maxRating, setMaxRating] = useState(searchParams.get("maxRating") ?? "");   // numeric string or ""
   const [minFideRating, setMinFideRating] = useState(""); // FIDE rating filters
   const [maxFideRating, setMaxFideRating] = useState("");
 

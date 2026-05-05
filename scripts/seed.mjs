@@ -102,20 +102,6 @@ async function seed() {
     console.log(`  + ${r.name} (${ref.id})`);
   }
 
-  // ── RESOURCES (ציוד) ───────────────────────────────────────────────────────
-  // Fields match the Resource interface in lib/types.ts
-  console.log("\nSeeding resources...");
-  const resources = [
-    { name: "לוחות שחמט",     quantity: 50, notes: "" },
-    { name: "שעוני שחמט",     quantity: 30, notes: "" },
-    { name: "שעוני DGT",      quantity: 20, notes: "" },
-    { name: "לוחות DGT",      quantity: 30, notes: "" },
-    { name: "כיסאות מתקפלים", quantity: 40, notes: "" },
-  ];
-  for (const res of resources) {
-    const ref = await db.collection("physicalEquipment").add(res);
-    console.log(`  + ${res.name} (${ref.id})`);
-  }
 
   // ── CLASSES (חוגים) ────────────────────────────────────────────────────────
   // Fields match the Class interface in lib/types.ts

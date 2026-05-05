@@ -5,17 +5,17 @@ import { X, CheckCircle, AlertCircle } from "lucide-react";
 import Field from "@/components/shared/Field";
 import { calcResourceAvailability } from "@/lib/classHelpers";
 import { slotOccursOnDate } from "@/lib/scheduleHelpers";
-import type { Resource, Class } from "@/lib/types";
+import type { PhysicalEquipment, Class } from "@/lib/types";
 
 interface Props {
-  resources: Resource[];
+  physicalEquipment: PhysicalEquipment[];
   classes: Class[];
   onClose: () => void;
 }
 
-// Return all classes that use a resource during ANY day in the date range
-function classesUsingResourceInRange(
-  resource: Resource,
+// Return all classes that use a piece of equipment during ANY day in the date range
+function classesUsingEquipmentInRange(
+  resource: PhysicalEquipment,
   classes: Class[],
   startDate: string,
   endDate: string
@@ -36,26 +36,26 @@ function classesUsingResourceInRange(
   );
 }
 
-export default function AvailabilityCheckerModal({ resources, classes, onClose }: Props) {
-  const [resourceId, setResourceId] = useState(resources[0]?.id ?? "");
+export default function AvailabilityCheckerModal({ physicalEquipment, classes, onClose }: Props) {
+  const [equipmentId, setEquipmentId] = useState(physicalEquipment[0]?.id ?? "");
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
 
-  const resource = resources.find((r) => r.id === resourceId);
+  const equipment = physicalEquipment.find((r) => r.id === equipmentId);
 
-  // Classes that use this resource in the date range
+  // Classes that use this equipment in the date range
   const usingClasses = useMemo(() =>
-    resource ? classesUsingResourceInRange(resource, classes, startDate, endDate) : [],
-    [resource, classes, startDate, endDate]
+    equipment ? classesUsingEquipmentInRange(equipment, classes, startDate, endDate) : [],
+    [equipment, classes, startDate, endDate]
   );
 
   // Peak simultaneous usage
   const peakUsage = useMemo(() =>
-    resource ? calcResourceAvailability(resource, usingClasses) : 0,
-    [resource, usingClasses]
+    equipment ? calcResourceAvailability(equipment, usingClasses) : 0,
+    [equipment, usingClasses]
   );
 
-  const available = resource ? resource.quantity : 0;
+  const available = equipment ? equipment.quantity : 0;
   const shortage = peakUsage > available;
   const deficit = peakUsage - available;
 
@@ -72,13 +72,13 @@ export default function AvailabilityCheckerModal({ resources, classes, onClose }
         </div>
 
         <div className="px-6 py-5 space-y-4">
-          {resources.length === 0 ? (
+          {physicalEquipment.length === 0 ? (
             <p className="text-sm text-gray-400 text-center">אין ציוד מוגדר במערכת</p>
           ) : (
             <>
-              <Field label="משאב">
-                <select className={inp} value={resourceId} onChange={(e) => setResourceId(e.target.value)}>
-                  {resources.map((r) => (
+              <Field label="ציוד">
+                <select className={inp} value={equipmentId} onChange={(e) => setEquipmentId(e.target.value)}>
+                  {physicalEquipment.map((r) => (
                     <option key={r.id} value={r.id}>{r.name} — {r.quantity} יחידות</option>
                   ))}
                 </select>
@@ -94,7 +94,7 @@ export default function AvailabilityCheckerModal({ resources, classes, onClose }
               </div>
 
               {/* Result */}
-              {resource && (
+              {equipment && (
                 <div className={`rounded-xl p-4 ${shortage ? "bg-red-50 border border-red-200" : "bg-green-50 border border-green-200"}`}>
                   <div className="flex items-center gap-2 mb-2">
                     {shortage

@@ -21,7 +21,7 @@ function emptyForm(): Omit<Class, "id"> {
 }
 
 export default function ClassesPage() {
-  const { classes, teachers, rooms, resources, students, enrollments, settings } = useData();
+  const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings } = useData();
   const { showToast } = useToast();
 
   // --- פילטרים ---
@@ -172,7 +172,7 @@ export default function ClassesPage() {
       // כל מפגש: יום שעת_התחלה-שעת_סיום
       const slots = (c.slots ?? []).map((s) => `${s.day} ${s.start_time}-${s.end_time}`).join(" | ");
       const resNames = (c.resource_ids ?? [])
-        .map((id) => resources.find((r) => r.id === id)?.name ?? id)
+        .map((id) => physicalEquipment.find((r) => r.id === id)?.name ?? id)
         .join(" | ");
       return [
         c.name, t ? `${t.first_name} ${t.last_name}` : "", c.capacity, enrolled,
@@ -228,7 +228,7 @@ export default function ClassesPage() {
           classItem={editTarget}
           teachers={teachers}
           rooms={rooms}
-          resources={resources}
+          physicalEquipment={physicalEquipment}
           allClasses={classes}
           settings={settings}
           saving={saving}
@@ -242,7 +242,7 @@ export default function ClassesPage() {
           classItem={detailClass}
           teachers={teachers}
           rooms={rooms}
-          resources={resources}
+          physicalEquipment={physicalEquipment}
           students={students}
           enrollments={enrollments}
           allClasses={classes}

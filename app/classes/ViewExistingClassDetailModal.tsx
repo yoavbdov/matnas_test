@@ -8,13 +8,13 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { getConflictingClassIds } from "@/lib/classHelpers";
-import type { Class, Teacher, Room, Resource, Student, Enrollment } from "@/lib/types";
+import type { Class, Teacher, Room, PhysicalEquipment, Student, Enrollment } from "@/lib/types";
 
 interface Props {
   classItem: Class;
   teachers: Teacher[];
   rooms: Room[];
-  resources: Resource[];
+  physicalEquipment: PhysicalEquipment[];
   students: Student[];
   enrollments: Enrollment[];
   allClasses: Class[];
@@ -33,7 +33,7 @@ function Row({ label, value }: { label: string; value?: string | number }) {
 }
 
 export default function ViewExistingClassDetailModal({
-  classItem, teachers, rooms, resources, students, enrollments, allClasses, onClose, onEdit,
+  classItem, teachers, rooms, physicalEquipment, students, enrollments, allClasses, onClose, onEdit,
 }: Props) {
   const { showToast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -130,7 +130,7 @@ export default function ViewExistingClassDetailModal({
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">ציוד נדרש</p>
               <div className="flex flex-wrap gap-2">
                 {(classItem.resource_ids ?? []).map((id) => {
-                  const res = resources.find((r) => r.id === id);
+                  const res = physicalEquipment.find((r) => r.id === id);
                   return res ? (
                     <span key={id} className="text-xs bg-gray-100 text-gray-600 rounded-full px-3 py-1">
                       {res.name}

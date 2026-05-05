@@ -4,7 +4,7 @@
 */
 
 import { timeToMins } from "./utils";
-import type { ScheduleSlot, Class, Resource } from "./types";
+import type { ScheduleSlot, Class, PhysicalEquipment } from "./types";
 
 // Check if two slots occupy overlapping time on the same weekday
 // (ignores room — used to detect teacher double-booking)
@@ -28,7 +28,7 @@ export function slotsConflict(slotA: ScheduleSlot, slotB: ScheduleSlot): boolean
 // Caller compares returned number to resource.quantity to detect a shortage.
 // Pass ignoreClassId to exclude a class being edited (so it doesn't conflict with itself).
 export function calcResourceAvailability(
-  resource: Resource,
+  resource: PhysicalEquipment,
   allClasses: Class[],
   ignoreClassId?: string
 ): number {

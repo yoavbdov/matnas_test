@@ -7,7 +7,7 @@ import ClassBasicFields from "./ClassBasicFields";
 import ClassScheduleSlots from "./ClassScheduleSlots";
 import ClassResources from "./ClassResources";
 import { CLASS_COLORS } from "@/lib/constants";
-import type { Class, Teacher, Room, Resource, ScheduleSlot, AppSettings } from "@/lib/types";
+import type { Class, Teacher, Room, PhysicalEquipment, ScheduleSlot, AppSettings } from "@/lib/types";
 
 interface Assignment { resource_id: string; quantity: number; }
 
@@ -28,7 +28,7 @@ interface Props {
   classItem: Class | null;   // null = add mode
   teachers: Teacher[];
   rooms: Room[];
-  resources: Resource[];
+  physicalEquipment: PhysicalEquipment[];
   allClasses: Class[];
   settings: Required<AppSettings>;
   saving: boolean;
@@ -44,7 +44,7 @@ function emptyForm(): FormData {
 }
 
 export default function ClassFormModal({
-  mode, classItem, teachers, rooms, resources, allClasses, settings, saving, onClose, onSave,
+  mode, classItem, teachers, rooms, physicalEquipment, allClasses, settings, saving, onClose, onSave,
 }: Props) {
   const [form, setForm] = useState<FormData>(() =>
     classItem
@@ -117,7 +117,7 @@ export default function ClassFormModal({
       <hr className="my-5 border-gray-100" />
       <ClassResources
         assignments={assignments}
-        resources={resources}
+        physicalEquipment={physicalEquipment}
         allClasses={allClasses}
         currentClassId={classItem?.id}
         onChange={setAssignments}

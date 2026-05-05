@@ -10,7 +10,7 @@ import {
   UserCheck,
   DoorOpen,
   Calendar,
-  BarChart2,
+
   Settings,
   LogOut,
 } from "lucide-react";
@@ -22,7 +22,6 @@ const navItems = [
   { href: "/teachers", label: "מדריכים", icon: UserCheck },
   { href: "/rooms", label: "חדרים וציוד", icon: DoorOpen },
   { href: "/schedule", label: "לוח זמנים", icon: Calendar },
-  { href: "/reports", label: "דוחות", icon: BarChart2 },
   { href: "/settings", label: "הגדרות", icon: Settings },
 ];
 
