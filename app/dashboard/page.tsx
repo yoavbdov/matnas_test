@@ -110,7 +110,7 @@ export default function DashboardPage() {
           <StatCard
             icon={Users}
             value={activeStudents.length}
-            label="תלמידים פעילים"
+            label="שחקנים פעילים"
             sub={newThisMonth > 0 ? `${newThisMonth} חדשים החודש` : undefined}
             color="teal"
             onClick={() => router.push("/students?status=active")}

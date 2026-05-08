@@ -1,5 +1,9 @@
 "use client";
-// חלון פרטים של חוג קיים — מידע, מפגשים, ציוד, תלמידים רשומים
+/*
+  ViewExistingClassDetailModal — read-only view of a class.
+  Structure mirrors TournamentDetailModal for visual consistency:
+  header → description → age restrictions → rating restrictions → schedule → equipment → participants
+*/
 import { useState } from "react";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
@@ -7,8 +11,8 @@ import Badge from "@/components/shared/Badge";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
-import { getConflictingClassIds } from "@/lib/classHelpers";
-import type { Class, Teacher, Room, PhysicalEquipment, Student, Enrollment } from "@/lib/types";
+import { getConflictingClassIds, calcResourceAvailability } from "@/lib/classHelpers";
+import type { Class, Teacher, Room, PhysicalEquipment, Student, Enrollment, Tournament } from "@/lib/types";
 
 interface Props {
   classItem: Class;
@@ -18,12 +22,23 @@ interface Props {
   students: Student[];
   enrollments: Enrollment[];
   allClasses: Class[];
+  allTournaments: Tournament[];
   onClose: () => void;
   onEdit: (c: Class) => void;
 }
 
+// Section header — same style as in tournament detail modal
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      {children}
+    </p>
+  );
+}
+
+// Single label/value row
 function Row({ label, value }: { label: string; value?: string | number }) {
-  if (!value && value !== 0) return null;
+  if (value === undefined || value === null || value === "") return null;
   return (
     <div className="flex gap-2 py-1.5 border-b border-gray-50 last:border-0">
       <span className="text-xs text-gray-400 w-36 shrink-0">{label}</span>
@@ -33,7 +48,7 @@ function Row({ label, value }: { label: string; value?: string | number }) {
 }
 
 export default function ViewExistingClassDetailModal({
-  classItem, teachers, rooms, physicalEquipment, students, enrollments, allClasses, onClose, onEdit,
+  classItem, teachers, rooms, physicalEquipment, students, enrollments, allClasses, allTournaments, onClose, onEdit,
 }: Props) {
   const { showToast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -42,6 +57,11 @@ export default function ViewExistingClassDetailModal({
   const teacher = teachers.find((t) => t.id === classItem.teacher_id);
   const activeEnrollments = enrollments.filter((e) => e.class_id === classItem.id && e.status === "פעיל");
   const conflictIds = getConflictingClassIds(classItem, allClasses);
+
+  const statusColor =
+    classItem.status === "פעיל" ? "green" :
+    classItem.status === "מתוכנן" ? "blue" :
+    classItem.status === "הסתיים" ? "gray" : "red";
 
   async function handleDelete() {
     try {
@@ -78,32 +98,49 @@ export default function ViewExistingClassDetailModal({
           </div>
         }
       >
-        <div className="space-y-6">
-          {/* Basic info */}
-          <section>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-3 h-3 rounded-full inline-block" style={{ background: classItem.color ?? "#ccc" }} />
-              <Badge label={classItem.status} color={classItem.status === "פעיל" ? "green" : "gray"} />
-            </div>
-            <Row label="מדריך" value={teacher ? `${teacher.first_name} ${teacher.last_name}` : "—"} />
-            <Row label="קיבולת" value={classItem.capacity} />
-            <Row label="גיל מינימלי" value={classItem.age_min} />
-            <Row label="גיל מקסימלי" value={classItem.age_max} />
-            <Row label="דירוג מינימלי" value={classItem.rating_min} />
-            <Row label="דירוג מקסימלי" value={classItem.rating_max} />
-            {classItem.notes && <Row label="הערות" value={classItem.notes} />}
-          </section>
+        <div className="space-y-6" dir="rtl">
 
-          {/* Schedule slots */}
+          {/* Status + color */}
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full inline-block shrink-0" style={{ background: classItem.color ?? "#ccc" }} />
+            <Badge label={classItem.status} color={statusColor} />
+          </div>
+
+          {/* Role-specific field */}
+          <Row label="מדריך" value={teacher ? `${teacher.first_name} ${teacher.last_name}` : undefined} />
+
+          {/* תיאור */}
+          {classItem.description && (
+            <p className="text-sm text-gray-600">{classItem.description}</p>
+          )}
+
+          {/* הגבלות גיל */}
+          {(classItem.age_min !== undefined || classItem.age_max !== undefined) && (
+            <section>
+              <SectionHeader>הגבלות גיל</SectionHeader>
+              <Row label="גיל מינימלי" value={classItem.age_min} />
+              <Row label="גיל מקסימלי" value={classItem.age_max} />
+            </section>
+          )}
+
+          {/* הגבלות מד כושר */}
+          {(classItem.rating_min !== undefined || classItem.rating_max !== undefined) && (
+            <section>
+              <SectionHeader>הגבלות מד כושר</SectionHeader>
+              <Row label="דירוג מינימלי" value={classItem.rating_min} />
+              <Row label="דירוג מקסימלי" value={classItem.rating_max} />
+            </section>
+          )}
+
+          {/* מפגשים קבועים */}
           <section>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">מפגשים קבועים</p>
+            <SectionHeader>מפגשים קבועים</SectionHeader>
             {(classItem.slots ?? []).length === 0 ? (
               <p className="text-sm text-gray-400">אין מפגשים מוגדרים</p>
             ) : (
               <div className="space-y-1.5">
                 {(classItem.slots ?? []).map((slot, i) => {
                   const room = rooms.find((r) => r.id === slot.room_id);
-                  // Check if this slot has a conflict with another class
                   const hasConflict = conflictIds.length > 0;
                   return (
                     <div
@@ -124,30 +161,42 @@ export default function ViewExistingClassDetailModal({
             )}
           </section>
 
-          {/* Resources */}
-          {(classItem.resource_ids ?? []).length > 0 && (
+          {/* ציוד פיזי נדרש */}
+          {(classItem.resource_assignments ?? []).length > 0 && (
             <section>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">ציוד נדרש</p>
-              <div className="flex flex-wrap gap-2">
-                {(classItem.resource_ids ?? []).map((id) => {
-                  const res = physicalEquipment.find((r) => r.id === id);
+              <SectionHeader>ציוד פיזי נדרש</SectionHeader>
+              <div className="flex flex-wrap gap-2 items-center">
+                {(classItem.resource_assignments ?? []).map((a) => {
+                  const res = physicalEquipment.find((r) => r.id === a.resource_id);
                   return res ? (
-                    <span key={id} className="text-xs bg-gray-100 text-gray-600 rounded-full px-3 py-1">
-                      {res.name}
+                    <span
+                      key={a.resource_id}
+                      className="bg-teal-50 border border-teal-200 text-teal-800 text-xs rounded-lg px-3 py-1"
+                    >
+                      {res.name} × {a.quantity}
                     </span>
                   ) : null;
                 })}
+                {/* Show warning if any resource is overbooked together with other events */}
+                {(classItem.resource_assignments ?? []).some((a) => {
+                  const res = physicalEquipment.find((r) => r.id === a.resource_id);
+                  if (!res) return false;
+                  const usedElsewhere = calcResourceAvailability(res, allClasses, classItem.id, allTournaments);
+                  return a.quantity > res.quantity - usedElsewhere;
+                }) && (
+                  <span className="text-xs text-red-500 font-medium">⚠ חסר ציוד</span>
+                )}
               </div>
             </section>
           )}
 
-          {/* Enrolled students */}
+          {/* משתתפים */}
           <section>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              תלמידים רשומים ({activeEnrollments.length} / {classItem.capacity})
-            </p>
+            <SectionHeader>
+              משתתפים ({activeEnrollments.length} / {classItem.capacity})
+            </SectionHeader>
             {activeEnrollments.length === 0 ? (
-              <p className="text-sm text-gray-400">אין תלמידים רשומים</p>
+              <p className="text-sm text-gray-400">אין שחקנים רשומים</p>
             ) : (
               <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
                 <table className="w-full text-sm">
@@ -184,6 +233,7 @@ export default function ViewExistingClassDetailModal({
               </div>
             )}
           </section>
+
         </div>
       </Modal>
 

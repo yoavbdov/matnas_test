@@ -1,5 +1,5 @@
-// פונקציית ניתוח קובץ CSV לייבוא תלמידים
-// כל שדה שניתן למלא ידנית בטופס התלמיד נתמך כאן
+// פונקציית ניתוח קובץ CSV לייבוא שחקנים
+// כל שדה שניתן למלא ידנית בטופס השחקן נתמך כאן
 
 import { CHESS_TITLES, GRADE_LABELS } from "@/lib/constants";
 import type { AppSettings } from "@/lib/types";
@@ -58,7 +58,7 @@ export const TEMPLATE_EXAMPLE = [
   "", // כיתה ידנית — ריק = אוטומטי
   '="12345"', '="67890"',
   "1500", "1450", "FM",
-  "תלמיד מוכשר",
+  "שחקן מוכשר",
 ];
 
 // המרת DD/MM/YYYY או YYYY-MM-DD ל-YYYY-MM-DD

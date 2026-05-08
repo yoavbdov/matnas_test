@@ -2,6 +2,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
+import TimeSelect from "@/components/shared/TimeSelect";
 import { DAYS, RECURRENCE_OPTIONS } from "@/lib/constants";
 import type { Room, ScheduleSlot } from "@/lib/types";
 
@@ -37,10 +38,10 @@ export default function SlotEditor({ slots, rooms, onAdd, onRemove, onChange }: 
                 </select>
               </Field>
               <Field label="שעת התחלה">
-                <input type="time" className={inp} value={slot.start_time} onChange={(e) => onChange(idx, { start_time: e.target.value })} />
+                <TimeSelect className={inp} value={slot.start_time} onChange={(v) => onChange(idx, { start_time: v })} />
               </Field>
               <Field label="שעת סיום">
-                <input type="time" className={inp} value={slot.end_time} onChange={(e) => onChange(idx, { end_time: e.target.value })} />
+                <TimeSelect className={inp} value={slot.end_time} onChange={(v) => onChange(idx, { end_time: v })} />
               </Field>
               <Field label="חדר">
                 <select className={inp} value={slot.room_id} onChange={(e) => onChange(idx, { room_id: e.target.value })}>

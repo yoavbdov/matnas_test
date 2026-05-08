@@ -98,7 +98,15 @@ export default function ClassesTable({ classes, teachers, enrollments, onRowClic
                 <td className="px-4 py-3 text-gray-500">{cls.capacity}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{days || "—"}</td>
                 <td className="px-4 py-3">
-                  <Badge label={cls.status} color={cls.status === "פעיל" ? "green" : "gray"} />
+                  <Badge
+                    label={cls.status}
+                    color={
+                      cls.status === "פעיל" ? "green" :
+                      cls.status === "מתוכנן" ? "blue" :
+                      cls.status === "הסתיים" ? "gray" :
+                      "red" /* בוטל */
+                    }
+                  />
                 </td>
               </tr>
             );

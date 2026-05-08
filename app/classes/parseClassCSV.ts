@@ -11,7 +11,7 @@ export interface ParsedClassRow {
   teacher_id?: string; // נגזר מהשם שהוזן
   capacity?: number;
   // שדות אופציונליים
-  status?: "פעיל" | "לא פעיל";
+  status?: "מתוכנן" | "פעיל" | "הסתיים" | "בוטל";
   age_min?: number;
   age_max?: number;
   rating_min?: number;
@@ -74,12 +74,14 @@ export function parseClassCSV(text: string, teachers: Teacher[]): ParsedClassRow
     else if (isNaN(capacity) || !Number.isInteger(capacity) || capacity <= 0)
       errors.push("קיבולת חייבת להיות מספר שלם חיובי");
 
-    // סטטוס
-    let status: "פעיל" | "לא פעיל" = "פעיל";
-    if (statusRaw && statusRaw !== "פעיל" && statusRaw !== "לא פעיל") {
-      errors.push("סטטוס חייב להיות 'פעיל' או 'לא פעיל'");
-    } else if (statusRaw === "לא פעיל") {
-      status = "לא פעיל";
+    // סטטוס — will be overwritten by computeClassStatus on save, but kept for CSV import
+    const VALID_STATUSES = ["מתוכנן", "פעיל", "הסתיים", "בוטל"] as const;
+    type ClassStatus = (typeof VALID_STATUSES)[number];
+    let status: ClassStatus = "מתוכנן";
+    if (statusRaw && !VALID_STATUSES.includes(statusRaw as ClassStatus)) {
+      errors.push("סטטוס חייב להיות אחד מ: מתוכנן, פעיל, הסתיים, בוטל");
+    } else if (statusRaw) {
+      status = statusRaw as ClassStatus;
     }
 
     // גיל ודירוג — אופציונליים, חייבים להיות מספרים חיוביים

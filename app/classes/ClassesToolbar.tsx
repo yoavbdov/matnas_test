@@ -34,8 +34,8 @@ function FilterItem({
 interface Props {
   search: string;
   onSearch: (v: string) => void;
-  statusFilter: "הכל" | "פעיל" | "לא פעיל";
-  onFilterStatus: (v: "הכל" | "פעיל" | "לא פעיל") => void;
+  statusFilter: "הכל" | "מתוכנן" | "פעיל" | "הסתיים" | "בוטל";
+  onFilterStatus: (v: "הכל" | "מתוכנן" | "פעיל" | "הסתיים" | "בוטל") => void;
   teacherFilter: string;
   onFilterTeacher: (id: string) => void;
   ageMin: string;
@@ -131,8 +131,10 @@ export default function ClassesToolbar({
             className={sel}
           >
             <option value="הכל">הכל</option>
+            <option value="מתוכנן">מתוכנן</option>
             <option value="פעיל">פעיל</option>
-            <option value="לא פעיל">לא פעיל</option>
+            <option value="הסתיים">הסתיים</option>
+            <option value="בוטל">בוטל</option>
           </select>
         </FilterItem>
 

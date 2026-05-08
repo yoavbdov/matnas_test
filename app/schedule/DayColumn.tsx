@@ -1,39 +1,52 @@
 // One day column in the calendar grid — draws hour lines and positions events
+// Renders both class events and tournament round events, laid out side-by-side when they overlap.
 import { HOUR_HEIGHT, timeToMinutes } from "./calendarUtils";
 import CalendarEvent from "./CalendarEvent";
-import type { CalendarEventData, DayData } from "./calendarTypes";
-import type { Class } from "@/lib/types";
+import TournamentCalendarEvent from "./TournamentCalendarEvent";
+import type { CalendarEventData, TournamentEventData, DayData } from "./calendarTypes";
+import type { Class, Tournament } from "@/lib/types";
 
 interface Props {
   day: DayData;
   onEventClick: (cls: Class) => void;
+  onTournamentClick?: (t: Tournament) => void;
+}
+
+// Each item in the unified layout has a kind + start/end for sorting/overlap detection
+type LayoutClass = { kind: "class" } & CalendarEventData;
+type LayoutTournament = { kind: "tournament" } & TournamentEventData;
+type LayoutItem = LayoutClass | LayoutTournament;
+
+function getTime(item: LayoutItem): { start: number; end: number } {
+  if (item.kind === "class") {
+    return { start: timeToMinutes(item.slot.start_time), end: timeToMinutes(item.slot.end_time) };
+  }
+  return { start: timeToMinutes(item.round.start_time), end: timeToMinutes(item.round.end_time) };
 }
 
 // Greedy column assignment so overlapping events appear side-by-side
-function layoutEvents(events: CalendarEventData[]) {
-  const sorted = [...events].sort(
-    (a, b) => timeToMinutes(a.slot.start_time) - timeToMinutes(b.slot.start_time)
-  );
+function layoutItems(items: LayoutItem[]) {
+  const sorted = [...items].sort((a, b) => getTime(a).start - getTime(b).start);
+  const colEnds: number[] = [];
 
-  const colEnds: number[] = []; // last end-minute of each column
-
-  const assigned = sorted.map((ev) => {
-    const start = timeToMinutes(ev.slot.start_time);
-    const end = timeToMinutes(ev.slot.end_time);
-    // find an existing column that has finished before this event starts
+  const assigned = sorted.map((item) => {
+    const { start, end } = getTime(item);
     const col = colEnds.findIndex((e) => e <= start);
     const colIndex = col === -1 ? colEnds.length : col;
     if (col === -1) colEnds.push(end);
     else colEnds[col] = end;
-    return { ...ev, colIndex };
+    return { ...item, colIndex };
   });
 
   const colCount = colEnds.length || 1;
-  return assigned.map((ev) => ({ ...ev, colCount }));
+  return assigned.map((item) => ({ ...item, colCount }));
 }
 
-export default function DayColumn({ day, onEventClick }: Props) {
-  const laid = layoutEvents(day.events);
+export default function DayColumn({ day, onEventClick, onTournamentClick }: Props) {
+  // Combine class events and tournament events into one unified layout
+  const classItems: LayoutItem[] = day.events.map((e) => ({ kind: "class" as const, ...e }));
+  const tournamentItems: LayoutItem[] = (day.tournamentEvents ?? []).map((e) => ({ kind: "tournament" as const, ...e }));
+  const laid = layoutItems([...classItems, ...tournamentItems]);
 
   return (
     <div
@@ -60,21 +73,40 @@ export default function DayColumn({ day, onEventClick }: Props) {
         />
       ))}
 
-      {/* Events */}
-      {laid.map(({ classItem, slot, teacher, room, enrollCount, hasConflict, colIndex, colCount }) => (
-        <CalendarEvent
-          key={`${classItem.id}-${slot.id}`}
-          classItem={classItem}
-          slot={slot}
-          teacher={teacher}
-          room={room}
-          enrollCount={enrollCount}
-          hasConflict={hasConflict}
-          colIndex={colIndex}
-          colCount={colCount}
-          onClick={() => onEventClick(classItem)}
-        />
-      ))}
+      {/* Events — class or tournament */}
+      {laid.map((item) => {
+        if (item.kind === "class") {
+          const { classItem, slot, teacher, room, enrollCount, hasConflict, colIndex, colCount } = item;
+          return (
+            <CalendarEvent
+              key={`class-${classItem.id}-${slot.id}`}
+              classItem={classItem}
+              slot={slot}
+              teacher={teacher}
+              room={room}
+              enrollCount={enrollCount}
+              hasConflict={hasConflict}
+              colIndex={colIndex}
+              colCount={colCount}
+              onClick={() => onEventClick(classItem)}
+            />
+          );
+        }
+        // tournament round
+        const { tournament, round, hasConflict, isRecurring, colIndex, colCount } = item;
+        return (
+          <TournamentCalendarEvent
+            key={`tournament-${tournament.id}-${round.id}`}
+            tournament={tournament}
+            round={round}
+            hasConflict={hasConflict}
+            isRecurring={isRecurring}
+            colIndex={colIndex}
+            colCount={colCount}
+            onClick={() => onTournamentClick?.(tournament)}
+          />
+        );
+      })}
     </div>
   );
 }

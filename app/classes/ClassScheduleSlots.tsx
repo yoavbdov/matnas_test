@@ -3,17 +3,31 @@
 import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
-import { DAYS, RECURRENCE_OPTIONS } from "@/lib/constants";
+import TimeSelect from "@/components/shared/TimeSelect";
+import { RECURRENCE_OPTIONS } from "@/lib/constants";
+import { findStructuralTournamentConflict } from "@/lib/crossConflictHelpers";
+
+// Hebrew day names by JS getDay() index (0=Sunday)
+const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
+// Derive Hebrew day name from a YYYY-MM-DD date string
+function dayFromDate(dateStr: string): string {
+  if (!dateStr) return "ראשון";
+  // Parse as local date (avoid UTC shift)
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return HEBREW_DAYS[new Date(y, m - 1, d).getDay()];
+}
 import { slotsConflict } from "@/lib/classHelpers";
-import type { Room, ScheduleSlot, Class } from "@/lib/types";
+import type { Room, ScheduleSlot, Class, Tournament } from "@/lib/types";
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   slots: ScheduleSlot[];
   rooms: Room[];
-  // Other classes to detect conflicts with (pass [] if not needed)
   allClasses: Class[];
+  allTournaments: Tournament[]; // for cross-conflict detection
+  teacherId: string; // the class's instructor (for teacher conflicts)
   currentClassId?: string;
   onAdd: () => void;
   onRemove: (idx: number) => void;
@@ -31,7 +45,7 @@ function findConflict(slot: ScheduleSlot, allClasses: Class[], currentClassId?: 
   return null;
 }
 
-export default function ClassScheduleSlots({ slots, rooms, allClasses, currentClassId, onAdd, onRemove, onChange }: Props) {
+export default function ClassScheduleSlots({ slots, rooms, allClasses, allTournaments, teacherId, currentClassId, onAdd, onRemove, onChange }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
@@ -47,28 +61,49 @@ export default function ClassScheduleSlots({ slots, rooms, allClasses, currentCl
 
       <div className="space-y-3">
         {slots.map((slot, idx) => {
-          const conflictWith = findConflict(slot, allClasses, currentClassId);
+          const classConflict = findConflict(slot, allClasses, currentClassId);
+          const tournamentConflict = findStructuralTournamentConflict(slot, teacherId, allTournaments, rooms);
+          const hasAnyConflict = !!(classConflict || tournamentConflict);
           return (
-            <div key={slot.id ?? idx} className={`border rounded-xl p-4 bg-gray-50 ${conflictWith ? "border-yellow-300" : "border-gray-100"}`}>
-              {/* Conflict warning */}
-              {conflictWith && (
-                <div className="flex items-center gap-2 text-xs text-yellow-700 bg-yellow-50 rounded-lg px-3 py-2 mb-3">
+            <div key={slot.id ?? idx} className={`border rounded-xl p-4 bg-gray-50 ${hasAnyConflict ? "border-yellow-300" : "border-gray-100"}`}>
+              {/* Class-vs-class conflict */}
+              {classConflict && (
+                <div className="flex items-center gap-2 text-xs text-yellow-700 bg-yellow-50 rounded-lg px-3 py-2 mb-2">
                   <AlertTriangle size={13} />
-                  קונפליקט עם חוג: <strong>{conflictWith}</strong>
+                  קונפליקט עם חוג: <strong>{classConflict}</strong>
+                </div>
+              )}
+              {/* Class-vs-tournament conflict */}
+              {tournamentConflict && (
+                <div className="flex items-center gap-2 text-xs text-orange-700 bg-orange-50 rounded-lg px-3 py-2 mb-2">
+                  <AlertTriangle size={13} />
+                  קונפליקט עם תחרות: <strong>{tournamentConflict.tournamentName}</strong>
+                  {" — "}
+                  {tournamentConflict.types.join(", ")}
                 </div>
               )}
 
               <div className="grid grid-cols-3 gap-3">
-                <Field label="יום">
-                  <select className={inp} value={slot.day} onChange={(e) => onChange(idx, { day: e.target.value })}>
-                    {DAYS.map((d) => <option key={d}>{d}</option>)}
-                  </select>
+                {/* Start date — the day-of-week is derived automatically from this date */}
+                <Field label="תאריך התחלה">
+                  <input
+                    type="date"
+                    className={inp}
+                    value={slot.start_date}
+                    onChange={(e) => {
+                      // Auto-derive Hebrew day name so conflict detection stays accurate
+                      onChange(idx, {
+                        start_date: e.target.value,
+                        day: dayFromDate(e.target.value),
+                      });
+                    }}
+                  />
                 </Field>
                 <Field label="שעת התחלה">
-                  <input type="time" className={inp} value={slot.start_time} onChange={(e) => onChange(idx, { start_time: e.target.value })} />
+                  <TimeSelect className={inp} value={slot.start_time} onChange={(v) => onChange(idx, { start_time: v })} />
                 </Field>
                 <Field label="שעת סיום">
-                  <input type="time" className={inp} value={slot.end_time} onChange={(e) => onChange(idx, { end_time: e.target.value })} />
+                  <TimeSelect className={inp} value={slot.end_time} onChange={(v) => onChange(idx, { end_time: v })} />
                 </Field>
                 <Field label="חדר">
                   <select className={inp} value={slot.room_id} onChange={(e) => onChange(idx, { room_id: e.target.value })}>
@@ -81,16 +116,20 @@ export default function ClassScheduleSlots({ slots, rooms, allClasses, currentCl
                     {RECURRENCE_OPTIONS.map((o) => <option key={o}>{o}</option>)}
                   </select>
                 </Field>
-                <Field label="תאריך התחלה">
-                  <input type="date" className={inp} value={slot.start_date} onChange={(e) => onChange(idx, { start_date: e.target.value })} />
-                </Field>
                 {slot.recurrence === "חד פעמי" && (
                   <Field label="תאריך המפגש">
                     <input type="date" className={inp} value={slot.once_date ?? ""} onChange={(e) => onChange(idx, { once_date: e.target.value })} />
                   </Field>
                 )}
-                <Field label="תאריך סיום (אופציונלי)">
-                  <input type="date" className={inp} value={slot.end_date_override ?? ""} onChange={(e) => onChange(idx, { end_date_override: e.target.value || undefined })} />
+                {/* End date — the last session date. After this date, the class ends automatically */}
+                <Field label="תאריך סיום">
+                  <input
+                    type="date"
+                    className={inp}
+                    value={slot.end_date_override ?? ""}
+                    onChange={(e) => onChange(idx, { end_date_override: e.target.value || undefined })}
+                    title="המועד האחרון שבו השיעור יכול להתקיים. לאחר תאריך זה הסטטוס יהפוך להסתיים."
+                  />
                 </Field>
               </div>
 

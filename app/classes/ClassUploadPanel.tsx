@@ -63,10 +63,10 @@ export default function ClassUploadPanel({ teachers, onClose }: Props) {
           name: r.name!,
           teacher_id: r.teacher_id!,
           capacity: r.capacity!,
-          status: r.status ?? "פעיל",
+          status: r.status ?? "מתוכנן",
           color: CLASS_COLORS[0], // צבע ברירת מחדל — ניתן לשינוי דרך הטופס
           slots: [],
-          resource_ids: [],
+          resource_assignments: [],
         };
         if (r.age_min !== undefined)    doc.age_min = r.age_min;
         if (r.age_max !== undefined)    doc.age_max = r.age_max;

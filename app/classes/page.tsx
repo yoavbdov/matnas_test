@@ -8,25 +8,27 @@ import ViewExistingClassDetailModal from "./ViewExistingClassDetailModal";
 import ClassUploadPanel from "./ClassUploadPanel";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { addDocument, updateDocument } from "@/firebase/firestore";
+import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
 import { CLASS_COLORS } from "@/lib/constants";
+import { computeClassStatus } from "@/lib/classHelpers";
 import type { Class } from "@/lib/types";
+import type { EnrollmentChanges } from "./ClassFormModal";
 
 // Hebrew day name for today (0=Sunday → ראשון)
 const DAY_NAMES = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const TODAY_DAY = DAY_NAMES[new Date().getDay()];
 
 function emptyForm(): Omit<Class, "id"> {
-  return { name: "", teacher_id: "", capacity: 10, status: "פעיל", color: CLASS_COLORS[0], slots: [], resource_ids: [] };
+  return { name: "", teacher_id: "", capacity: 10, status: "מתוכנן", color: CLASS_COLORS[0], slots: [], resource_assignments: [] };
 }
 
 export default function ClassesPage() {
-  const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings } = useData();
+  const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings, tournaments } = useData();
   const { showToast } = useToast();
 
   // --- פילטרים ---
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"הכל" | "פעיל" | "לא פעיל">("הכל");
+  const [statusFilter, setStatusFilter] = useState<"הכל" | "מתוכנן" | "פעיל" | "הסתיים" | "בוטל">("הכל");
   const [teacherFilter, setTeacherFilter] = useState("");
   const [ageMin, setAgeMin] = useState("");
   const [ageMax, setAgeMax] = useState("");
@@ -62,7 +64,7 @@ export default function ClassesPage() {
     );
   }
 
-  function handleFilterStatus(v: "הכל" | "פעיל" | "לא פעיל") {
+  function handleFilterStatus(v: "הכל" | "מתוכנן" | "פעיל" | "הסתיים" | "בוטל") {
     setStatusFilter(v);
     // שינוי סטטוס ידני — מכבה "היום"
     setTodayActive(false);
@@ -142,18 +144,48 @@ export default function ClassesPage() {
   function openAdd() { setEditTarget(null); setFormModal("add"); }
   function openEdit(c: Class) { setEditTarget(c); setFormModal("edit"); setDetailClass(null); }
 
-  async function handleSave(form: Omit<Class, "id">) {
+  async function handleSave(form: Omit<Class, "id">, enrollmentChanges: EnrollmentChanges) {
     if (!form.name.trim()) { showToast("שם החוג הוא שדה חובה", "error"); return; }
     if (!form.teacher_id) { showToast("יש לבחור מדריך", "error"); return; }
+
+    // Compute status automatically from slot dates (like tournaments)
+    const withStatus = { ...form, status: computeClassStatus({ ...form, id: editTarget?.id ?? "" }) };
+
     setSaving(true);
     try {
+      // Save the class, get back the ID (new or existing)
+      let classId: string;
       if (formModal === "add") {
-        await addDocument("classes", form);
-        showToast("החוג נוסף בהצלחה", "success");
+        classId = await addDocument("classes", withStatus);
       } else if (editTarget) {
-        await updateDocument("classes", editTarget.id, form);
-        showToast("החוג עודכן בהצלחה", "success");
+        await updateDocument("classes", editTarget.id, withStatus);
+        classId = editTarget.id;
+      } else {
+        return;
       }
+
+      const today = new Date().toISOString().slice(0, 10);
+
+      // Apply enrollment additions
+      await Promise.all(
+        enrollmentChanges.toAdd.map((studentId) =>
+          addDocument("enrollments", {
+            student_id: studentId,
+            class_id: classId,
+            enrolled_at: today,
+            status: "פעיל",
+          })
+        )
+      );
+
+      // Apply enrollment removals
+      await Promise.all(
+        enrollmentChanges.toRemove.map((enrollmentId) =>
+          deleteDocument("enrollments", enrollmentId)
+        )
+      );
+
+      showToast(formModal === "add" ? "החוג נוסף בהצלחה" : "החוג עודכן בהצלחה", "success");
       setFormModal(null);
     } catch { showToast("שגיאה בשמירה, נסה שוב", "error"); }
     finally { setSaving(false); }
@@ -171,8 +203,8 @@ export default function ClassesPage() {
       const days = [...new Set((c.slots ?? []).map((s) => s.day))].join(" | ");
       // כל מפגש: יום שעת_התחלה-שעת_סיום
       const slots = (c.slots ?? []).map((s) => `${s.day} ${s.start_time}-${s.end_time}`).join(" | ");
-      const resNames = (c.resource_ids ?? [])
-        .map((id) => physicalEquipment.find((r) => r.id === id)?.name ?? id)
+      const resNames = (c.resource_assignments ?? [])
+        .map((a) => physicalEquipment.find((r) => r.id === a.resource_id)?.name ?? a.resource_id)
         .join(" | ");
       return [
         c.name, t ? `${t.first_name} ${t.last_name}` : "", c.capacity, enrolled,
@@ -229,7 +261,10 @@ export default function ClassesPage() {
           teachers={teachers}
           rooms={rooms}
           physicalEquipment={physicalEquipment}
+          students={students}
+          enrollments={enrollments}
           allClasses={classes}
+          allTournaments={tournaments}
           settings={settings}
           saving={saving}
           onClose={() => setFormModal(null)}
@@ -246,6 +281,7 @@ export default function ClassesPage() {
           students={students}
           enrollments={enrollments}
           allClasses={classes}
+          allTournaments={tournaments}
           onClose={() => setDetailClass(null)}
           onEdit={openEdit}
         />

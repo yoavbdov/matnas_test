@@ -36,7 +36,7 @@ function exportCSV(students: Student[]) {
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "תלמידים.csv";
+  a.download = "שחקנים.csv";
   a.click();
 }
 
@@ -199,7 +199,7 @@ export default function StudentsPage() {
           ...form,
           created_at: new Date().toISOString().slice(0, 10),
         });
-        showToast("התלמיד נוסף בהצלחה", "success");
+        showToast("השחקן נוסף בהצלחה", "success");
       } else if (editTarget) {
         await updateDocument("students", editTarget.id, form);
         showToast("הפרטים עודכנו בהצלחה", "success");
@@ -213,7 +213,7 @@ export default function StudentsPage() {
   }
 
   return (
-    <PageShell title="תלמידים">
+    <PageShell title="שחקנים">
       <StudentsToolbar
         search={search}
         onSearch={setSearch}
@@ -238,7 +238,7 @@ export default function StudentsPage() {
         maxSearchLength={settings.MAX_SEARCH_LENGTH}
       />
 
-      <p className="text-xs text-gray-400 mb-3">{displayedStudents.length} תלמידים</p>
+      <p className="text-xs text-gray-400 mb-3">{displayedStudents.length} שחקנים</p>
 
       <StudentsTable
         students={displayedStudents}

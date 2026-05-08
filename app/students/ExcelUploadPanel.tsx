@@ -1,6 +1,6 @@
 "use client";
-// ייבוא תלמידים מקובץ CSV — גרור-שחרר, אימות, ייבוא שורות תקינות
-// תומך בכל השדות שניתן למלא ידנית בטופס התלמיד
+// ייבוא שחקנים מקובץ CSV — גרור-שחרר, אימות, ייבוא שורות תקינות
+// תומך בכל השדות שניתן למלא ידנית בטופס השחקן
 import { useState, useRef } from "react";
 import { Upload, Download, X, CheckCircle, AlertCircle } from "lucide-react";
 import Btn from "@/components/shared/Btn";
@@ -20,7 +20,7 @@ function downloadTemplate() {
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "תבנית_ייבוא_תלמידים.csv";
+  a.download = "תבנית_ייבוא_שחקנים.csv";
   a.click();
 }
 
@@ -80,7 +80,7 @@ export default function ExcelUploadPanel({ onClose, settings }: Props) {
         if (r.notes)            doc.notes = r.notes;
         return addDocument("students", doc);
       }));
-      showToast(`${valid.length} תלמידים יובאו בהצלחה`, "success");
+      showToast(`${valid.length} שחקנים יובאו בהצלחה`, "success");
       onClose();
     } catch { showToast("שגיאה בייבוא, נסה שוב", "error"); }
     finally { setSaving(false); }
@@ -96,7 +96,7 @@ export default function ExcelUploadPanel({ onClose, settings }: Props) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">ייבוא תלמידים מ-CSV</h2>
+          <h2 className="text-base font-semibold text-gray-800">ייבוא שחקנים מ-CSV</h2>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={18} /></button>
         </div>
 
@@ -160,7 +160,7 @@ export default function ExcelUploadPanel({ onClose, settings }: Props) {
         <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
           <Btn variant="secondary" onClick={onClose}>ביטול</Btn>
           <Btn onClick={handleImport} loading={saving} disabled={validCount === 0 || errorCount > 0}>
-            ייבא {validCount > 0 ? `${validCount} תלמידים` : ""}
+            ייבא {validCount > 0 ? `${validCount} שחקנים` : ""}
           </Btn>
         </div>
       </div>

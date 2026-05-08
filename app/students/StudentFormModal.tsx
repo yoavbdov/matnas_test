@@ -45,7 +45,7 @@ export default function StudentFormModal({
 
   return (
     <Modal
-      title={mode === "add" ? "הוספת תלמיד" : "עריכת תלמיד"}
+      title={mode === "add" ? "הוספת שחקן" : "עריכת שחקן"}
       onClose={onClose}
       size="lg"
       footer={

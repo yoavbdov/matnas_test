@@ -1,5 +1,5 @@
 "use client";
-// חלון פרטים מלאים של תלמיד — שני טאבים: פרטים + חוגים
+// חלון פרטים מלאים של שחקן — שני טאבים: פרטים + חוגים
 import { useState } from "react";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
@@ -72,7 +72,7 @@ export default function StudentDetailModal({
     try {
       await deleteDocument("students", student.id);
       await deleteWhere("enrollments", "student_id", student.id);
-      showToast("התלמיד נמחק", "success");
+      showToast("השחקן נמחק", "success");
       onClose();
     } catch {
       showToast("שגיאה, נסה שוב", "error");

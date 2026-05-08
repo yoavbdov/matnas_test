@@ -1,5 +1,5 @@
 "use client";
-// סרגל חיפוש, סינון ופעולות מעל טבלת התלמידים
+// סרגל חיפוש, סינון ופעולות מעל טבלת השחקנים
 import { Search, Plus, Download, Upload } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import { GRADE_LABELS } from "@/lib/constants";
@@ -67,7 +67,7 @@ export default function StudentsToolbar({
         <div className="flex gap-2">
           <Btn variant="secondary" onClick={onImport} className="text-xs px-3 py-2"><Upload size={13} />העלאת מידע דרך CSV</Btn>
           <Btn variant="secondary" onClick={onExport} className="text-xs px-3 py-2"><Download size={13} />ייצוא מידע לCSV</Btn>
-          <Btn onClick={onAddStudent}><Plus size={15} />הוסף תלמיד</Btn>
+          <Btn onClick={onAddStudent}><Plus size={15} />הוסף שחקן</Btn>
         </div>
       </div>
 

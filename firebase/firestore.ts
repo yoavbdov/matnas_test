@@ -10,11 +10,16 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
+// Firebase rejects `undefined` values — strip them before writing
+function stripUndefined<T extends object>(data: T): T {
+  return JSON.parse(JSON.stringify(data));
+}
+
 export async function addDocument<T extends object>(
   collectionName: string,
   data: T
 ): Promise<string> {
-  const ref = await addDoc(collection(db, collectionName), data);
+  const ref = await addDoc(collection(db, collectionName), stripUndefined(data));
   return ref.id;
 }
 
@@ -23,7 +28,7 @@ export async function updateDocument<T extends object>(
   id: string,
   data: Partial<T>
 ): Promise<void> {
-  await updateDoc(doc(db, collectionName, id), data as object);
+  await updateDoc(doc(db, collectionName, id), stripUndefined(data) as object);
 }
 
 export async function deleteDocument(collectionName: string, id: string): Promise<void> {

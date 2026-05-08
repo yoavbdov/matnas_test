@@ -1,5 +1,5 @@
 "use client";
-// חלון רישום תלמיד לחוג — מציג חוגים זמינים ומאפשר רישום
+// חלון רישום שחקן לחוג — מציג חוגים זמינים ומאפשר רישום
 import { useState } from "react";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";

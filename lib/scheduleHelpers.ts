@@ -79,7 +79,8 @@ export function getSlotsForDates(
   const results: Array<{ classId: string; slot: ScheduleSlot; date: string }> = [];
   for (const dateStr of dateStrs) {
     for (const cls of classes) {
-      if (cls.status !== "פעיל") continue;
+      // Show active and upcoming classes; skip finished/cancelled ones
+      if (cls.status === "הסתיים" || cls.status === "בוטל") continue;
       for (const slot of cls.slots ?? []) {
         if (slotOccursOnDate(slot, dateStr)) {
           results.push({ classId: cls.id, slot, date: dateStr });
@@ -104,7 +105,8 @@ export function getSlotsForWeek(
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
     for (const cls of classes) {
-      if (cls.status !== "פעיל") continue;
+      // Show active and upcoming classes; skip finished/cancelled ones
+      if (cls.status === "הסתיים" || cls.status === "בוטל") continue;
       for (const slot of cls.slots ?? []) {
         if (slotOccursOnDate(slot, dateStr)) {
           results.push({ classId: cls.id, slot, date: dateStr });

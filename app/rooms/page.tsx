@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import PageShell from "@/components/shared/PageShell";
 import Table, { Column } from "@/components/shared/Table";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -20,10 +20,15 @@ function emptyRoom(): Omit<Room, "id"> { return { name: "", capacity: 10, featur
 function emptyEquipment(): Omit<PhysicalEquipment, "id"> { return { name: "", quantity: 0 }; }
 
 export default function RoomsPage() {
-  const { rooms, physicalEquipment, classes, settings } = useData();
+  const { rooms, physicalEquipment, classes, tournaments, settings } = useData();
   const { showToast } = useToast();
 
   const [tab, setTab] = useState<ActiveTab>("rooms");
+
+  // If the URL contains #equipment (e.g. from the tournament form link), jump to that tab
+  useEffect(() => {
+    if (window.location.hash === "#equipment") setTab("equipment");
+  }, []);
 
   // ── פילטרי חדרים ──
   const [roomSearch, setRoomSearch] = useState("");
@@ -159,7 +164,7 @@ export default function RoomsPage() {
         {(["rooms", "equipment"] as ActiveTab[]).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => { setTab(t); window.location.hash = t === "equipment" ? "equipment" : ""; }}
             className={`pb-2.5 text-sm font-medium border-b-2 transition-colors ${
               tab === t ? "border-teal-500 text-teal-700" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
@@ -235,7 +240,7 @@ export default function RoomsPage() {
       )}
 
       {availabilityOpen && (
-        <AvailabilityCheckerModal physicalEquipment={physicalEquipment} classes={classes} onClose={() => setAvailabilityOpen(false)} />
+        <AvailabilityCheckerModal physicalEquipment={physicalEquipment} classes={classes} tournaments={tournaments} onClose={() => setAvailabilityOpen(false)} />
       )}
 
       {importOpen && (

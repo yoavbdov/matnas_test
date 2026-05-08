@@ -47,6 +47,12 @@ export interface PhysicalEquipment {
   notes?: string;
 }
 
+// How many units of a piece of equipment an event (class/tournament) needs
+export interface ResourceAssignment {
+  resource_id: string;
+  quantity: number;
+}
+
 export interface ScheduleSlot {
   id: string;
   day: string; // ראשון–שבת
@@ -62,16 +68,18 @@ export interface ScheduleSlot {
 export interface Class {
   id: string;
   name: string;
+  description?: string;
   teacher_id: string;
   capacity: number;
   age_min?: number;
   age_max?: number;
   rating_min?: number;
   rating_max?: number;
-  status: "פעיל" | "לא פעיל";
+  // Status is computed automatically from slot dates (like tournaments)
+  status: "מתוכנן" | "פעיל" | "הסתיים" | "בוטל";
   color?: string;
   slots: ScheduleSlot[];
-  resource_ids?: string[];
+  resource_assignments?: ResourceAssignment[]; // equipment needed for each session
   notes?: string;
 }
 
@@ -87,6 +95,93 @@ export interface CustomEventType {
   id: string;
   name: string;
   color?: string;
+}
+
+// --- Tournaments ---
+
+/** A single round within a tournament (specific date + time) */
+export interface TournamentRound {
+  id: string;
+  round_number: number;
+  date: string; // YYYY-MM-DD
+  start_time: string; // HH:MM
+  end_time: string; // HH:MM
+  location?: string; // optional venue / room name
+  notes?: string;
+  resource_assignments?: ResourceAssignment[]; // equipment needed for this round
+}
+
+/** A non-student participant added manually (e.g. external player) */
+export interface ManualParticipant {
+  id: string; // local UUID
+  name: string;
+  rating?: number;
+  notes?: string;
+}
+
+export interface Tournament {
+  id: string;
+  name: string;
+  description?: string;
+  status: "מתוכנן" | "פעיל" | "הסתיים" | "בוטל";
+  rating_min?: number; // eligibility rating range
+  rating_max?: number;
+  age_min?: number; // eligibility age range (years, inclusive)
+  age_max?: number;
+  is_recurring?: boolean; // recurring tournament — no fixed rounds
+  // Used only when is_recurring=true (replaces rounds)
+  recurring_date?: string;         // YYYY-MM-DD
+  recurring_start_time?: string;   // HH:MM
+  recurring_end_time?: string;     // HH:MM
+  recurring_resource_assignments?: ResourceAssignment[]; // equipment for recurring tournaments
+  resource_assignments?: ResourceAssignment[]; // equipment for the whole tournament (set in Details tab)
+  room?: string; // the room / hall where the tournament is held
+  judge_id?: string; // teacher ID of the referee/arbiter for this tournament
+  rounds: TournamentRound[];
+  participant_ids: string[]; // student IDs registered in this tournament
+  manual_participants: ManualParticipant[]; // externally added players
+  color?: string; // display color in calendar
+  notes?: string;
+  created_at?: string;
+}
+
+// --- League Groups ---
+
+/** A league group (e.g. "קבוצת ליגה א'") that students can be assigned to */
+// Which player category this group belongs to
+export type LeagueCategory = "בוגרים" | "נוער" | "נשים";
+
+// League divisions by category:
+//   בוגרים: ג | ב | א | ארצית | לאומית
+//   נוער:   מחוזית | ארצית | לאומית
+//   נשים:   ארצית | עילית
+export type LeagueType =
+  | "ג"
+  | "ב"
+  | "א"
+  | "ארצית"
+  | "לאומית"
+  | "מחוזית"
+  | "עילית";
+
+export interface LeagueGroup {
+  id: string;
+  name: string;
+  category: LeagueCategory;   // בוגרים / נוער / נשים
+  leagueType: LeagueType;     // tier within that category
+  description?: string;
+  status: "פעיל" | "לא פעיל";
+  color?: string;
+  notes?: string;
+  created_at?: string;
+}
+
+/** A single student membership in a league group */
+export interface LeagueGroupMember {
+  id: string;
+  group_id: string;
+  student_id: string;
+  joined_at: string; // YYYY-MM-DD
 }
 
 export interface AppSettings {

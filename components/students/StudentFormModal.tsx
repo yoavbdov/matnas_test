@@ -25,7 +25,7 @@ export default function StudentFormModal({ mode, form, setForm, saving, onClose,
 
   return (
     <Modal
-      title={mode === "add" ? "הוספת תלמיד" : "עריכת תלמיד"}
+      title={mode === "add" ? "הוספת שחקן" : "עריכת שחקן"}
       onClose={onClose}
       size="lg"
       footer={<><Btn variant="secondary" onClick={onClose}>ביטול</Btn><Btn onClick={onSave} loading={saving}>שמור</Btn></>}

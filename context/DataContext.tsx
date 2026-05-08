@@ -6,7 +6,6 @@ The fetching from firebase is done by useCollection. */
 "use client";
 import { createContext, useContext } from "react";
 import { useCollection } from "@/firebase/hooks/useCollection";
-import { useDocument } from "@/firebase/hooks/useDocument";
 import type {
   Student,
   Teacher,
@@ -15,6 +14,9 @@ import type {
   Class,
   Enrollment,
   CustomEventType,
+  Tournament,
+  LeagueGroup,
+  LeagueGroupMember,
   AppSettings,
 } from "@/lib/types";
 import { DEFAULT_SETTINGS } from "@/lib/config";
@@ -27,6 +29,9 @@ interface DataContextProps {
   physicalEquipment: PhysicalEquipment[];
   enrollments: Enrollment[];
   customEventTypes: CustomEventType[];
+  tournaments: Tournament[];
+  leagueGroups: LeagueGroup[];
+  leagueGroupMembers: LeagueGroupMember[];
   settings: Required<AppSettings>;
   loading: boolean;
   error: string | null; // surfaces first Firestore error (e.g. permission denied)
@@ -40,6 +45,9 @@ const DataContext = createContext<DataContextProps>({
   physicalEquipment: [],
   enrollments: [],
   customEventTypes: [],
+  tournaments: [],
+  leagueGroups: [],
+  leagueGroupMembers: [],
   settings: DEFAULT_SETTINGS,
   loading: true,
   error: null,
@@ -56,18 +64,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     useCollection<Enrollment>("enrollments");
   const { data: customEventTypes, loading: l7 } =
     useCollection<CustomEventType>("customEventTypes");
-  const { data: settingsDoc, loading: l8 } = useDocument<
-    AppSettings & { id: string }
-  >("settings", "main");
+  const { data: tournaments, loading: l9 } =
+    useCollection<Tournament>("tournaments");
+  const { data: leagueGroups, loading: l10 } =
+    useCollection<LeagueGroup>("leagueGroups");
+  const { data: leagueGroupMembers, loading: l11 } =
+    useCollection<LeagueGroupMember>("leagueGroupMembers");
 
   // this is an array of boolians, checking whether any values is still loading from firebase or everything was loaded already.
-  const loading = l1 || l2 || l3 || l4 || l5 || l6 || l7 || l8;
+  const loading = l1 || l2 || l3 || l4 || l5 || l6 || l7 || l9 || l10 || l11;
   // surface the first error (e.g. "Missing or insufficient permissions")
   const error = e1 ?? e2 ?? null;
-  const settings: Required<AppSettings> = {
-    ...DEFAULT_SETTINGS,
-    ...(settingsDoc ?? {}),
-  };
+  // settings are fixed at compile time — no Firestore sync needed
+  const settings: Required<AppSettings> = DEFAULT_SETTINGS;
 
   return (
     <DataContext.Provider
@@ -79,6 +88,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         physicalEquipment,
         enrollments,
         customEventTypes,
+        tournaments,
+        leagueGroups,
+        leagueGroupMembers,
         settings,
         loading,
         error,

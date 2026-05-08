@@ -56,7 +56,7 @@ export default function RatingDistribution({
       {/* Header row */}
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-gray-400">
-          {withRating} תלמידים עם דירוג ישראלי · {withoutRating} ללא דירוג
+          {withRating} שחקנים עם דירוג ישראלי · {withoutRating} ללא דירוג
         </p>
         {!editing && (
           <button

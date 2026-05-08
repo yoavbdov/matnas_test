@@ -3,26 +3,21 @@
 import { Plus, X } from "lucide-react";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
-import { calcResourceAvailability } from "@/lib/classHelpers";
-import type { PhysicalEquipment, Class } from "@/lib/types";
+import { calcResourceAvailability, getResourceConflictingEvents } from "@/lib/classHelpers";
+import type { PhysicalEquipment, Class, Tournament, ResourceAssignment } from "@/lib/types";
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
-// One row: which resource + how many units the class needs
-interface Assignment {
-  resource_id: string;
-  quantity: number;
-}
-
 interface Props {
-  assignments: Assignment[];
+  assignments: ResourceAssignment[];
   physicalEquipment: PhysicalEquipment[];
-  allClasses: Class[];       // to check current usage
-  currentClassId?: string;   // excluded from usage count
-  onChange: (assignments: Assignment[]) => void;
+  allClasses: Class[];
+  allTournaments: Tournament[];  // included in usage count
+  currentClassId?: string;       // excluded from usage count
+  onChange: (assignments: ResourceAssignment[]) => void;
 }
 
-export default function ClassResources({ assignments, physicalEquipment, allClasses, currentClassId, onChange }: Props) {
+export default function ClassResources({ assignments, physicalEquipment, allClasses, allTournaments, currentClassId, onChange }: Props) {
   // IDs already chosen (to prevent duplicates in the dropdown)
   const chosen = new Set(assignments.map((a) => a.resource_id));
 
@@ -36,7 +31,7 @@ export default function ClassResources({ assignments, physicalEquipment, allClas
     onChange(assignments.filter((_, i) => i !== idx));
   }
 
-  function setField(idx: number, patch: Partial<Assignment>) {
+  function setField(idx: number, patch: Partial<ResourceAssignment>) {
     onChange(assignments.map((a, i) => (i === idx ? { ...a, ...patch } : a)));
   }
 
@@ -58,13 +53,17 @@ export default function ClassResources({ assignments, physicalEquipment, allClas
           const res = physicalEquipment.find((r) => r.id === a.resource_id);
           // Peak simultaneous usage of this resource in other classes
           const usedElsewhere = res
-            ? calcResourceAvailability(res, allClasses, currentClassId)
+            ? calcResourceAvailability(res, allClasses, currentClassId, allTournaments)
             : 0;
           const available = res ? res.quantity - usedElsewhere : 0;
           const shortage = a.quantity > available;
+          // Names of other events using this resource at the same time (shown when shortage)
+          const conflictingNames = shortage && res
+            ? getResourceConflictingEvents(res, allClasses, currentClassId, allTournaments)
+            : [];
 
           return (
-            <div key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50">
+            <div key={idx} className={`flex items-start gap-3 p-3 rounded-xl border bg-gray-50 ${shortage ? "border-red-200" : "border-gray-100"}`}>
               {/* Resource selector */}
               <div className="flex-1">
                 <Field label="משאב">
@@ -76,6 +75,12 @@ export default function ClassResources({ assignments, physicalEquipment, allClas
                     ))}
                   </select>
                 </Field>
+                {/* Show which other events are using this resource */}
+                {shortage && conflictingNames.length > 0 && (
+                  <p className="mt-1 text-xs text-red-500">
+                    ⚠ גם משתמש/ת: {conflictingNames.join(", ")}
+                  </p>
+                )}
               </div>
 
               {/* Quantity */}

@@ -10,19 +10,20 @@ import {
   UserCheck,
   DoorOpen,
   Calendar,
-
-  Settings,
+  Trophy,
+  Layers,
   LogOut,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "לוח בקרה", icon: LayoutDashboard },
-  { href: "/students", label: "תלמידים", icon: Users },
+  { href: "/students", label: "שחקנים", icon: Users },
   { href: "/classes", label: "חוגים", icon: BookOpen },
   { href: "/teachers", label: "מדריכים", icon: UserCheck },
   { href: "/rooms", label: "חדרים וציוד", icon: DoorOpen },
   { href: "/schedule", label: "לוח זמנים", icon: Calendar },
-  { href: "/settings", label: "הגדרות", icon: Settings },
+  { href: "/tournaments", label: "תחרויות", icon: Trophy },
+  { href: "/league-groups", label: "קבוצות ליגה", icon: Layers },
 ];
 
 export default function Sidebar() {

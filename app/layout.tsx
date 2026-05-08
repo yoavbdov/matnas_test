@@ -12,10 +12,18 @@ export const metadata: Metadata = {
   description: "מערכת ניהול בית ספר לשחמט",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="he" dir="rtl" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full bg-gray-50 text-gray-900">
+    <html
+      lang="he"
+      dir="rtl"
+      className={`${geist.variable} h-full antialiased`}
+    >
+      <body className="min-h-full bg-gray-600 text-gray-900">
         <AuthProvider>
           <DataProvider>
             <ToastProvider>{children}</ToastProvider>

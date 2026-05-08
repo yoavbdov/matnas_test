@@ -12,7 +12,7 @@ export default function PageShell({ title, children }: PageShellProps) {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <TopBar title={title} />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 bg-gray-100">{children}</main>
       </div>
     </div>
   );
