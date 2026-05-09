@@ -44,7 +44,6 @@ async function seed() {
     "tournaments",
     "leagueGroups",
     "leagueGroupMembers",
-    "customEventTypes",
   ];
 
   console.log("Clearing existing data...");
@@ -403,18 +402,6 @@ async function seed() {
     console.log(`  + leagueGroupMember (${ref.id})`);
   }
 
-  // ── CUSTOM EVENT TYPES (סוגי אירועים מותאמים) ─────────────────────────────
-  // Fields match the CustomEventType interface in lib/types.ts
-  console.log("\nSeeding customEventTypes...");
-  const customEventTypes = [
-    { name: "ימי עיון",       color: "#10b981" },
-    { name: "פגישות הורים",  color: "#f43f5e" },
-    { name: "אירועי ספורט",  color: "#6366f1" },
-  ];
-  for (const c of customEventTypes) {
-    const ref = await db.collection("customEventTypes").add(c);
-    console.log(`  + ${c.name} (${ref.id})`);
-  }
 
   console.log("\nSeed complete!");
   process.exit(0);

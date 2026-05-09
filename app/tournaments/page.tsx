@@ -1,5 +1,6 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import PageShell from "@/components/shared/PageShell";
 import TournamentsToolbar from "./TournamentsToolbar";
 import TournamentsTable from "./TournamentsTable";
@@ -10,25 +11,53 @@ import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
 import type { Tournament, Room } from "@/lib/types";
 
+// תאריך היום בפורמט YYYY-MM-DD
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function TournamentsPage() {
   const { tournaments, students, classes, rooms, teachers, physicalEquipment } = useData();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Tournament["status"] | "הכל">("הכל");
+  // כאשר פעיל — מסנן תחרויות שיש להן סבב/מועד היום
+  const [todayActive, setTodayActive] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [detailTournament, setDetailTournament] = useState<Tournament | null>(null);
   const [editTournament, setEditTournament] = useState<Tournament | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Filter tournaments by search and status
+  // אם הגענו מלוח הבקרה עם ?today=true — הפעל פילטר "היום" אוטומטית
+  useEffect(() => {
+    if (searchParams.get("today") === "true") {
+      setTodayActive(true);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleToggleToday() {
+    setTodayActive((prev) => !prev);
+  }
+
+  const today = todayStr();
+
+  // Filter tournaments by search, status, and optionally "today"
   const filtered = useMemo(() => {
     return tournaments.filter((t) => {
       if (statusFilter !== "הכל" && t.status !== statusFilter) return false;
       if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (todayActive) {
+        if (t.status === "בוטל") return false;
+        const hasRoundToday = t.is_recurring
+          ? t.recurring_date === today
+          : t.rounds.some((r) => r.date === today);
+        if (!hasRoundToday) return false;
+      }
       return true;
     });
-  }, [tournaments, search, statusFilter]);
+  }, [tournaments, search, statusFilter, todayActive, today]);
 
   async function handleAdd(data: Omit<Tournament, "id">) {
     if (!data.name.trim()) { showToast("שם התחרות הוא שדה חובה", "error"); return; }
@@ -81,6 +110,8 @@ export default function TournamentsPage() {
         onSearch={setSearch}
         statusFilter={statusFilter}
         onStatusFilter={setStatusFilter}
+        todayActive={todayActive}
+        onToggleToday={handleToggleToday}
         onAdd={() => setShowAdd(true)}
       />
 

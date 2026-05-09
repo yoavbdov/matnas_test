@@ -1,6 +1,6 @@
 // Search bar + status filter + "New Tournament" button for the tournaments page
 import Btn from "@/components/shared/Btn";
-import { Plus } from "lucide-react";
+import { Plus, CalendarCheck } from "lucide-react";
 import type { Tournament } from "@/lib/types";
 
 const STATUS_OPTIONS: Array<Tournament["status"] | "הכל"> = [
@@ -12,10 +12,12 @@ interface Props {
   onSearch: (v: string) => void;
   statusFilter: Tournament["status"] | "הכל";
   onStatusFilter: (v: Tournament["status"] | "הכל") => void;
+  todayActive: boolean;
+  onToggleToday: () => void;
   onAdd: () => void;
 }
 
-export default function TournamentsToolbar({ search, onSearch, statusFilter, onStatusFilter, onAdd }: Props) {
+export default function TournamentsToolbar({ search, onSearch, statusFilter, onStatusFilter, todayActive, onToggleToday, onAdd }: Props) {
   return (
     <div className="flex items-center gap-3 mb-5 flex-wrap" dir="rtl">
 
@@ -37,6 +39,20 @@ export default function TournamentsToolbar({ search, onSearch, statusFilter, onS
           <option key={s} value={s}>{s}</option>
         ))}
       </select>
+
+      {/* כפתור "היום" — מסנן תחרויות שמתקיימות היום */}
+      <button
+        onClick={onToggleToday}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-colors cursor-pointer ${
+          todayActive
+            ? "bg-teal-500 text-white border-teal-500"
+            : "bg-white text-gray-600 border-gray-200 hover:border-teal-300"
+        }`}
+        title="תחרויות שמתקיימות היום"
+      >
+        <CalendarCheck size={14} />
+        היום
+      </button>
 
       {/* Spacer */}
       <div className="flex-1" />

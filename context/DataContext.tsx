@@ -13,7 +13,6 @@ import type {
   PhysicalEquipment,
   Class,
   Enrollment,
-  CustomEventType,
   Tournament,
   LeagueGroup,
   LeagueGroupMember,
@@ -28,7 +27,6 @@ interface DataContextProps {
   rooms: Room[];
   physicalEquipment: PhysicalEquipment[];
   enrollments: Enrollment[];
-  customEventTypes: CustomEventType[];
   tournaments: Tournament[];
   leagueGroups: LeagueGroup[];
   leagueGroupMembers: LeagueGroupMember[];
@@ -44,7 +42,6 @@ const DataContext = createContext<DataContextProps>({
   rooms: [],
   physicalEquipment: [],
   enrollments: [],
-  customEventTypes: [],
   tournaments: [],
   leagueGroups: [],
   leagueGroupMembers: [],
@@ -62,8 +59,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     useCollection<PhysicalEquipment>("physicalEquipment");
   const { data: enrollments, loading: l6 } =
     useCollection<Enrollment>("enrollments");
-  const { data: customEventTypes, loading: l7 } =
-    useCollection<CustomEventType>("customEventTypes");
   const { data: tournaments, loading: l9 } =
     useCollection<Tournament>("tournaments");
   const { data: leagueGroups, loading: l10 } =
@@ -72,7 +67,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     useCollection<LeagueGroupMember>("leagueGroupMembers");
 
   // this is an array of boolians, checking whether any values is still loading from firebase or everything was loaded already.
-  const loading = l1 || l2 || l3 || l4 || l5 || l6 || l7 || l9 || l10 || l11;
+  const loading = l1 || l2 || l3 || l4 || l5 || l6 || l9 || l10 || l11;
   // surface the first error (e.g. "Missing or insufficient permissions")
   const error = e1 ?? e2 ?? null;
   // settings are fixed at compile time — no Firestore sync needed
@@ -87,7 +82,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         rooms,
         physicalEquipment,
         enrollments,
-        customEventTypes,
         tournaments,
         leagueGroups,
         leagueGroupMembers,

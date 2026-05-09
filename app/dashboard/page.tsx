@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Users, BookOpen, Clock, TrendingUp } from "lucide-react";
+import { Users, BookOpen, Clock, Trophy } from "lucide-react";
 import PageShell from "@/components/shared/PageShell";
 import StatCard from "@/components/shared/StatCard";
 import TodaySessionsTable from "@/components/dashboard/TodaySessionsTable";
@@ -18,7 +18,7 @@ function today(): string {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { students, classes, enrollments, loading, error } = useData();
+  const { students, classes, enrollments, tournaments, loading, error } = useData();
   const { buckets: bucketConfigs, saveBuckets } = useRatingThresholds();
 
   const todayStr = today();
@@ -41,6 +41,19 @@ export default function DashboardPage() {
     }
     return count;
   }, [activeClasses, todayStr]);
+
+  // Count tournaments with at least one round today, or recurring tournaments scheduled today
+  const todayTournamentCount = useMemo(() => {
+    return tournaments.filter((t) => {
+      if (t.status === "בוטל") return false;
+      if (t.is_recurring) {
+        // Recurring tournaments: check if recurring_date matches today
+        return t.recurring_date === todayStr;
+      }
+      // Regular tournaments: check if any round is today
+      return t.rounds.some((r) => r.date === todayStr);
+    }).length;
+  }, [tournaments, todayStr]);
 
   const newThisMonth = useMemo(() => {
     const now = new Date();
@@ -127,12 +140,14 @@ export default function DashboardPage() {
             value={todaySessionCount}
             label="חוגים היום"
             color="orange"
+            onClick={() => router.push("/classes?today=true")}
           />
           <StatCard
-            icon={TrendingUp}
-            value={enrollments.filter((e) => e.status === "פעיל").length}
-            label="רישומים פעילים"
+            icon={Trophy}
+            value={todayTournamentCount}
+            label="תחרויות היום"
             color="teal"
+            onClick={() => router.push("/tournaments?today=true")}
           />
         </section>
 

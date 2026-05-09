@@ -1,5 +1,6 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import PageShell from "@/components/shared/PageShell";
 import ClassesToolbar from "./ClassesToolbar";
 import ClassesTable, { type SortCol, type SortDir } from "./ClassesTable";
@@ -25,6 +26,7 @@ function emptyForm(): Omit<Class, "id"> {
 export default function ClassesPage() {
   const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings, tournaments } = useData();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
 
   // --- פילטרים ---
   const [search, setSearch] = useState("");
@@ -40,6 +42,15 @@ export default function ClassesPage() {
 
   // "היום" — toggle: כאשר פעיל מסנן סטטוס=פעיל + יום שבוע של היום
   const [todayActive, setTodayActive] = useState(false);
+
+  // אם הגענו מלוח הבקרה עם ?today=true — הפעל את פילטר "היום" אוטומטית
+  useEffect(() => {
+    if (searchParams.get("today") === "true") {
+      setTodayActive(true);
+      setStatusFilter("פעיל");
+      setDayFilter([TODAY_DAY]);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleToggleToday() {
     setTodayActive((prev) => {

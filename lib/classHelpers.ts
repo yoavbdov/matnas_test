@@ -75,13 +75,19 @@ export function calcResourceAvailability(
         },
       });
     } else {
-      // Non-recurring tournament: each round is a separate time window
+      // Non-recurring tournament: push ONE entry per unique (day-of-week, time) slot.
+      // Rounds on different calendar dates but the same weekday+time are NOT simultaneous —
+      // they happen on separate dates, so de-duplicate to avoid inflating peak usage.
       const qty = getAssignedQty(t.resource_assignments, resource.id);
       if (qty === 0) continue;
+      const seenSlots = new Set<string>();
       for (const round of t.rounds ?? []) {
         if (!round.date) continue;
         const [y, m, d] = round.date.split("-").map(Number);
         const day = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+        const slotKey = `${day}-${round.start_time}-${round.end_time}`;
+        if (seenSlots.has(slotKey)) continue; // already accounted for this weekday+time
+        seenSlots.add(slotKey);
         entries.push({
           qty,
           slot: {
@@ -144,12 +150,18 @@ export function getResourceConflictingEvents(
         slot: { id: t.id, day, start_time: t.recurring_start_time ?? "00:00", end_time: t.recurring_end_time ?? "01:00", room_id: "", recurrence: "שבועי", start_date: t.recurring_date },
       });
     } else {
+      // Same de-duplication as calcResourceAvailability — rounds on different calendar dates
+      // but the same weekday+time are not simultaneous, so only push one entry per unique slot.
       const qty = getAssignedQty(t.resource_assignments, resource.id);
       if (qty === 0) continue;
+      const seenSlots = new Set<string>();
       for (const round of t.rounds ?? []) {
         if (!round.date) continue;
         const [y, m, d] = round.date.split("-").map(Number);
         const day = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+        const slotKey = `${day}-${round.start_time}-${round.end_time}`;
+        if (seenSlots.has(slotKey)) continue;
+        seenSlots.add(slotKey);
         entries.push({
           qty,
           name: t.name,
@@ -271,19 +283,27 @@ export function calcResourceUsageOnDateTime(
   for (const t of allTournaments) {
     if (t.id === ignoreTournamentId) continue;
     if (t.is_recurring) {
+      // Match by day-of-week (not anchor date) — a recurring tournament on every Thursday
+      // conflicts with any other Thursday, not just the anchor date
       const qty = getAssignedQty(t.recurring_resource_assignments, resource.id);
+      if (qty === 0 || !t.recurring_date) continue;
+      const [ry, rm, rd] = t.recurring_date.split("-").map(Number);
+      const recurringDay = HEBREW_DAYS[new Date(ry, rm - 1, rd).getDay()];
       if (
-        qty > 0 &&
-        t.recurring_date === date &&
+        recurringDay === dayName &&
         overlaps(startTime, endTime, t.recurring_start_time ?? "", t.recurring_end_time ?? "")
       ) {
         count += qty;
       }
     } else {
+      // Equipment for non-recurring tournaments is stored at tournament level (t.resource_assignments),
+      // not per-round. Check each round for a date+time match, then count the tournament-level qty.
+      const qty = getAssignedQty(t.resource_assignments, resource.id);
+      if (qty === 0) continue;
       for (const r of t.rounds ?? []) {
-        const qty = getAssignedQty(r.resource_assignments, resource.id);
-        if (qty > 0 && r.date === date && overlaps(startTime, endTime, r.start_time, r.end_time)) {
+        if (r.date === date && overlaps(startTime, endTime, r.start_time, r.end_time)) {
           count += qty;
+          break; // count each tournament once even if multiple rounds somehow match
         }
       }
     }

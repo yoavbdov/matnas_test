@@ -91,12 +91,6 @@ export interface Enrollment {
   status: "פעיל" | "לא פעיל";
 }
 
-export interface CustomEventType {
-  id: string;
-  name: string;
-  color?: string;
-}
-
 // --- Tournaments ---
 
 /** A single round within a tournament (specific date + time) */
@@ -182,6 +176,24 @@ export interface LeagueGroupMember {
   group_id: string;
   student_id: string;
   joined_at: string; // YYYY-MM-DD
+}
+
+// --- Attendance ---
+
+/** One student's attendance status for a specific session */
+export interface AttendanceRecord {
+  student_id: string;
+  present: boolean;
+  note?: string; // optional free-text note (e.g. "arrived late", "sick")
+}
+
+/** All attendance data for one class session (specific date) */
+export interface Attendance {
+  id: string;
+  class_id: string;
+  date: string; // YYYY-MM-DD
+  records: AttendanceRecord[];
+  created_at: string;
 }
 
 export interface AppSettings {

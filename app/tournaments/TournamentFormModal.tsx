@@ -209,6 +209,10 @@ export default function TournamentFormModal({
             allTournaments={allTournaments}
             currentTournamentId={tournament?.id}
             participantCount={form.participant_ids.length + form.manual_participants.length}
+            // Pass date/time so availability check uses the actual tournament schedule
+            equipmentDate={form.is_recurring ? form.recurring_date : form.rounds[0]?.date}
+            equipmentStartTime={form.is_recurring ? form.recurring_start_time : form.rounds[0]?.start_time}
+            equipmentEndTime={form.is_recurring ? form.recurring_end_time : form.rounds[0]?.end_time}
           />
         )}
 

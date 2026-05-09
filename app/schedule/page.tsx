@@ -346,7 +346,15 @@ export default function SchedulePage() {
             setEditTournament(detailTournament);
             setDetailTournament(null);
           }}
-          onDelete={async () => { setDetailTournament(null); }}
+          onDelete={async () => {
+            try {
+              await deleteDocument("tournaments", detailTournament.id);
+              showToast("התחרות נמחקה בהצלחה", "success");
+            } catch {
+              showToast("שגיאה במחיקה, נסה שוב", "error");
+            }
+            setDetailTournament(null);
+          }}
           onClose={() => setDetailTournament(null)}
         />
       )}

@@ -30,6 +30,10 @@ interface Props {
   currentTournamentId?: string;
   // How many participants are already registered (shown in the משתתפים section)
   participantCount?: number;
+  // Date and time for equipment availability hints (derived from rounds or recurring schedule)
+  equipmentDate?: string;
+  equipmentStartTime?: string;
+  equipmentEndTime?: string;
 }
 
 export default function TournamentBasicFields({
@@ -41,6 +45,9 @@ export default function TournamentBasicFields({
   allTournaments,
   currentTournamentId,
   participantCount = 0,
+  equipmentDate,
+  equipmentStartTime,
+  equipmentEndTime,
 }: Props) {
   return (
     <div className="space-y-5" dir="rtl">
@@ -169,6 +176,9 @@ export default function TournamentBasicFields({
             allClasses={allClasses}
             allTournaments={allTournaments}
             currentTournamentId={currentTournamentId}
+            date={equipmentDate}
+            startTime={equipmentStartTime}
+            endTime={equipmentEndTime}
           />
         )}
       </div>
