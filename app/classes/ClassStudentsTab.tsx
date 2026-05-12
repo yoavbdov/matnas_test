@@ -79,7 +79,7 @@ function exportToCSV(enrolledStudents: Student[], className: string) {
   const headers = ["שם פרטי", "שם משפחה", "טלפון", "אימייל", "דירוג ישראלי", "דירוג FIDE", "סטטוס"];
   const rows = enrolledStudents.map((s) => [
     s.first_name, s.last_name, s.phone ?? "", s.email ?? "",
-    String(s.israeli_rating ?? ""), String(s.fide_rating ?? ""), s.status,
+    String(s.israeli_rating ?? ""), String(s.fide_rating ?? ""), s.status ?? "",
   ]);
   const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
   const csv = [

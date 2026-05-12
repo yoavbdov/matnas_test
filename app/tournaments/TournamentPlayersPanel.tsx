@@ -41,7 +41,7 @@ function exportParticipantsToCSV(
       s.first_name, s.last_name, s.phone ?? "", s.email ?? "", s.israeli_id ?? "", s.dob,
       String(s.israeli_rating ?? ""), String(s.fide_rating ?? ""),
       s.chess_title ?? "", s.israeli_chess_id ?? "", s.fide_id ?? "",
-      s.address ?? "", s.status, "רשום במערכת",
+      s.address ?? "", s.status ?? "", "רשום במערכת",
     ]);
   }
 
