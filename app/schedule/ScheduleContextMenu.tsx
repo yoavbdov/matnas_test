@@ -5,13 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 
 export interface ContextMenuTarget {
-  x: number;          // מיקום X של העכבר
-  y: number;          // מיקום Y של העכבר
-  label: string;      // שם האירוע להצגה בהודעת האישור
-  dateStr: string;    // התאריך הנוכחי של המפגש (YYYY-MM-DD)
+  x: number; // מיקום X של העכבר
+  y: number; // מיקום Y של העכבר
+  label: string; // שם האירוע להצגה בהודעת האישור
+  dateStr: string; // התאריך הנוכחי של המפגש (YYYY-MM-DD)
   isRecurring: boolean; // האם האירוע חוזר (מציג שתי אפשרויות שונות)
   onDeleteSingle: () => Promise<void>; // מחק מפגש נוכחי בלבד
-  onDeleteAll: () => Promise<void>;    // מחק את כל האירועים
+  onDeleteAll: () => Promise<void>; // מחק את כל האירועים
 }
 
 interface Props {
@@ -34,7 +34,9 @@ export default function ScheduleContextMenu({ target, onClose }: Props) {
 
   // סגירה בלחיצה על Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
@@ -52,8 +54,14 @@ export default function ScheduleContextMenu({ target, onClose }: Props) {
       }
     };
     // setTimeout כדי לא לסגור מיד מהלחיצה שפתחה את התפריט
-    const t = setTimeout(() => document.addEventListener("mousedown", handler), 50);
-    return () => { clearTimeout(t); document.removeEventListener("mousedown", handler); };
+    const t = setTimeout(
+      () => document.addEventListener("mousedown", handler),
+      50,
+    );
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("mousedown", handler);
+    };
   }, [onClose]);
 
   async function handleConfirm() {
@@ -64,9 +72,10 @@ export default function ScheduleContextMenu({ target, onClose }: Props) {
   }
 
   // הצג הודעת אישור בהתאם לפעולה
-  const confirmMessage = pendingAction === "single"
-    ? `למחוק את המפגש של "${target.label}" בתאריך ${target.dateStr}?`
-    : `למחוק את כל המפגשים של "${target.label}"? פעולה זו אינה הפיכה.`;
+  const confirmMessage =
+    pendingAction === "single"
+      ? `למחוק את המפגש של "${target.label}" בתאריך ${target.dateStr}?`
+      : `למחוק את כל המפגשים של "${target.label}"? פעולה זו אינה הפיכה.`;
 
   // הקצה הימני-עליון של התפריט יהיה בנקודת העכבר (transform מזיז שמאלה ב-100%)
   const menuStyle: React.CSSProperties = {
@@ -82,7 +91,7 @@ export default function ScheduleContextMenu({ target, onClose }: Props) {
     <>
       {/* שכבת רקע — נחסמת כשה-ConfirmDialog פתוח כדי שכפתוריו יהיו לחיצים */}
       {!pendingAction && (
-        <div className="fixed inset-0 z-[9998]" onClick={onClose} />
+        <div className="fixed inset-0 z-9998" onClick={onClose} />
       )}
 
       {/* התפריט עצמו */}
@@ -96,7 +105,9 @@ export default function ScheduleContextMenu({ target, onClose }: Props) {
       >
         {/* כותרת — שם האירוע */}
         <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
-          <p className="text-xs font-semibold text-gray-500 truncate">{target.label}</p>
+          <p className="text-xs font-semibold text-gray-500 truncate">
+            {target.label}
+          </p>
         </div>
 
         {/* אפשרות 1: מחק מפגש נוכחי */}

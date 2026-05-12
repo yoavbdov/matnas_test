@@ -50,7 +50,7 @@ export default function EventDetailModal({
         <div className="flex items-center gap-3 mb-5">
           {event.color && (
             <span
-              className="w-4 h-4 rounded-full flex-shrink-0"
+              className="w-4 h-4 rounded-full shrink-0"
               style={{ background: event.color }}
             />
           )}
@@ -99,8 +99,13 @@ export default function EventDetailModal({
 
         {/* אישור מחיקה */}
         {confirmingDelete && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700" dir="rtl">
-            <p className="font-semibold mb-2">האם למחוק את האירוע "{event.name}"?</p>
+          <div
+            className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700"
+            dir="rtl"
+          >
+            <p className="font-semibold mb-2">
+              האם למחוק את האירוע "{event.name}"?
+            </p>
             <div className="flex gap-2">
               <button
                 type="button"
