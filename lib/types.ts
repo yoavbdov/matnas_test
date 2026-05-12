@@ -5,12 +5,11 @@ export interface Student {
   dob: string; // YYYY-MM-DD
   israeli_id?: string;
   phone?: string;
-  parent_name?: string;
-  parent_phone?: string;
   email?: string;
   address?: string;
   notes?: string;
-  status: "פעיל" | "לא פעיל";
+  // Computed from enrollments / tournaments / league membership — never set manually
+  status?: "פעיל" | "ליגה בלבד" | "לא פעיל";
   israeli_chess_id?: string;
   fide_id?: string;
   israeli_rating?: number;
@@ -28,7 +27,8 @@ export interface Teacher {
   email?: string;
   certifications?: string[];
   notes?: string;
-  status: "פעיל" | "לא פעיל";
+  // Computed from classes / tournaments — never set manually
+  status?: "פעיל" | "לא פעיל";
 }
 
 export interface Room {
@@ -80,6 +80,7 @@ export interface Class {
   color?: string;
   slots: ScheduleSlot[];
   resource_assignments?: ResourceAssignment[]; // equipment needed for each session
+  cancelled_dates?: string[]; // YYYY-MM-DD dates where a session was manually cancelled
   notes?: string;
 }
 
@@ -136,6 +137,7 @@ export interface Tournament {
   manual_participants: ManualParticipant[]; // externally added players
   color?: string; // display color in calendar
   notes?: string;
+  cancelled_dates?: string[]; // YYYY-MM-DD dates where a recurring occurrence was manually cancelled
   created_at?: string;
 }
 
@@ -224,6 +226,7 @@ export interface Event {
   start_date?: string;      // YYYY-MM-DD — when the recurrence begins
   is_permanent?: boolean;   // if true, recurs forever (end_date is ignored)
   end_date?: string;        // YYYY-MM-DD — last date (only used if !is_permanent)
+  cancelled_dates?: string[]; // YYYY-MM-DD dates where a recurring occurrence was manually cancelled
 
   created_at?: string;
 }

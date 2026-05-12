@@ -6,9 +6,10 @@ interface Props extends EventCalendarData {
   colIndex: number;
   colCount: number;
   onClick: () => void;
+  onContextMenu: (e: React.MouseEvent) => void;
 }
 
-export default function EventCalendarEvent({ event, hasConflict, colIndex, colCount, onClick }: Props) {
+export default function EventCalendarEvent({ event, hasConflict, colIndex, colCount, onClick, onContextMenu }: Props) {
   const startMin = timeToMinutes(event.start_time);
   const endMin = timeToMinutes(event.end_time);
   const top = minutesToPx(startMin);
@@ -19,6 +20,7 @@ export default function EventCalendarEvent({ event, hasConflict, colIndex, colCo
   return (
     <div
       onClick={onClick}
+      onContextMenu={(e) => { e.preventDefault(); onContextMenu(e); }}
       className={`absolute rounded-md px-1.5 py-1 text-white text-xs cursor-pointer hover:brightness-95 overflow-hidden transition-all border-2 border-dotted border-white/50
         ${hasConflict ? "ring-2 ring-red-400 ring-offset-1" : ""}`}
       style={{

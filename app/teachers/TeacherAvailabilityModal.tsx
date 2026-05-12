@@ -36,7 +36,11 @@ function addHour(t: string): string {
 
 // ─── component ────────────────────────────────────────────────────────────────
 
-export default function TeacherAvailabilityModal({ teachers, classes, onClose }: Props) {
+export default function TeacherAvailabilityModal({
+  teachers,
+  classes,
+  onClose,
+}: Props) {
   const [date, setDate] = useState(todayStr());
   const [startTime, setStartTime] = useState(currentTimeStr());
   const [endTime, setEndTime] = useState(addHour(currentTimeStr()));
@@ -48,7 +52,13 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
   const report = useMemo(() => {
     if (!searched) return null;
     if (!date || !startTime || !endTime || startTime >= endTime) return null;
-    return checkTeacherAvailability(teachers, classes, date, startTime, endTime);
+    return checkTeacherAvailability(
+      teachers,
+      classes,
+      date,
+      startTime,
+      endTime,
+    );
   }, [searched, date, startTime, endTime, teachers, classes]);
 
   // Filter by name if the user typed something
@@ -72,15 +82,20 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]" dir="rtl">
-
+      <div
+        className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]"
+        dir="rtl"
+      >
         {/* כותרת */}
         <div className="flex items-center justify-between p-5 border-b">
           <div className="flex items-center gap-2 text-teal-700 font-bold text-lg">
             <CalendarCheck size={20} />
             בדיקת זמינות מדריכים
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
             <X size={20} />
           </button>
         </div>
@@ -93,7 +108,10 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
             <input
               type="date"
               value={date}
-              onChange={(e) => { setDate(e.target.value); setSearched(false); }}
+              onChange={(e) => {
+                setDate(e.target.value);
+                setSearched(false);
+              }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 w-48"
             />
           </div>
@@ -101,31 +119,47 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
           {/* שורה 2: טווח שעות — 24h format */}
           <div className="flex gap-6 items-end">
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">שעת התחלה</label>
+              <label className="text-sm font-medium text-gray-700">
+                שעת התחלה
+              </label>
               <TimeSelect
                 value={startTime}
-                onChange={(v) => { setStartTime(v); setSearched(false); }}
+                onChange={(v) => {
+                  setStartTime(v);
+                  setSearched(false);
+                }}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">שעת סיום</label>
+              <label className="text-sm font-medium text-gray-700">
+                שעת סיום
+              </label>
               <TimeSelect
                 value={endTime}
-                onChange={(v) => { setEndTime(v); setSearched(false); }}
+                onChange={(v) => {
+                  setEndTime(v);
+                  setSearched(false);
+                }}
               />
             </div>
           </div>
           {timeError && (
-            <p className="text-xs text-red-500">שעת הסיום חייבת להיות אחרי שעת ההתחלה</p>
+            <p className="text-xs text-red-500">
+              שעת הסיום חייבת להיות אחרי שעת ההתחלה
+            </p>
           )}
 
           {/* שורה 3: סינון לפי שם (אופציונלי) */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">
-              סנן לפי שם מדריך <span className="text-gray-400 font-normal">(אופציונלי)</span>
+              סנן לפי שם מדריך{" "}
+              <span className="text-gray-400 font-normal">(אופציונלי)</span>
             </label>
             <div className="relative max-w-xs">
-              <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search
+                size={14}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
               <input
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
@@ -135,7 +169,10 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
             </div>
           </div>
 
-          <Btn onClick={handleCheck} disabled={!date || !startTime || !endTime || !!timeError}>
+          <Btn
+            onClick={handleCheck}
+            disabled={!date || !startTime || !endTime || !!timeError}
+          >
             <CalendarCheck size={15} />
             בדוק זמינות
           </Btn>
@@ -144,7 +181,9 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
         {/* תוצאות */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {!filteredReport && !searched && (
-            <p className="text-sm text-gray-400 text-center mt-4">הכנס תאריך וטווח שעות ולחץ "בדוק זמינות"</p>
+            <p className="text-sm text-gray-400 text-center mt-4">
+              הכנס תאריך וטווח שעות ולחץ "בדוק זמינות"
+            </p>
           )}
 
           {filteredReport && (
@@ -155,14 +194,23 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
                   פנויים ({filteredReport.free.length})
                 </h3>
                 {filteredReport.free.length === 0 ? (
-                  <p className="text-xs text-gray-400">אין מדריכים פנויים בטווח הזה</p>
+                  <p className="text-xs text-gray-400">
+                    אין מדריכים פנויים בטווח הזה
+                  </p>
                 ) : (
                   <ul className="space-y-1">
                     {filteredReport.free.map((t) => (
-                      <li key={t.id} className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2 text-sm">
+                      <li
+                        key={t.id}
+                        className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2 text-sm"
+                      >
                         <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
                         {t.first_name} {t.last_name}
-                        {t.phone && <span className="text-gray-400 text-xs mr-auto">{formatPhone(t.phone)}</span>}
+                        {t.phone && (
+                          <span className="text-gray-400 text-xs mr-auto">
+                            {formatPhone(t.phone)}
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -175,25 +223,34 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
                   תפוסים ({filteredReport.busy.length})
                 </h3>
                 {filteredReport.busy.length === 0 ? (
-                  <p className="text-xs text-gray-400">אין מדריכים תפוסים בטווח הזה</p>
+                  <p className="text-xs text-gray-400">
+                    אין מדריכים תפוסים בטווח הזה
+                  </p>
                 ) : (
                   <ul className="space-y-2">
-                    {filteredReport.busy.map(({ teacher, conflictingClasses }) => (
-                      <li key={teacher.id} className="bg-red-50 rounded-lg px-3 py-2 text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
-                          <span className="font-medium">{teacher.first_name} {teacher.last_name}</span>
-                        </div>
-                        {/* הצג את החוגים שגורמים לחסימה */}
-                        <ul className="mt-1 mr-4 space-y-0.5">
-                          {conflictingClasses.map((c, i) => (
-                            <li key={i} className="text-xs text-gray-500">
-                              {c.className} — {c.start_time}–{c.end_time}
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                    ))}
+                    {filteredReport.busy.map(
+                      ({ teacher, conflictingClasses }) => (
+                        <li
+                          key={teacher.id}
+                          className="bg-red-50 rounded-lg px-3 py-2 text-sm"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
+                            <span className="font-medium">
+                              {teacher.first_name} {teacher.last_name}
+                            </span>
+                          </div>
+                          {/* הצג את החוגים שגורמים לחסימה */}
+                          <ul className="mt-1 mr-4 space-y-0.5">
+                            {conflictingClasses.map((c, i) => (
+                              <li key={i} className="text-xs text-gray-500">
+                                {c.className} — {c.start_time}–{c.end_time}
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                      ),
+                    )}
                   </ul>
                 )}
               </section>

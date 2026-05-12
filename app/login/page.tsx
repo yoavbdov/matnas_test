@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
+import Image from "next/image";
 
 function hebrewError(code: string): string {
   switch (code) {
@@ -45,10 +46,17 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50" dir="rtl">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="text-3xl font-bold text-teal-600 mb-1">♟</div>
-          <h1 className="text-xl font-bold text-gray-800">Chess Nimbus</h1>
-          <p className="text-sm text-gray-400 mt-1">התחברות למערכת</p>
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <Image
+            src="/chess nimbus logo.png"
+            alt="Chess Nimbus Logo"
+            width={180}
+            height={70}
+            className="object-contain mb-3"
+            priority
+          />
+          <p className="text-sm text-gray-400">התחברות למערכת</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

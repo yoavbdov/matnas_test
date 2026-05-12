@@ -6,11 +6,12 @@ interface Props extends TournamentEventData {
   colIndex: number;
   colCount: number;
   onClick: () => void;
+  onContextMenu: (e: React.MouseEvent) => void;
   isRecurring?: boolean;
 }
 
 export default function TournamentCalendarEvent({
-  tournament, round, hasConflict, isRecurring, colIndex, colCount, onClick,
+  tournament, round, hasConflict, isRecurring, colIndex, colCount, onClick, onContextMenu,
 }: Props) {
   const startMin = timeToMinutes(round.start_time);
   const endMin = timeToMinutes(round.end_time);
@@ -22,6 +23,7 @@ export default function TournamentCalendarEvent({
   return (
     <div
       onClick={onClick}
+      onContextMenu={(e) => { e.preventDefault(); onContextMenu(e); }}
       className={`absolute rounded-md px-1.5 py-1 text-white text-xs cursor-pointer
         hover:brightness-95 overflow-hidden transition-all border-2 border-dashed border-white/40
         ${hasConflict ? "ring-2 ring-red-400 ring-offset-1" : ""}`}

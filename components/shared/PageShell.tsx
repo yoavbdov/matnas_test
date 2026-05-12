@@ -1,5 +1,4 @@
 import Sidebar from "@/components/layout/Sidebar";
-import TopBar from "@/components/layout/TopBar";
 
 interface PageShellProps {
   title: string;
@@ -11,7 +10,6 @@ export default function PageShell({ title, children }: PageShellProps) {
     <div className="flex h-screen overflow-hidden" dir="rtl">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <TopBar title={title} />
         <main className="flex-1 p-6 bg-gray-100">{children}</main>
       </div>
     </div>

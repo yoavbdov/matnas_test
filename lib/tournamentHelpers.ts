@@ -202,6 +202,9 @@ export function recurringTournamentOccursOnDate(
 ): boolean {
   if (!tournament.is_recurring || !tournament.recurring_date) return false;
 
+  // Skip manually cancelled occurrences
+  if (tournament.cancelled_dates?.includes(dateStr)) return false;
+
   const [ty, tm, td] = tournament.recurring_date.split("-").map(Number);
   const start = new Date(ty, tm - 1, td);
 

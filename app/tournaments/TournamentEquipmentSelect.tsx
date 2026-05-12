@@ -6,7 +6,9 @@ import { Plus, X, AlertTriangle } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import {
   calcUsedAtWindow,
+  calcUsedOnDate,
   getConflictingNamesAtWindow,
+  getConflictingNamesOnDate,
 } from "@/lib/classHelpers";
 import type { PhysicalEquipment, Class, Tournament, ResourceAssignment } from "@/lib/types";
 
@@ -54,9 +56,9 @@ export default function TournamentEquipmentSelect({
     onChange(assignments.map((a, i) => (i === idx ? { ...a, ...patch } : a)));
   }
 
-  // Derive day-of-week from the date (works for both recurring anchor date and round date).
-  // We always use weekday-based matching — same logic as classes — so conflicts are
-  // detected consistently regardless of whether a date is an anchor or a specific round.
+  // When an exact date is provided we use it directly for date-specific availability.
+  // This avoids false positives: a non-recurring tournament with rounds only on May 15–29
+  // should NOT conflict when viewing the June 5 occurrence.
   const day = date ? HEBREW_DAYS[new Date(date).getDay()] : undefined;
   const knowsTime = !!(day && startTime && endTime);
 
@@ -86,21 +88,36 @@ export default function TournamentEquipmentSelect({
           let conflictingNames: string[] = [];
 
           if (eq && knowsTime) {
-            // Same logic as classes: match by weekday so any event on the same day conflicts
-            usedElsewhere = calcUsedAtWindow(
-              eq.id, day!, startTime!, endTime!,
-              allClasses, undefined, allTournaments, currentTournamentId
-            );
+            if (date) {
+              // Exact-date check: accurate per specific occurrence (e.g. June 5 vs May 15)
+              usedElsewhere = calcUsedOnDate(
+                eq.id, date, startTime!, endTime!,
+                allClasses, allTournaments, currentTournamentId
+              );
+            } else {
+              // Day-of-week check: structural fallback when no exact date is known
+              usedElsewhere = calcUsedAtWindow(
+                eq.id, day!, startTime!, endTime!,
+                allClasses, undefined, allTournaments, currentTournamentId
+              );
+            }
           }
 
           const available = eq ? eq.quantity - usedElsewhere : 0;
           const shortage = a.quantity > available;
 
           if (shortage && eq && knowsTime) {
-            conflictingNames = getConflictingNamesAtWindow(
-              eq.id, day!, startTime!, endTime!,
-              allClasses, undefined, allTournaments, currentTournamentId
-            );
+            if (date) {
+              conflictingNames = getConflictingNamesOnDate(
+                eq.id, date, startTime!, endTime!,
+                allClasses, allTournaments, currentTournamentId
+              );
+            } else {
+              conflictingNames = getConflictingNamesAtWindow(
+                eq.id, day!, startTime!, endTime!,
+                allClasses, undefined, allTournaments, currentTournamentId
+              );
+            }
           }
 
           return (
@@ -117,7 +134,9 @@ export default function TournamentEquipmentSelect({
                 >
                   {physicalEquipment.map((item) => {
                     const itemUsed = knowsTime
-                      ? calcUsedAtWindow(item.id, day!, startTime!, endTime!, allClasses, undefined, allTournaments, currentTournamentId)
+                      ? (date
+                          ? calcUsedOnDate(item.id, date, startTime!, endTime!, allClasses, allTournaments, currentTournamentId)
+                          : calcUsedAtWindow(item.id, day!, startTime!, endTime!, allClasses, undefined, allTournaments, currentTournamentId))
                       : 0;
                     const itemAvailable = item.quantity - itemUsed;
                     const label = knowsTime

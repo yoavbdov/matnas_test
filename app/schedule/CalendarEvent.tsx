@@ -7,11 +7,12 @@ interface Props extends CalendarEventData {
   colIndex: number; // which column within a day (for overlapping events)
   colCount: number; // total columns in this day
   onClick: () => void;
+  onContextMenu: (e: React.MouseEvent) => void;
 }
 
 export default function CalendarEvent({
   classItem, slot, teacher, room, hasConflict,
-  colIndex, colCount, onClick,
+  colIndex, colCount, onClick, onContextMenu,
 }: Props) {
   const startMin = timeToMinutes(slot.start_time);
   const endMin = timeToMinutes(slot.end_time);
@@ -22,6 +23,7 @@ export default function CalendarEvent({
   return (
     <div
       onClick={onClick}
+      onContextMenu={(e) => { e.preventDefault(); onContextMenu(e); }}
       className={`absolute rounded-md px-1.5 py-1 text-white text-xs cursor-pointer
         hover:brightness-95 overflow-hidden transition-all
         ${hasConflict ? "ring-2 ring-red-400 ring-offset-1" : ""}`}

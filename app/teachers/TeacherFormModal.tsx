@@ -44,11 +44,7 @@ export default function TeacherFormModal({ mode, form, setForm, saving, onClose,
         <Field label="אימייל" hint={`עד ${LIMITS.EMAIL} תווים`}>
           <input type="email" className={inp} value={form.email ?? ""} maxLength={LIMITS.EMAIL} onChange={(e) => set("email", e.target.value)} />
         </Field>
-        <Field label="סטטוס">
-          <select className={inp} value={form.status} onChange={(e) => set("status", e.target.value as Teacher["status"])}>
-            <option>פעיל</option><option>לא פעיל</option>
-          </select>
-        </Field>
+        {/* סטטוס מחושב אוטומטית — אי אפשר לערוך ידנית */}
       </div>
 
       <div className="mt-4">

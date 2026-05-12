@@ -29,7 +29,7 @@ function exportParticipantsToCSV(
   tournamentName: string,
 ) {
   const headers = [
-    "שם פרטי", "שם משפחה", "טלפון", "הורה", "טלפון הורה", "אימייל",
+    "שם פרטי", "שם משפחה", "טלפון", "אימייל",
     "ת.ז.", "תאריך לידה", "דירוג ישראלי", "דירוג FIDE", "תואר",
     "מס׳ שחמטאי ישראלי", "FIDE ID", "כתובת", "סטטוס", "סוג",
   ];
@@ -38,8 +38,7 @@ function exportParticipantsToCSV(
 
   for (const s of registeredStudents) {
     rows.push([
-      s.first_name, s.last_name, s.phone ?? "", s.parent_name ?? "",
-      s.parent_phone ?? "", s.email ?? "", s.israeli_id ?? "", s.dob,
+      s.first_name, s.last_name, s.phone ?? "", s.email ?? "", s.israeli_id ?? "", s.dob,
       String(s.israeli_rating ?? ""), String(s.fide_rating ?? ""),
       s.chess_title ?? "", s.israeli_chess_id ?? "", s.fide_id ?? "",
       s.address ?? "", s.status, "רשום במערכת",

@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
+import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
 import SearchInput from "@/components/shared/SearchInput";
 import { GRADE_LABELS } from "@/lib/constants";
 import type { Class } from "@/lib/types";
@@ -26,8 +27,8 @@ function FilterItem({ label, children }: { label: string; children: React.ReactN
 interface Props {
   search: string;
   onSearch: (v: string) => void;
-  statusFilter: "הכל" | "פעיל" | "לא פעיל";
-  onFilterStatus: (v: "הכל" | "פעיל" | "לא פעיל") => void;
+  statusFilter: "הכל" | "פעיל" | "ליגה בלבד" | "לא פעיל";
+  onFilterStatus: (v: "הכל" | "פעיל" | "ליגה בלבד" | "לא פעיל") => void;
   classFilter: string;
   onFilterClass: (id: string) => void;
   gradeFilter: string;
@@ -44,6 +45,7 @@ interface Props {
   onAddStudent: () => void;
   onExport: () => void;
   onImport: () => void;
+  onCheckAvailability: () => void;
 }
 
 export default function StudentsToolbar({
@@ -51,7 +53,7 @@ export default function StudentsToolbar({
   classFilter, onFilterClass, gradeFilter, onFilterGrade,
   minRating, onFilterMinRating, maxRating, onFilterMaxRating,
   minFideRating, onFilterMinFideRating, maxFideRating, onFilterMaxFideRating,
-  classes, onAddStudent, onExport, onImport,
+  classes, onAddStudent, onExport, onImport, onCheckAvailability,
 }: Props) {
   return (
     <div className="flex flex-col gap-3 mb-5">
@@ -64,6 +66,7 @@ export default function StudentsToolbar({
           className="min-w-45 flex-1 max-w-xs"
         />
         <div className="flex gap-2">
+          <CheckAvailabilityBtn onClick={onCheckAvailability} />
           <CsvImportBtn onClick={onImport} />
           <CsvExportBtn onClick={onExport} />
           <Btn onClick={onAddStudent}><Plus size={15} />הוסף שחקן</Btn>
@@ -76,6 +79,7 @@ export default function StudentsToolbar({
           <select value={statusFilter} onChange={(e) => onFilterStatus(e.target.value as typeof statusFilter)} className={sel}>
             <option value="הכל">הכל</option>
             <option value="פעיל">פעיל</option>
+            <option value="ליגה בלבד">ליגה בלבד</option>
             <option value="לא פעיל">לא פעיל</option>
           </select>
         </FilterItem>

@@ -39,11 +39,12 @@ export default function AddPlayerModal({
     [existingMembers, groupId],
   );
 
-  // Filter: not in this group, active, matches search
+  // Filter: not already in this group, matches search
+  // No status filter — status is computed automatically and any student can join a league group
   const visibleStudents = useMemo(() => {
     const q = search.trim().toLowerCase();
     return students
-      .filter((s) => !inThisGroup.has(s.id) && s.status === "פעיל")
+      .filter((s) => !inThisGroup.has(s.id))
       .filter((s) => {
         if (!q) return true;
         return `${s.first_name} ${s.last_name}`.toLowerCase().includes(q);

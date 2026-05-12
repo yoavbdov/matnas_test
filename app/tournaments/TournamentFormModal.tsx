@@ -43,6 +43,24 @@ interface Props {
   onDelete?: () => void; // only in edit mode
 }
 
+// Returns the next occurrence of a recurring tournament on or after today.
+// Used so equipment availability is checked against the NEXT real date, not a stale anchor.
+function nextOccurrenceDate(recurringDate: string | undefined): string | undefined {
+  if (!recurringDate) return undefined;
+  const [y, m, d] = recurringDate.split("-").map(Number);
+  const anchor = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (anchor >= today) return recurringDate; // anchor is still in the future — use it
+  // Compute the next date with the same day-of-week
+  const dow = anchor.getDay(); // e.g. 5 = Friday
+  const todayDow = today.getDay();
+  const daysUntil = ((dow - todayDow) + 7) % 7 || 7; // at least 1 day ahead
+  const next = new Date(today);
+  next.setDate(today.getDate() + daysUntil);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")}`;
+}
+
 // Build the initial form state for both add and edit modes
 function buildInitial(t?: Tournament): TournamentFormData & {
   rounds: TournamentRound[];
@@ -243,8 +261,10 @@ export default function TournamentFormModal({
             allTournaments={allTournaments}
             currentTournamentId={tournament?.id}
             participantCount={form.participant_ids.length + form.manual_participants.length}
-            // Pass date/time so availability check uses the actual tournament schedule
-            equipmentDate={form.is_recurring ? form.recurring_date : form.rounds[0]?.date}
+            // For recurring: use next upcoming occurrence (not anchor) so availability
+            // is checked against the specific next date, not a stale anchor in the past.
+            // For non-recurring: use first round date.
+            equipmentDate={form.is_recurring ? nextOccurrenceDate(form.recurring_date) : form.rounds[0]?.date}
             equipmentStartTime={form.is_recurring ? form.recurring_start_time : form.rounds[0]?.start_time}
             equipmentEndTime={form.is_recurring ? form.recurring_end_time : form.rounds[0]?.end_time}
           />

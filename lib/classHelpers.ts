@@ -89,9 +89,11 @@ export function calcUsedAtWindow(
     } else {
       const qty = getAssignedQty(t.resource_assignments, resourceId);
       if (qty === 0) continue;
-      // Count tournament once if any round falls on the same weekday and overlaps
+      // Only count future/ongoing rounds — past rounds are over and no longer consume equipment
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
       for (const round of t.rounds ?? []) {
-        if (!round.date) continue;
+        if (!round.date || round.date < todayStr) continue; // skip past rounds
         const [y, m, d] = round.date.split("-").map(Number);
         const rDay = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
         if (rDay === day && timesOverlap(startTime, endTime, round.start_time, round.end_time)) {
@@ -230,8 +232,11 @@ export function getConflictingNamesAtWindow(
       }
     } else {
       if (getAssignedQty(t.resource_assignments, resourceId) === 0) continue;
+      // Only consider future/ongoing rounds — past rounds are no longer active
+      const today2 = new Date();
+      const todayStr2 = `${today2.getFullYear()}-${String(today2.getMonth() + 1).padStart(2, "0")}-${String(today2.getDate()).padStart(2, "0")}`;
       for (const round of t.rounds ?? []) {
-        if (!round.date) continue;
+        if (!round.date || round.date < todayStr2) continue; // skip past rounds
         const [y, m, d] = round.date.split("-").map(Number);
         const rDay = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
         if (rDay === day && timesOverlap(startTime, endTime, round.start_time, round.end_time)) {
@@ -316,15 +321,31 @@ export function getConflictingNamesDuringClassSlots(
 // These two callers check if an event's equipment is overbooked AT ITS OWN TIME.
 
 // For a tournament detail view: is this resource overbooked during any of its rounds?
+// occurrenceDate: for recurring tournaments, check a specific date instead of day-of-week.
+//   Pass the calendar date being viewed so the result is accurate for that day only.
 export function isTournamentResourceOverbooked(
   resource: PhysicalEquipment,
   tournament: Tournament,
   qty: number,
   allClasses: Class[],
-  allTournaments: Tournament[]
+  allTournaments: Tournament[],
+  occurrenceDate?: string
 ): boolean {
   if (tournament.is_recurring) {
     if (!tournament.recurring_date) return false;
+
+    if (occurrenceDate) {
+      // Exact-date check: only count equipment used by others on this specific date
+      const used = calcUsedOnDate(
+        resource.id, occurrenceDate,
+        tournament.recurring_start_time ?? "00:00",
+        tournament.recurring_end_time ?? "01:00",
+        allClasses, allTournaments, tournament.id
+      );
+      return qty + used > resource.quantity;
+    }
+
+    // Fallback: structural check by day-of-week (used when no specific date is known)
     const [y, m, d] = tournament.recurring_date.split("-").map(Number);
     const day = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
     const used = calcUsedAtWindow(
@@ -335,9 +356,11 @@ export function isTournamentResourceOverbooked(
     );
     return qty + used > resource.quantity;
   } else {
-    // Check each round — overbooked if any round exceeds stock
+    // Check only future/ongoing rounds — past rounds are done and can't be overbooked
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     for (const round of tournament.rounds ?? []) {
-      if (!round.date) continue;
+      if (!round.date || round.date < todayStr) continue; // skip past rounds
       const used = calcUsedOnDate(
         resource.id, round.date, round.start_time, round.end_time,
         allClasses, allTournaments, tournament.id

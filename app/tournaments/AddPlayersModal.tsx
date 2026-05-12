@@ -71,8 +71,6 @@ function exportToCsv(students: Student[], filename: string) {
     "מס׳ שחמטאי ישראלי",
     "FIDE ID",
     "טלפון",
-    "הורה",
-    "טלפון הורה",
     "אימייל",
     "סטטוס",
   ];
@@ -87,8 +85,6 @@ function exportToCsv(students: Student[], filename: string) {
     s.israeli_chess_id ?? "",
     s.fide_id ?? "",
     s.phone ?? "",
-    s.parent_name ?? "",
-    s.parent_phone ?? "",
     s.email ?? "",
     s.status,
   ]);

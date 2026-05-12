@@ -7,12 +7,18 @@ import RoomFormModal from "./RoomFormModal";
 import ResourceFormModal from "./ResourceFormModal";
 import AvailabilityCheckerModal from "./AvailabilityCheckerModal";
 import RoomUploadPanel from "./RoomUploadPanel";
+import EquipmentImportPanel from "./EquipmentImportPanel";
+import RoomAvailabilityModal from "./RoomAvailabilityModal";
 import RoomsToolbar from "./RoomsToolbar";
 import ResourcesToolbar from "./ResourcesToolbar";
+import { exportEquipmentCsv } from "./exportEquipmentCsv";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
 import type { Room, PhysicalEquipment } from "@/lib/types";
+// events needed for room availability check
+import { useCollection } from "@/firebase/hooks/useCollection";
+import type { Event } from "@/lib/types";
 
 type ActiveTab = "rooms" | "equipment";
 
@@ -21,6 +27,7 @@ function emptyEquipment(): Omit<PhysicalEquipment, "id"> { return { name: "", qu
 
 export default function RoomsPage() {
   const { rooms, physicalEquipment, classes, tournaments, settings } = useData();
+  const { data: events } = useCollection<Event>("events");
   const { showToast } = useToast();
 
   const [tab, setTab] = useState<ActiveTab>("rooms");
@@ -54,8 +61,10 @@ export default function RoomsPage() {
   const [equipmentDeleteTarget, setEquipmentDeleteTarget] = useState<PhysicalEquipment | null>(null);
 
   const [saving, setSaving] = useState(false);
-  const [availabilityOpen, setAvailabilityOpen] = useState(false);
+  const [availabilityOpen, setAvailabilityOpen] = useState(false);   // ציוד
+  const [roomAvailabilityOpen, setRoomAvailabilityOpen] = useState(false); // חדרים
   const [importOpen, setImportOpen] = useState(false);
+  const [equipmentImportOpen, setEquipmentImportOpen] = useState(false);
 
   // ── ייצוא חדרים ──
   function exportRoomsCSV() {
@@ -186,6 +195,7 @@ export default function RoomsPage() {
             onAdd={openAddRoom}
             onImport={() => setImportOpen(true)}
             onExport={exportRoomsCSV}
+            onCheckAvailability={() => setRoomAvailabilityOpen(true)}
           />
           <p className="text-xs text-gray-400 mb-3">{filteredRooms.length} חדרים</p>
           <Table columns={roomColumns} rows={filteredRooms} onRowClick={openEditRoom} sortable />
@@ -198,6 +208,8 @@ export default function RoomsPage() {
             maxQuantity={maxQuantity} onFilterMaxQuantity={setMaxQuantity}
             onAdd={openAddEquipment}
             onCheckAvailability={() => setAvailabilityOpen(true)}
+            onExport={() => exportEquipmentCsv(filteredEquipment)}
+            onImport={() => setEquipmentImportOpen(true)}
           />
           <p className="text-xs text-gray-400 mb-3">{filteredEquipment.length} פריטי ציוד</p>
           <Table columns={equipmentColumns} rows={filteredEquipment} onRowClick={openEditEquipment} sortable />
@@ -241,8 +253,22 @@ export default function RoomsPage() {
         <AvailabilityCheckerModal physicalEquipment={physicalEquipment} classes={classes} tournaments={tournaments} onClose={() => setAvailabilityOpen(false)} />
       )}
 
+      {roomAvailabilityOpen && (
+        <RoomAvailabilityModal
+          rooms={rooms}
+          classes={classes}
+          tournaments={tournaments}
+          events={events}
+          onClose={() => setRoomAvailabilityOpen(false)}
+        />
+      )}
+
       {importOpen && (
         <RoomUploadPanel onClose={() => setImportOpen(false)} />
+      )}
+
+      {equipmentImportOpen && (
+        <EquipmentImportPanel onClose={() => setEquipmentImportOpen(false)} />
       )}
     </PageShell>
   );

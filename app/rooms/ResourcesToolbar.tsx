@@ -3,6 +3,9 @@
 import { Plus } from "lucide-react";
 import SearchInput from "@/components/shared/SearchInput";
 import Btn from "@/components/shared/Btn";
+import CsvExportBtn from "@/components/shared/CsvExportBtn";
+import CsvImportBtn from "@/components/shared/CsvImportBtn";
+import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
 
 const numInp =
   "w-20 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 " +
@@ -26,13 +29,15 @@ interface Props {
   onFilterMaxQuantity: (v: string) => void;
   onAdd: () => void;
   onCheckAvailability: () => void;
+  onExport: () => void;
+  onImport: () => void;
 }
 
 export default function ResourcesToolbar({
   search, onSearch,
   minQuantity, onFilterMinQuantity,
   maxQuantity, onFilterMaxQuantity,
-  onAdd, onCheckAvailability,
+  onAdd, onCheckAvailability, onExport, onImport,
 }: Props) {
   return (
     <div className="flex flex-col gap-3 mb-5">
@@ -45,9 +50,9 @@ export default function ResourcesToolbar({
           className="min-w-45 flex-1 max-w-xs"
         />
         <div className="flex gap-2">
-          <Btn variant="secondary" className="text-xs px-3 py-2" onClick={onCheckAvailability}>
-            בדוק זמינות
-          </Btn>
+          <CheckAvailabilityBtn onClick={onCheckAvailability} />
+          <CsvImportBtn onClick={onImport} />
+          <CsvExportBtn onClick={onExport} />
           <Btn onClick={onAdd}><Plus size={15} />הוסף ציוד</Btn>
         </div>
       </div>

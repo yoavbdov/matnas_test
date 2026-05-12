@@ -8,12 +8,14 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteDocument } from "@/firebase/firestore";
 import { formatPhone } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
-import type { Teacher, Class, Enrollment } from "@/lib/types";
+import { computeTeacherStatus } from "@/lib/teacherHelpers";
+import type { Teacher, Class, Enrollment, Tournament } from "@/lib/types";
 
 interface Props {
   teacher: Teacher;
   classes: Class[];
   enrollments: Enrollment[];
+  tournaments: Tournament[];
   onClose: () => void;
   onEdit: (t: Teacher) => void;
 }
@@ -28,7 +30,7 @@ function Row({ label, value }: { label: string; value?: string | number }) {
   );
 }
 
-export default function TeacherDetailModal({ teacher, classes, enrollments, onClose, onEdit }: Props) {
+export default function TeacherDetailModal({ teacher, classes, enrollments, tournaments, onClose, onEdit }: Props) {
   const { showToast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -62,9 +64,9 @@ export default function TeacherDetailModal({ teacher, classes, enrollments, onCl
         }
       >
         <div className="mb-3">
-          {/* סטטוס נגזר: 0 חוגים פעילים = לא פעיל */}
+          {/* סטטוס מחושב אוטומטית — חוג פעיל OR שופט בתחרות = פעיל */}
           {(() => {
-            const status = activeClasses.length === 0 ? "לא פעיל" : teacher.status;
+            const status = computeTeacherStatus(teacher.id, classes, tournaments);
             return <Badge label={status} color={status === "פעיל" ? "green" : "gray"} />;
           })()}
         </div>

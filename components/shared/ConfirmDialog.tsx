@@ -6,9 +6,10 @@ interface ConfirmDialogProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  zIndex?: number; // מאפשר העלאת z-index כשצריך להופיע מעל רכיבים אחרים
 }
 
-export default function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmDialogProps) {
+export default function ConfirmDialog({ message, onConfirm, onCancel, zIndex = 50 }: ConfirmDialogProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
     document.addEventListener("keydown", handler);
@@ -16,7 +17,7 @@ export default function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmD
   }, [onCancel]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl">
+    <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex }} dir="rtl">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
       <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
         <p className="text-sm text-gray-700 mb-5">{message}</p>

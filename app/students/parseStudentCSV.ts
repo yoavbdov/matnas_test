@@ -14,8 +14,6 @@ export interface ParsedRow {
   // שדות אופציונליים
   status?: "פעיל" | "לא פעיל";
   phone?: string;
-  parent_name?: string;
-  parent_phone?: string;
   israeli_id?: string;
   email?: string;
   address?: string;
@@ -175,8 +173,6 @@ export function parseStudentCSV(text: string, settings: Required<AppSettings>): 
       dob: dob ?? undefined,
       status,
       phone: phoneNorm || undefined,
-      parent_name: parentName?.trim() || undefined,
-      parent_phone: parentPhoneNorm || undefined,
       israeli_id: israeli_id || undefined,
       email: email?.trim() || undefined,
       address: address?.trim() || undefined,

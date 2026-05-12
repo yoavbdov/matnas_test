@@ -81,13 +81,12 @@ function getConflict(
 // Converts a list of students to a CSV string and triggers a download
 function exportToCsv(students: Student[], filename: string) {
   const headers = [
-    "שם פרטי", "שם משפחה", "טלפון", "הורה", "טלפון הורה", "אימייל",
+    "שם פרטי", "שם משפחה", "טלפון", "אימייל",
     "ת.ז.", "תאריך לידה", "דירוג ישראלי", "דירוג FIDE", "תואר",
     "מס׳ שחמטאי ישראלי", "FIDE ID", "כתובת", "סטטוס",
   ];
   const rows = students.map((s) => [
-    s.first_name, s.last_name, s.phone ?? "", s.parent_name ?? "",
-    s.parent_phone ?? "", s.email ?? "", s.israeli_id ?? "", s.dob,
+    s.first_name, s.last_name, s.phone ?? "", s.email ?? "", s.israeli_id ?? "", s.dob,
     s.israeli_rating ?? "", s.fide_rating ?? "", s.chess_title ?? "",
     s.israeli_chess_id ?? "", s.fide_id ?? "", s.address ?? "", s.status,
   ]);

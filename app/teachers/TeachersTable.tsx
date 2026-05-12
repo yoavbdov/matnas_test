@@ -1,11 +1,12 @@
 "use client";
 // טבלת המדריכים — כל שורה היא מדריך אחד, ניתן למיין לפי כל עמודה
-// סטטוס נגזר אוטומטית: 0 חוגים פעילים = לא פעיל
+// סטטוס נגזר אוטומטית: מלמד חוג פעיל OR שופט בתחרות = פעיל
 import { useState } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import Badge from "@/components/shared/Badge";
 import { formatPhone } from "@/lib/utils";
-import type { Teacher, Class } from "@/lib/types";
+import { computeTeacherStatus } from "@/lib/teacherHelpers";
+import type { Teacher, Class, Tournament } from "@/lib/types";
 
 type SortKey = "name" | "phone" | "activeClasses" | "status";
 type SortDir = "asc" | "desc";
@@ -13,6 +14,7 @@ type SortDir = "asc" | "desc";
 interface Props {
   teachers: Teacher[];
   classes: Class[];
+  tournaments: Tournament[];
   onRowClick: (t: Teacher) => void;
 }
 
@@ -20,12 +22,7 @@ function countActiveClasses(teacherId: string, classes: Class[]) {
   return classes.filter((c) => c.teacher_id === teacherId && c.status === "פעיל").length;
 }
 
-// אם למדריך 0 חוגים פעילים — הוא נחשב לא פעיל
-function effectiveStatus(teacher: Teacher, activeClasses: number): "פעיל" | "לא פעיל" {
-  return activeClasses === 0 ? "לא פעיל" : teacher.status;
-}
-
-function sortTeachers(teachers: Teacher[], classes: Class[], key: SortKey, dir: SortDir) {
+function sortTeachers(teachers: Teacher[], classes: Class[], tournaments: Tournament[], key: SortKey, dir: SortDir) {
   return [...teachers].sort((a, b) => {
     const acA = countActiveClasses(a.id, classes);
     const acB = countActiveClasses(b.id, classes);
@@ -42,8 +39,8 @@ function sortTeachers(teachers: Teacher[], classes: Class[], key: SortKey, dir: 
       valA = acA;
       valB = acB;
     } else if (key === "status") {
-      valA = effectiveStatus(a, acA);
-      valB = effectiveStatus(b, acB);
+      valA = computeTeacherStatus(a.id, classes, tournaments);
+      valB = computeTeacherStatus(b.id, classes, tournaments);
     }
 
     if (valA < valB) return dir === "asc" ? -1 : 1;
@@ -74,7 +71,7 @@ function SortHeader({ label, sortKey, active, dir, onClick }: {
   );
 }
 
-export default function TeachersTable({ teachers, classes, onRowClick }: Props) {
+export default function TeachersTable({ teachers, classes, tournaments, onRowClick }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -95,7 +92,7 @@ export default function TeachersTable({ teachers, classes, onRowClick }: Props) 
     );
   }
 
-  const sorted = sortTeachers(teachers, classes, sortKey, sortDir);
+  const sorted = sortTeachers(teachers, classes, tournaments, sortKey, sortDir);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -112,7 +109,8 @@ export default function TeachersTable({ teachers, classes, onRowClick }: Props) 
         <tbody>
           {sorted.map((t) => {
             const activeClasses = countActiveClasses(t.id, classes);
-            const status = effectiveStatus(t, activeClasses);
+            // Always compute status — never read from the stored field
+            const status = computeTeacherStatus(t.id, classes, tournaments);
             return (
               <tr
                 key={t.id}

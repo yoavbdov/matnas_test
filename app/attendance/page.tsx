@@ -14,7 +14,9 @@ import ClassSelector from "./ClassSelector";
 import SessionList from "./SessionList";
 import AttendanceSheet from "./AttendanceSheet";
 import ExportCsvModal from "./ExportCsvModal";
+import ImportAttendanceCsvModal from "./ImportAttendanceCsvModal";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
+import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import { useData } from "@/context/DataContext";
 import { useCollection } from "@/firebase/hooks/useCollection";
 import { getPastSessionDates } from "./attendanceHelpers";
@@ -37,6 +39,7 @@ export default function AttendancePage() {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // When user picks a class, auto-select the most recent missing session (or latest session)
   function handleSelectClass(classId: string) {
@@ -97,9 +100,19 @@ export default function AttendancePage() {
           onClose={() => setShowExportModal(false)}
         />
       )}
+      {showImportModal && (
+        <ImportAttendanceCsvModal
+          classes={classes}
+          students={students}
+          enrollments={enrollments}
+          allAttendance={allAttendance}
+          onClose={() => setShowImportModal(false)}
+        />
+      )}
 
-      {/* Export button — top right corner */}
-      <div className="flex justify-start px-4 pb-2" dir="rtl">
+      {/* כפתורי CSV — ייצוא וייבוא */}
+      <div className="flex gap-2 justify-start px-4 pb-2" dir="rtl">
+        <CsvImportBtn onClick={() => setShowImportModal(true)} />
         <CsvExportBtn onClick={() => setShowExportModal(true)} />
       </div>
 

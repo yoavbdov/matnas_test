@@ -66,8 +66,6 @@ export default function ExcelUploadPanel({ onClose, settings }: Props) {
           created_at: new Date().toISOString().slice(0, 10),
         };
         if (r.phone)            doc.phone = r.phone;
-        if (r.parent_name)      doc.parent_name = r.parent_name;
-        if (r.parent_phone)     doc.parent_phone = r.parent_phone;
         if (r.israeli_id)       doc.israeli_id = r.israeli_id;
         if (r.email)            doc.email = r.email;
         if (r.address)          doc.address = r.address;

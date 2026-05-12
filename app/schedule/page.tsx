@@ -10,9 +10,10 @@ import TournamentDetailModal from "@/app/tournaments/TournamentDetailModal";
 import TournamentFormModal from "@/app/tournaments/TournamentFormModal";
 import EventDetailModal from "@/app/tournaments/events/EventDetailModal";
 import EventFormModal from "@/app/tournaments/events/EventFormModal";
+import ScheduleContextMenu, { type ContextMenuTarget } from "./ScheduleContextMenu";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { updateDocument, addDocument, deleteDocument } from "@/firebase/firestore";
+import { updateDocument, addDocument, deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { getSlotsForDates, slotOccursOnDate } from "@/lib/scheduleHelpers";
 import { getConflictingClassIds, getClassIdsConflictingWithEvents } from "@/lib/classHelpers";
 import { getConflictingRoundIds, recurringTournamentOccursOnDate } from "@/lib/tournamentHelpers";
@@ -21,7 +22,7 @@ import {
   getTournamentIdsWithClassConflicts,
 } from "@/lib/crossConflictHelpers";
 import { eventOccursOnDate } from "@/lib/eventHelpers";
-import type { Class, Tournament, Event } from "@/lib/types";
+import type { Class, Tournament, Event, TournamentRound } from "@/lib/types";
 import type { DayData } from "./calendarTypes";
 
 // --- helpers ---
@@ -60,6 +61,8 @@ export default function SchedulePage() {
   const [selectedDates, setSelectedDates] = useState<Set<string>>(() => weekOf(new Date()));
   const [detailClass, setDetailClass] = useState<Class | null>(null);
   const [detailTournament, setDetailTournament] = useState<Tournament | null>(null);
+  // For recurring tournaments: the specific calendar date the user clicked
+  const [detailOccurrenceDate, setDetailOccurrenceDate] = useState<string | null>(null);
   const [detailEvent, setDetailEvent] = useState<Event | null>(null);
   const [editEvent, setEditEvent] = useState<Event | null>(null);
   const [savingEvent, setSavingEvent] = useState(false);
@@ -68,6 +71,8 @@ export default function SchedulePage() {
   const [saving, setSaving] = useState(false);
   // Active filter — null means "show all"
   const [activeFilter, setActiveFilter] = useState<ActiveFilter | null>(null);
+  // תפריט הקשר של לחיצה ימנית
+  const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(null);
   const { showToast } = useToast();
 
   const todayStr = toDateStr(new Date());
@@ -363,6 +368,98 @@ export default function SchedulePage() {
 
   const totalEvents = days.reduce((n, d) => n + d.events.length + (d.tournamentEvents?.length ?? 0) + (d.eventItems?.length ?? 0), 0);
 
+  // --- פתיחת תפריט הקשר עבור חוג ---
+  function openClassContextMenu(e: React.MouseEvent, cls: Class, dateStr: string) {
+    const isRecurring = cls.slots.some((s) => s.recurrence !== "חד פעמי");
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      label: cls.name,
+      dateStr,
+      isRecurring,
+      // מחק מפגש נוכחי: הוסף את התאריך ל-cancelled_dates של החוג
+      onDeleteSingle: async () => {
+        try {
+          const cancelled = [...(cls.cancelled_dates ?? []), dateStr];
+          await updateDocument("classes", cls.id, { cancelled_dates: cancelled });
+          showToast("המפגש בוטל", "success");
+        } catch { showToast("שגיאה בביטול המפגש", "error"); }
+      },
+      // מחק את כל החוג + רישומים
+      onDeleteAll: async () => {
+        try {
+          await deleteDocument("classes", cls.id);
+          await deleteWhere("enrollments", "class_id", cls.id);
+          showToast("החוג נמחק", "success");
+        } catch { showToast("שגיאה במחיקה", "error"); }
+      },
+    });
+  }
+
+  // --- פתיחת תפריט הקשר עבור תחרות ---
+  function openTournamentContextMenu(e: React.MouseEvent, t: Tournament, round: TournamentRound, dateStr: string) {
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      label: t.name,
+      dateStr,
+      isRecurring: !!t.is_recurring,
+      // מחק מפגש נוכחי: לתחרות חוזרת — הוסף ל-cancelled_dates; לאחרת — מחק את הסיבוב
+      onDeleteSingle: async () => {
+        try {
+          if (t.is_recurring) {
+            const cancelled = [...(t.cancelled_dates ?? []), dateStr];
+            await updateDocument("tournaments", t.id, { cancelled_dates: cancelled });
+            showToast("המפגש בוטל", "success");
+          } else {
+            const updatedRounds = (t.rounds ?? []).filter((r) => r.id !== round.id);
+            await updateDocument("tournaments", t.id, { rounds: updatedRounds });
+            showToast("הסיבוב נמחק", "success");
+          }
+        } catch { showToast("שגיאה במחיקה", "error"); }
+      },
+      // מחק את כל התחרות
+      onDeleteAll: async () => {
+        try {
+          await deleteDocument("tournaments", t.id);
+          showToast("התחרות נמחקה", "success");
+        } catch { showToast("שגיאה במחיקה", "error"); }
+      },
+    });
+  }
+
+  // --- פתיחת תפריט הקשר עבור אירוע ---
+  function openEventContextMenu(e: React.MouseEvent, ev: Event, dateStr: string) {
+    const isRecurring = ev.recurrence_type === "חוזר";
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      label: ev.name,
+      dateStr,
+      isRecurring,
+      // מחק מפגש נוכחי: לאירוע חוזר — הוסף ל-cancelled_dates; לחד-פעמי — מחק לגמרי
+      onDeleteSingle: async () => {
+        try {
+          if (isRecurring) {
+            const cancelled = [...(ev.cancelled_dates ?? []), dateStr];
+            await updateDocument("events", ev.id, { cancelled_dates: cancelled });
+            showToast("המפגש בוטל", "success");
+          } else {
+            await deleteDocument("events", ev.id);
+            showToast("האירוע נמחק", "success");
+          }
+        } catch { showToast("שגיאה במחיקה", "error"); }
+      },
+      // מחק את כל האירוע
+      onDeleteAll: async () => {
+        try {
+          await deleteDocument("events", ev.id);
+          showToast("האירוע נמחק", "success");
+        } catch { showToast("שגיאה במחיקה", "error"); }
+      },
+    });
+  }
+
   return (
     <PageShell title="לוח זמנים">
 
@@ -397,7 +494,20 @@ export default function SchedulePage() {
 
         {/* Main calendar grid — takes remaining space */}
         <div className="flex-1 min-w-0">
-          <CalendarGrid days={days} onEventClick={setDetailClass} onTournamentClick={setDetailTournament} onEventItemClick={setDetailEvent} />
+          <CalendarGrid
+            days={days}
+            onEventClick={setDetailClass}
+            onTournamentClick={(t, dateStr) => {
+              setDetailTournament(t);
+              // For recurring tournaments, store the exact calendar date clicked
+              // so the detail modal can show date-specific equipment availability.
+              setDetailOccurrenceDate(t.is_recurring ? dateStr : null);
+            }}
+            onEventItemClick={setDetailEvent}
+            onEventContextMenu={openClassContextMenu}
+            onTournamentContextMenu={openTournamentContextMenu}
+            onEventItemContextMenu={openEventContextMenu}
+          />
         </div>
 
       </div>
@@ -427,9 +537,11 @@ export default function SchedulePage() {
           physicalEquipment={physicalEquipment}
           allClasses={classes}
           allTournaments={tournaments}
+          occurrenceDate={detailOccurrenceDate ?? undefined}
           onEdit={() => {
             setEditTournament(detailTournament);
             setDetailTournament(null);
+            setDetailOccurrenceDate(null);
           }}
           onDelete={async () => {
             try {
@@ -439,8 +551,9 @@ export default function SchedulePage() {
               showToast("שגיאה במחיקה, נסה שוב", "error");
             }
             setDetailTournament(null);
+            setDetailOccurrenceDate(null);
           }}
-          onClose={() => setDetailTournament(null)}
+          onClose={() => { setDetailTournament(null); setDetailOccurrenceDate(null); }}
         />
       )}
 
@@ -512,6 +625,14 @@ export default function SchedulePage() {
               setSavingEvent(false);
             }
           }}
+        />
+      )}
+
+      {/* תפריט הקשר — נפתח בלחיצה ימנית על כל אירוע בלוח */}
+      {contextMenu && (
+        <ScheduleContextMenu
+          target={contextMenu}
+          onClose={() => setContextMenu(null)}
         />
       )}
 

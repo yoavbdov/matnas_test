@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import {
@@ -36,10 +37,16 @@ export default function Sidebar() {
       className="w-56 shrink-0 h-screen sticky top-0 bg-gray-900 text-white flex flex-col"
       dir="rtl"
     >
-      <div className="px-5 py-5 border-b border-gray-700">
-        <span className="text-lg font-bold tracking-wide text-teal-400">
-          Chess Nimbus ♟
-        </span>
+      {/* Logo at the top of the sidebar */}
+      <div className="px-4 py-4 border-b border-gray-700 flex items-center justify-center">
+        <Image
+          src="/chess nimbus logo.png"
+          alt="Chess Nimbus Logo"
+          width={160}
+          height={60}
+          className="object-contain"
+          priority
+        />
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">

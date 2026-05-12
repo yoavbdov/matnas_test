@@ -5,16 +5,22 @@ import TimeColumn from "./TimeColumn";
 import DayColumn from "./DayColumn";
 import DayHeaderRow from "./DayHeaderRow";
 import type { DayData } from "./calendarTypes";
-import type { Class, Tournament, Event } from "@/lib/types";
+import type { Class, Tournament, Event, TournamentRound } from "@/lib/types";
 
 interface Props {
   days: DayData[];
   onEventClick: (cls: Class) => void;
-  onTournamentClick?: (t: Tournament) => void;
+  onTournamentClick?: (t: Tournament, dateStr: string) => void;
   onEventItemClick?: (ev: Event) => void;
+  onEventContextMenu?: (e: React.MouseEvent, cls: Class, dateStr: string) => void;
+  onTournamentContextMenu?: (e: React.MouseEvent, t: Tournament, round: TournamentRound, dateStr: string) => void;
+  onEventItemContextMenu?: (e: React.MouseEvent, ev: Event, dateStr: string) => void;
 }
 
-export default function CalendarGrid({ days, onEventClick, onTournamentClick, onEventItemClick }: Props) {
+export default function CalendarGrid({
+  days, onEventClick, onTournamentClick, onEventItemClick,
+  onEventContextMenu, onTournamentContextMenu, onEventItemContextMenu,
+}: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // On first render, scroll to START_HOUR (default 8:00) so mornings are visible
@@ -38,7 +44,15 @@ export default function CalendarGrid({ days, onEventClick, onTournamentClick, on
         {/* RTL: Sunday on the right, Saturday on the left, time column on the far left */}
         <div className="flex" dir="rtl">
           {days.map((day) => (
-            <DayColumn key={day.dateStr} day={day} onEventClick={onEventClick} onTournamentClick={onTournamentClick} onEventItemClick={onEventItemClick} />
+            <DayColumn
+              key={day.dateStr} day={day}
+              onEventClick={onEventClick}
+              onTournamentClick={onTournamentClick}
+              onEventItemClick={onEventItemClick}
+              onEventContextMenu={onEventContextMenu}
+              onTournamentContextMenu={onTournamentContextMenu}
+              onEventItemContextMenu={onEventItemContextMenu}
+            />
           ))}
           <TimeColumn />
         </div>

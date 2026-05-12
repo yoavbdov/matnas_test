@@ -60,8 +60,6 @@ async function exportToExcel(students: Student[], rangeLabel: string) {
     "מס׳ שחמטאי ישראלי": s.israeli_chess_id ?? "",
     "FIDE ID": s.fide_id ?? "",
     טלפון: s.phone ?? "",
-    הורה: s.parent_name ?? "",
-    "טלפון הורה": s.parent_phone ?? "",
     אימייל: s.email ?? "",
     כתובת: s.address ?? "",
     סטטוס: s.status,

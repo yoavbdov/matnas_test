@@ -8,30 +8,35 @@ import type { SortCol, SortDir } from "./StudentsTable";
 import StudentFormModal from "./StudentFormModal";
 import StudentDetailModal from "./StudentDetailModal";
 import ExcelUploadPanel from "./ExcelUploadPanel";
+import StudentAvailabilityModal from "./StudentAvailabilityModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument } from "@/firebase/firestore";
 import { calcAge, gradeFromDob, formatPhone } from "@/lib/utils";
 import { validatePhone, VALIDATION_ERRORS } from "@/lib/validators";
+import { computeStudentStatus } from "@/lib/studentHelpers";
 import type { Student } from "@/lib/types";
 
 function emptyForm(): Omit<Student, "id"> {
-  return { first_name: "", last_name: "", dob: "", status: "פעיל" };
+  // Status is computed automatically — not included in the form
+  return { first_name: "", last_name: "", dob: "" };
 }
 
-// Export visible students as CSV
-function exportCSV(students: Student[]) {
+// Export visible students as CSV — status is computed at export time
+function exportCSV(students: Student[], allEnrollments: import("@/lib/types").Enrollment[], allTournaments: import("@/lib/types").Tournament[], allLeagueMembers: import("@/lib/types").LeagueGroupMember[]) {
   const headers = [
     "שם פרטי", "שם משפחה", "תאריך לידה", "תעודת זהות",
-    "טלפון", "שם הורה", "טלפון הורה", "אימייל", "כתובת",
+    "טלפון", "אימייל", "כתובת",
     "מספר שחמטאי ישראלי", "מספר FIDE", "דירוג ישראלי", "דירוג FIDE",
     "תואר שחמט", "כיתה (ידני)", "הערות", "סטטוס", "תאריך הצטרפות",
   ];
   const rows = students.map((s) => [
     s.first_name, s.last_name, s.dob, s.israeli_id ?? "",
-    s.phone ?? "", s.parent_name ?? "", s.parent_phone ?? "", s.email ?? "", s.address ?? "",
+    s.phone ?? "", s.email ?? "", s.address ?? "",
     s.israeli_chess_id ?? "", s.fide_id ?? "", s.israeli_rating ?? "", s.fide_rating ?? "",
-    s.chess_title ?? "", s.grade_override ?? "", s.notes ?? "", s.status, s.created_at ?? "",
+    s.chess_title ?? "", s.grade_override ?? "", s.notes ?? "",
+    computeStudentStatus(s.id, allEnrollments, allTournaments, allLeagueMembers),
+    s.created_at ?? "",
   ]);
   const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
@@ -42,9 +47,10 @@ function exportCSV(students: Student[]) {
 }
 
 // Map URL param value to Hebrew status filter
-function parseStatusParam(raw: string | null): "הכל" | "פעיל" | "לא פעיל" {
+function parseStatusParam(raw: string | null): "הכל" | "פעיל" | "ליגה בלבד" | "לא פעיל" {
   if (raw === "active") return "פעיל";
   if (raw === "inactive") return "לא פעיל";
+  if (raw === "league") return "ליגה בלבד";
   return "הכל";
 }
 
@@ -56,14 +62,14 @@ function effectiveGrade(s: Student, firstAge: number, adultAge: number): string 
 }
 
 export default function StudentsPage() {
-  const { students, classes, enrollments, settings } = useData();
+  const { students, classes, enrollments, tournaments, leagueGroups, leagueGroupMembers, settings } = useData();
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Filters — initialized from URL params (e.g. ?status=active from dashboard links)
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
-  const [statusFilter, setStatusFilter] = useState<"הכל" | "פעיל" | "לא פעיל">(
+  const [statusFilter, setStatusFilter] = useState<"הכל" | "פעיל" | "ליגה בלבד" | "לא פעיל">(
     parseStatusParam(searchParams.get("status")),
   );
   const [classFilter, setClassFilter] = useState(searchParams.get("class") ?? "");
@@ -97,6 +103,7 @@ export default function StudentsPage() {
   const [formModal, setFormModal] = useState<"add" | "edit" | null>(null);
   const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [availabilityOpen, setAvailabilityOpen] = useState(false);
 
   const [form, setForm] = useState<Omit<Student, "id">>(emptyForm());
   const [editTarget, setEditTarget] = useState<Student | null>(null);
@@ -112,7 +119,9 @@ export default function StudentsPage() {
 
     // 1. Filter
     const filtered = students.filter((s) => {
-      if (statusFilter !== "הכל" && s.status !== statusFilter) return false;
+      // Compute status dynamically — never read from the stored field
+      const computedStatus = computeStudentStatus(s.id, enrollments, tournaments, leagueGroupMembers);
+      if (statusFilter !== "הכל" && computedStatus !== statusFilter) return false;
       if (classFilter) {
         const enrolled = enrollments.some(
           (e) => e.student_id === s.id && e.class_id === classFilter && e.status === "פעיל",
@@ -156,11 +165,30 @@ export default function StudentsPage() {
         case "rating":
           cmp = (a.israeli_rating ?? 0) - (b.israeli_rating ?? 0);
           break;
-        case "fide_rating":
-          cmp = (a.fide_rating ?? 0) - (b.fide_rating ?? 0);
+        case "tournaments": {
+          const ta = tournaments.filter((t) => t.participant_ids.includes(a.id)).length;
+          const tb = tournaments.filter((t) => t.participant_ids.includes(b.id)).length;
+          cmp = ta - tb;
           break;
+        }
+        case "league": {
+          // Sort alphabetically by league group name — students with no group go last
+          const getGroupName = (s: Student) => {
+            const mem = leagueGroupMembers.find((m) => m.student_id === s.id);
+            if (!mem) return null;
+            return leagueGroups.find((g) => g.id === mem.group_id)?.name ?? null;
+          };
+          const ga = getGroupName(a);
+          const gb = getGroupName(b);
+          // nulls always go to the bottom regardless of sort direction
+          if (ga === null && gb === null) cmp = 0;
+          else if (ga === null) return 1;
+          else if (gb === null) return -1;
+          else cmp = ga.localeCompare(gb, "he");
+          break;
+        }
         case "phone":
-          cmp = (a.parent_phone || a.phone || "").localeCompare(b.parent_phone || b.phone || "");
+          cmp = (a.phone || "").localeCompare(b.phone || "");
           break;
         case "classes": {
           const ca = enrollments.filter((e) => e.student_id === a.id && e.status === "פעיל").length;
@@ -168,13 +196,16 @@ export default function StudentsPage() {
           cmp = ca - cb;
           break;
         }
-        case "status":
-          cmp = a.status.localeCompare(b.status, "he");
+        case "status": {
+          const sa = computeStudentStatus(a.id, enrollments, tournaments, leagueGroupMembers);
+          const sb = computeStudentStatus(b.id, enrollments, tournaments, leagueGroupMembers);
+          cmp = sa.localeCompare(sb, "he");
           break;
+        }
       }
       return sortDir === "asc" ? cmp : -cmp;
     });
-  }, [students, search, statusFilter, classFilter, gradeFilter, minRating, maxRating, minFideRating, maxFideRating, enrollments, sortCol, sortDir, settings]);
+  }, [students, search, statusFilter, classFilter, gradeFilter, minRating, maxRating, minFideRating, maxFideRating, enrollments, tournaments, leagueGroupMembers, sortCol, sortDir, settings]);
 
   function openAdd() {
     setForm(emptyForm());
@@ -197,14 +228,10 @@ export default function StudentsPage() {
     if (validatePhone(form.phone)) {
       showToast(VALIDATION_ERRORS.PHONE, "error"); return;
     }
-    if (validatePhone(form.parent_phone)) {
-      showToast(VALIDATION_ERRORS.PARENT_PHONE, "error"); return;
-    }
-    // Format phones as "053-2422215" before writing to Firestore
+    // Format phone as "053-2422215" before writing to Firestore
     const docData = {
       ...form,
       phone: form.phone ? formatPhone(form.phone) : undefined,
-      parent_phone: form.parent_phone ? formatPhone(form.parent_phone) : undefined,
     };
     setSaving(true);
     try {
@@ -247,8 +274,9 @@ export default function StudentsPage() {
         onFilterMaxFideRating={setMaxFideRating}
         classes={classes}
         onAddStudent={openAdd}
-        onExport={() => exportCSV(displayedStudents)}
+        onExport={() => exportCSV(displayedStudents, enrollments, tournaments, leagueGroupMembers)}
         onImport={() => setImportOpen(true)}
+        onCheckAvailability={() => setAvailabilityOpen(true)}
       />
 
       <p className="text-xs text-gray-400 mb-3">{displayedStudents.length} שחקנים</p>
@@ -256,6 +284,9 @@ export default function StudentsPage() {
       <StudentsTable
         students={displayedStudents}
         enrollments={enrollments}
+        tournaments={tournaments}
+        leagueGroups={leagueGroups}
+        leagueGroupMembers={leagueGroupMembers}
         onRowClick={setDetailStudent}
         settings={settings}
         sortCol={sortCol}
@@ -282,6 +313,10 @@ export default function StudentsPage() {
           student={detailStudent}
           classes={classes}
           enrollments={enrollments}
+          tournaments={tournaments}
+          leagueGroups={leagueGroups}
+          leagueGroupMembers={leagueGroupMembers}
+          computedStatus={computeStudentStatus(detailStudent.id, enrollments, tournaments, leagueGroupMembers)}
           onClose={() => setDetailStudent(null)}
           onEdit={openEdit}
           settings={settings}
@@ -293,6 +328,17 @@ export default function StudentsPage() {
         <ExcelUploadPanel
           onClose={() => setImportOpen(false)}
           settings={settings}
+        />
+      )}
+
+      {/* Availability checker */}
+      {availabilityOpen && (
+        <StudentAvailabilityModal
+          students={students}
+          enrollments={enrollments}
+          classes={classes}
+          tournaments={tournaments}
+          onClose={() => setAvailabilityOpen(false)}
         />
       )}
     </PageShell>

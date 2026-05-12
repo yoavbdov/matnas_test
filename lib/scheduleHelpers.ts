@@ -81,6 +81,8 @@ export function getSlotsForDates(
     for (const cls of classes) {
       // Show active and upcoming classes; skip finished/cancelled ones
       if (cls.status === "הסתיים" || cls.status === "בוטל") continue;
+      // Skip if this date was manually cancelled for the class
+      if (cls.cancelled_dates?.includes(dateStr)) continue;
       for (const slot of cls.slots ?? []) {
         if (slotOccursOnDate(slot, dateStr)) {
           results.push({ classId: cls.id, slot, date: dateStr });
@@ -107,6 +109,7 @@ export function getSlotsForWeek(
     for (const cls of classes) {
       // Show active and upcoming classes; skip finished/cancelled ones
       if (cls.status === "הסתיים" || cls.status === "בוטל") continue;
+      if (cls.cancelled_dates?.includes(dateStr)) continue;
       for (const slot of cls.slots ?? []) {
         if (slotOccursOnDate(slot, dateStr)) {
           results.push({ classId: cls.id, slot, date: dateStr });

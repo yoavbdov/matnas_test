@@ -1,9 +1,10 @@
 "use client";
 // סרגל כלים מעל טבלת המדריכים
-import { Plus, CalendarCheck } from "lucide-react";
+import { Plus } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
+import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
 import SearchInput from "@/components/shared/SearchInput";
 
 interface Props {
@@ -36,11 +37,9 @@ export default function TeachersToolbar({
       </div>
 
       <div className="flex gap-2">
+        <CheckAvailabilityBtn onClick={onCheckAvailability} />
         <CsvImportBtn onClick={onImport} />
         <CsvExportBtn onClick={onExport} />
-        <Btn variant="secondary" onClick={onCheckAvailability}>
-          <CalendarCheck size={15} />בדוק זמינות
-        </Btn>
         <Btn onClick={onAddTeacher}>
           <Plus size={15} />הוסף מדריך
         </Btn>

@@ -25,6 +25,9 @@ function timesOverlap(s1: string, e1: string, s2: string, e2: string): boolean {
  * - Recurring: date must be within the active range AND fall on a matching day-of-week.
  */
 export function eventOccursOnDate(event: Event, dateStr: string): boolean {
+  // Skip manually cancelled occurrences
+  if (event.cancelled_dates?.includes(dateStr)) return false;
+
   if (event.recurrence_type === "חד פעמי") {
     return event.date === dateStr;
   }

@@ -52,12 +52,6 @@ export default function StudentFormModal({ mode, form, setForm, saving, onClose,
         <Field label="טלפון" hint="10 ספרות בלבד">
           <input className={inp} value={form.phone ?? ""} inputMode="numeric" onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))} />
         </Field>
-        <Field label="שם הורה">
-          <input className={inp} value={form.parent_name ?? ""} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("parent_name", e.target.value)} />
-        </Field>
-        <Field label="טלפון הורה" hint="10 ספרות בלבד">
-          <input className={inp} value={form.parent_phone ?? ""} inputMode="numeric" onChange={(e) => set("parent_phone", digitsOnly(e.target.value, LIMITS.PHONE))} />
-        </Field>
         <Field label="אימייל" hint={`עד ${LIMITS.EMAIL} תווים`}>
           <input type="email" className={inp} value={form.email ?? ""} maxLength={LIMITS.EMAIL} onChange={(e) => set("email", e.target.value)} />
         </Field>

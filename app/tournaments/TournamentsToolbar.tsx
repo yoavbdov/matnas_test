@@ -1,6 +1,8 @@
-// Search bar + status filter + "New Tournament" button for the tournaments page
+// Search bar + status filter + CSV + "New Tournament" button for the tournaments page
 import Btn from "@/components/shared/Btn";
 import SearchInput from "@/components/shared/SearchInput";
+import CsvExportBtn from "@/components/shared/CsvExportBtn";
+import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import { Plus, CalendarCheck } from "lucide-react";
 import type { Tournament } from "@/lib/types";
 
@@ -16,9 +18,11 @@ interface Props {
   todayActive: boolean;
   onToggleToday: () => void;
   onAdd: () => void;
+  onExport: () => void;
+  onImport: () => void;
 }
 
-export default function TournamentsToolbar({ search, onSearch, statusFilter, onStatusFilter, todayActive, onToggleToday, onAdd }: Props) {
+export default function TournamentsToolbar({ search, onSearch, statusFilter, onStatusFilter, todayActive, onToggleToday, onAdd, onExport, onImport }: Props) {
   return (
     <div className="flex items-center gap-3 mb-5 flex-wrap" dir="rtl">
 
@@ -57,6 +61,10 @@ export default function TournamentsToolbar({ search, onSearch, statusFilter, onS
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* CSV buttons — ייבוא ימין, ייצוא שמאל */}
+      <CsvImportBtn onClick={onImport} />
+      <CsvExportBtn onClick={onExport} />
 
       {/* Add button */}
       <Btn onClick={onAdd}>

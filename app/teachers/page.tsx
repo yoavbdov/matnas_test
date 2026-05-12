@@ -12,14 +12,16 @@ import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument } from "@/firebase/firestore";
 import { formatPhone } from "@/lib/utils";
 import { validatePhone, VALIDATION_ERRORS } from "@/lib/validators";
+import { computeTeacherStatus } from "@/lib/teacherHelpers";
 import type { Teacher } from "@/lib/types";
 
 function emptyForm(): Omit<Teacher, "id"> {
-  return { first_name: "", last_name: "", status: "פעיל", certifications: [] };
+  // Status is computed automatically — not stored in the document
+  return { first_name: "", last_name: "", certifications: [] };
 }
 
 export default function TeachersPage() {
-  const { teachers, classes, enrollments, settings } = useData();
+  const { teachers, classes, enrollments, tournaments, settings } = useData();
   const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -36,12 +38,14 @@ export default function TeachersPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return teachers.filter((t) => {
-      if (statusFilter !== "הכל" && t.status !== statusFilter) return false;
+      // Compute status dynamically — never read from the stored field
+      const status = computeTeacherStatus(t.id, classes, tournaments);
+      if (statusFilter !== "הכל" && status !== statusFilter) return false;
       if (!q) return true;
       return `${t.first_name} ${t.last_name}`.toLowerCase().includes(q) ||
         (t.email ?? "").toLowerCase().includes(q) || (t.phone ?? "").includes(q);
     });
-  }, [teachers, search, statusFilter]);
+  }, [teachers, classes, tournaments, search, statusFilter]);
 
   function openAdd() { setForm(emptyForm()); setEditTarget(null); setFormModal("add"); }
   function openEdit(t: Teacher) { setEditTarget(t); setForm({ ...t, certifications: t.certifications ?? [] }); setFormModal("edit"); setDetailTeacher(null); }
@@ -77,8 +81,8 @@ export default function TeachersPage() {
     const headers = ["שם פרטי", "שם משפחה", "סטטוס", "טלפון", "אימייל", "הסמכות", "הערות", "חוגים פעילים"];
     const rows = filtered.map((t) => {
       const activeClasses = classes.filter((c) => c.teacher_id === t.id && c.status === "פעיל").length;
-      // סטטוס נגזר: 0 חוגים פעילים = לא פעיל
-      const status = activeClasses === 0 ? "לא פעיל" : t.status;
+      // סטטוס מחושב: חוג פעיל OR שופט בתחרות = פעיל
+      const status = computeTeacherStatus(t.id, classes, tournaments);
       return [
         t.first_name, t.last_name, status,
         t.phone ?? "", t.email ?? "",
@@ -109,6 +113,7 @@ export default function TeachersPage() {
       <TeachersTable
         teachers={filtered}
         classes={classes}
+        tournaments={tournaments}
         onRowClick={setDetailTeacher}
       />
 
@@ -141,6 +146,7 @@ export default function TeachersPage() {
           teacher={detailTeacher}
           classes={classes}
           enrollments={enrollments}
+          tournaments={tournaments}
           onClose={() => setDetailTeacher(null)}
           onEdit={openEdit}
         />

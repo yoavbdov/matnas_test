@@ -5,13 +5,17 @@ import CalendarEvent from "./CalendarEvent";
 import TournamentCalendarEvent from "./TournamentCalendarEvent";
 import EventCalendarEvent from "./EventCalendarEvent";
 import type { CalendarEventData, TournamentEventData, EventCalendarData, DayData } from "./calendarTypes";
-import type { Class, Tournament, Event } from "@/lib/types";
+import type { Class, Tournament, Event, TournamentRound } from "@/lib/types";
 
 interface Props {
   day: DayData;
   onEventClick: (cls: Class) => void;
-  onTournamentClick?: (t: Tournament) => void;
+  onTournamentClick?: (t: Tournament, dateStr: string) => void;
   onEventItemClick?: (ev: Event) => void;
+  // right-click handlers — receive the native mouse event + data about the item
+  onEventContextMenu?: (e: React.MouseEvent, cls: Class, dateStr: string) => void;
+  onTournamentContextMenu?: (e: React.MouseEvent, t: Tournament, round: TournamentRound, dateStr: string) => void;
+  onEventItemContextMenu?: (e: React.MouseEvent, ev: Event, dateStr: string) => void;
 }
 
 // Each item in the unified layout has a kind + start/end for sorting/overlap detection
@@ -49,7 +53,11 @@ function layoutItems(items: LayoutItem[]) {
   return assigned.map((item) => ({ ...item, colCount }));
 }
 
-export default function DayColumn({ day, onEventClick, onTournamentClick, onEventItemClick }: Props) {
+export default function DayColumn({
+  day,
+  onEventClick, onTournamentClick, onEventItemClick,
+  onEventContextMenu, onTournamentContextMenu, onEventItemContextMenu,
+}: Props) {
   // Combine all three types into one unified layout for overlap detection
   const classItems: LayoutItem[] = day.events.map((e) => ({ kind: "class" as const, ...e }));
   const tournamentItems: LayoutItem[] = (day.tournamentEvents ?? []).map((e) => ({ kind: "tournament" as const, ...e }));
@@ -97,6 +105,7 @@ export default function DayColumn({ day, onEventClick, onTournamentClick, onEven
               colIndex={colIndex}
               colCount={colCount}
               onClick={() => onEventClick(classItem)}
+              onContextMenu={(e) => onEventContextMenu?.(e, classItem, day.dateStr)}
             />
           );
         }
@@ -111,7 +120,8 @@ export default function DayColumn({ day, onEventClick, onTournamentClick, onEven
               isRecurring={isRecurring}
               colIndex={colIndex}
               colCount={colCount}
-              onClick={() => onTournamentClick?.(tournament)}
+              onClick={() => onTournamentClick?.(tournament, day.dateStr)}
+              onContextMenu={(e) => onTournamentContextMenu?.(e, tournament, round, day.dateStr)}
             />
           );
         }
@@ -125,6 +135,7 @@ export default function DayColumn({ day, onEventClick, onTournamentClick, onEven
             colIndex={colIndex}
             colCount={colCount}
             onClick={() => onEventItemClick?.(event)}
+            onContextMenu={(e) => onEventItemContextMenu?.(e, event, day.dateStr)}
           />
         );
       })}

@@ -11,13 +11,19 @@ import TournamentsToolbar from "./TournamentsToolbar";
 import TournamentsTable from "./TournamentsTable";
 import TournamentFormModal from "./TournamentFormModal";
 import TournamentDetailModal from "./TournamentDetailModal";
+import TournamentImportPanel from "./TournamentImportPanel";
 import EventsTable from "./events/EventsTable";
 import EventFormModal from "./events/EventFormModal";
 import EventDetailModal from "./events/EventDetailModal";
+import EventImportPanel from "./events/EventImportPanel";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
 import { validateTimeRange } from "@/lib/validators";
+import { exportTournamentsCsv } from "./exportTournamentsCsv";
+import { exportEventsCsv } from "./events/exportEventsCsv";
+import CsvExportBtn from "@/components/shared/CsvExportBtn";
+import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import type { Tournament, Event } from "@/lib/types";
 
 function todayStr() {
@@ -68,11 +74,17 @@ export default function TournamentsPage() {
   const [editTournament, setEditTournament] = useState<Tournament | null>(null);
   const [savingTournament, setSavingTournament] = useState(false);
 
+  // --- Tournaments CSV state ---
+  const [showTournamentImport, setShowTournamentImport] = useState(false);
+
   // --- Events state ---
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [detailEvent, setDetailEvent] = useState<Event | null>(null);
   const [editEvent, setEditEvent] = useState<Event | null>(null);
   const [savingEvent, setSavingEvent] = useState(false);
+
+  // --- Events CSV state ---
+  const [showEventImport, setShowEventImport] = useState(false);
 
   // אם הגענו מלוח הבקרה עם ?today=true — הפעל פילטר "היום"
   useEffect(() => {
@@ -206,6 +218,8 @@ export default function TournamentsPage() {
             todayActive={todayActive}
             onToggleToday={() => setTodayActive((p) => !p)}
             onAdd={() => setShowAddTournament(true)}
+            onExport={() => exportTournamentsCsv(filteredTournaments)}
+            onImport={() => setShowTournamentImport(true)}
           />
           <TournamentsTable tournaments={filteredTournaments} onRowClick={setDetailTournament} />
         </>
@@ -214,8 +228,8 @@ export default function TournamentsPage() {
       {/* ===== טאב אירועים ===== */}
       {activeTab === "events" && (
         <>
-          {/* כפתור הוספת אירוע */}
-          <div className="flex justify-start mb-4" dir="rtl">
+          {/* סרגל כלים: כפתורי CSV + הוספת אירוע */}
+          <div className="flex items-center gap-2 mb-4" dir="rtl">
             <button
               type="button"
               onClick={() => setShowAddEvent(true)}
@@ -223,9 +237,20 @@ export default function TournamentsPage() {
             >
               + אירוע חדש
             </button>
+            <div className="flex-1" />
+            <CsvImportBtn onClick={() => setShowEventImport(true)} />
+            <CsvExportBtn onClick={() => exportEventsCsv(events)} />
           </div>
           <EventsTable events={events} onRowClick={setDetailEvent} />
         </>
+      )}
+
+      {/* ===== מודאלי CSV ===== */}
+      {showTournamentImport && (
+        <TournamentImportPanel onClose={() => setShowTournamentImport(false)} />
+      )}
+      {showEventImport && (
+        <EventImportPanel onClose={() => setShowEventImport(false)} />
       )}
 
       {/* ===== מודאלים — תחרויות ===== */}

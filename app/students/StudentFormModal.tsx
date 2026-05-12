@@ -92,16 +92,7 @@ export default function StudentFormModal({
           />
         </Field>
 
-        <Field label="סטטוס">
-          <select
-            className={inp}
-            value={form.status}
-            onChange={(e) => set("status", e.target.value as Student["status"])}
-          >
-            <option>פעיל</option>
-            <option>לא פעיל</option>
-          </select>
-        </Field>
+        {/* סטטוס מחושב אוטומטית — אי אפשר לערוך ידנית */}
 
         {/* Manual grade override — leave empty to auto-compute from DOB */}
         <Field label="כיתה (ידני)" hint={gradeLabel ? `חישוב אוטומטי: ${gradeLabel}` : "מחושב אוטומטית מתאריך לידה"}>
@@ -132,25 +123,6 @@ export default function StudentFormModal({
             value={form.phone ?? ""}
             inputMode="numeric"
             onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))}
-          />
-        </Field>
-
-        <Field label="שם הורה / איש קשר">
-          <input
-            className={inp}
-            value={form.parent_name ?? ""}
-            maxLength={settings.MAX_STRING_LENGTH}
-            onChange={(e) => set("parent_name", e.target.value)}
-          />
-        </Field>
-
-        {/* טלפון הורה — ספרות בלבד, בדיוק 10 */}
-        <Field label="טלפון הורה" hint="10 ספרות בלבד">
-          <input
-            className={inp}
-            value={form.parent_phone ?? ""}
-            inputMode="numeric"
-            onChange={(e) => set("parent_phone", digitsOnly(e.target.value, LIMITS.PHONE))}
           />
         </Field>
 

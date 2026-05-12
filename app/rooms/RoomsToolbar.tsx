@@ -5,6 +5,7 @@ import SearchInput from "@/components/shared/SearchInput";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
+import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
 
 const sel = "border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 bg-white";
 const numInp =
@@ -34,6 +35,7 @@ interface Props {
   onAdd: () => void;
   onImport: () => void;
   onExport: () => void;
+  onCheckAvailability: () => void;
 }
 
 export default function RoomsToolbar({
@@ -41,7 +43,7 @@ export default function RoomsToolbar({
   minCapacity, onFilterMinCapacity,
   maxCapacity, onFilterMaxCapacity,
   featureFilter, onFilterFeature, allFeatures,
-  onAdd, onImport, onExport,
+  onAdd, onImport, onExport, onCheckAvailability,
 }: Props) {
   return (
     <div className="flex flex-col gap-3 mb-5">
@@ -54,6 +56,7 @@ export default function RoomsToolbar({
           className="min-w-45 flex-1 max-w-xs"
         />
         <div className="flex gap-2">
+          <CheckAvailabilityBtn onClick={onCheckAvailability} />
           <CsvImportBtn onClick={onImport} />
           <CsvExportBtn onClick={onExport} />
           <Btn onClick={onAdd}><Plus size={15} />הוסף חדר</Btn>

@@ -21,6 +21,9 @@ interface Props {
   physicalEquipment: PhysicalEquipment[];
   allClasses: Class[];
   allTournaments: Tournament[];
+  // For recurring tournaments: the specific calendar date the user clicked.
+  // Enables exact-date equipment check (e.g. June 5 won't show May's conflicts).
+  occurrenceDate?: string;
   onEdit: () => void;
   onDelete: () => Promise<void>;
   onClose: () => void;
@@ -44,6 +47,7 @@ export default function TournamentDetailModal({
   physicalEquipment,
   allClasses,
   allTournaments,
+  occurrenceDate,
   onEdit,
   onDelete,
   onClose,
@@ -159,7 +163,7 @@ export default function TournamentDetailModal({
                 {(tournament.resource_assignments ?? []).some((a) => {
                   const eq = physicalEquipment.find((e) => e.id === a.resource_id);
                   if (!eq) return false;
-                  return isTournamentResourceOverbooked(eq, tournament, a.quantity, allClasses, allTournaments);
+                  return isTournamentResourceOverbooked(eq, tournament, a.quantity, allClasses, allTournaments, occurrenceDate);
                 }) && (
                   <span className="text-xs text-red-500 font-medium">⚠ חסר ציוד</span>
                 )}
