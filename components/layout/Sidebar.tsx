@@ -24,7 +24,7 @@ const navItems = [
   { href: "/teachers", label: "מדריכים", icon: UserCheck },
   { href: "/rooms", label: "חדרים וציוד", icon: DoorOpen },
   { href: "/schedule", label: "לוח זמנים", icon: Calendar },
-  { href: "/tournaments", label: "תחרויות", icon: Trophy },
+  { href: "/tournaments", label: "תחרויות ואירועים", icon: Trophy },
   { href: "/league-groups", label: "קבוצות ליגה", icon: Layers },
 ];
 

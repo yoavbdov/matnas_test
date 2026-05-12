@@ -4,7 +4,8 @@
 */
 
 import { timeToMins } from "./utils";
-import type { ScheduleSlot, Class, PhysicalEquipment, Tournament, ResourceAssignment } from "./types";
+import { eventOccursOnDate } from "./eventHelpers";
+import type { ScheduleSlot, Class, PhysicalEquipment, Tournament, ResourceAssignment, Event, Room } from "./types";
 
 // Hebrew day names indexed by JS getDay() (0=Sunday)
 const HEBREW_DAYS_LOCAL = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
@@ -32,185 +33,184 @@ function getAssignedQty(assignments: ResourceAssignment[] | undefined, resourceI
   return assignments?.find((a) => a.resource_id === resourceId)?.quantity ?? 0;
 }
 
-// Count how many units of a resource are in use simultaneously across all classes AND tournaments.
-// Caller compares returned number to resource.quantity to detect a shortage.
-// Pass ignoreClassId to exclude a class being edited (so it doesn't conflict with itself).
-export function calcResourceAvailability(
-  resource: PhysicalEquipment,
+// Helper: do two HH:MM time ranges overlap?
+function timesOverlap(s1: string, e1: string, s2: string, e2: string): boolean {
+  return timeToMins(s1) < timeToMins(e2) && timeToMins(s2) < timeToMins(e1);
+}
+
+// ─── CORE: usage at a specific time window ────────────────────────────────────
+//
+// Count how many units of a resource are already committed by OTHER events
+// during a specific (day-of-week + HH:MM range) window.
+//
+// Classes match by weekday (they recur weekly).
+// Recurring tournaments match by weekday derived from their anchor date.
+// Non-recurring tournaments match by weekday of any of their rounds.
+//
+// Pass ignoreClassId / ignoreTournamentId to exclude the event being edited.
+export function calcUsedAtWindow(
+  resourceId: string,
+  day: string,       // Hebrew day name, e.g. "ראשון"
+  startTime: string, // HH:MM
+  endTime: string,   // HH:MM
   allClasses: Class[],
-  ignoreClassId?: string,
-  allTournaments: Tournament[] = []
+  ignoreClassId: string | undefined,
+  allTournaments: Tournament[],
+  ignoreTournamentId: string | undefined
 ): number {
-  // Represent each usage as a pseudo-slot: { day, start_time, end_time, qty }
-  const entries: { slot: ScheduleSlot; qty: number }[] = [];
+  let count = 0;
 
-  // Contributions from classes (by recurring weekly slot)
+  // Classes: recurring weekly — match by weekday
   for (const cls of allClasses) {
     if (cls.id === ignoreClassId) continue;
-    const qty = getAssignedQty(cls.resource_assignments, resource.id);
+    const qty = getAssignedQty(cls.resource_assignments, resourceId);
     if (qty === 0) continue;
     for (const slot of cls.slots ?? []) {
-      entries.push({ slot, qty });
-    }
-  }
-
-  // Contributions from tournaments
-  for (const t of allTournaments) {
-    if (t.is_recurring) {
-      // Recurring tournament: derive day-of-week from recurring_date
-      const qty = getAssignedQty(t.recurring_resource_assignments, resource.id);
-      if (qty === 0 || !t.recurring_date) continue;
-      const [y, m, d] = t.recurring_date.split("-").map(Number);
-      const day = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
-      entries.push({
-        qty,
-        slot: {
-          id: t.id,
-          day,
-          start_time: t.recurring_start_time ?? "00:00",
-          end_time: t.recurring_end_time ?? "01:00",
-          room_id: "",
-          recurrence: "שבועי",
-          start_date: t.recurring_date,
-        },
-      });
-    } else {
-      // Non-recurring tournament: push ONE entry per unique (day-of-week, time) slot.
-      // Rounds on different calendar dates but the same weekday+time are NOT simultaneous —
-      // they happen on separate dates, so de-duplicate to avoid inflating peak usage.
-      const qty = getAssignedQty(t.resource_assignments, resource.id);
-      if (qty === 0) continue;
-      const seenSlots = new Set<string>();
-      for (const round of t.rounds ?? []) {
-        if (!round.date) continue;
-        const [y, m, d] = round.date.split("-").map(Number);
-        const day = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
-        const slotKey = `${day}-${round.start_time}-${round.end_time}`;
-        if (seenSlots.has(slotKey)) continue; // already accounted for this weekday+time
-        seenSlots.add(slotKey);
-        entries.push({
-          qty,
-          slot: {
-            id: round.id,
-            day,
-            start_time: round.start_time,
-            end_time: round.end_time,
-            room_id: "",
-            recurrence: "חד פעמי",
-            start_date: round.date,
-          },
-        });
+      if (slot.day === day && timesOverlap(startTime, endTime, slot.start_time, slot.end_time)) {
+        count += qty;
+        break; // count each class once even if it has multiple overlapping slots
       }
     }
   }
 
-  // For each entry, sum quantities of all overlapping entries — that is the peak simultaneous usage
-  let peakUsage = 0;
-  for (let i = 0; i < entries.length; i++) {
-    let concurrent = 0;
-    for (let j = 0; j < entries.length; j++) {
-      if (slotsOverlapTime(entries[i].slot, entries[j].slot)) concurrent += entries[j].qty;
+  // Tournaments: match recurring by weekday, non-recurring by weekday of any round
+  for (const t of allTournaments) {
+    if (t.id === ignoreTournamentId) continue;
+    if (t.is_recurring) {
+      // Check both fields — the form saves to resource_assignments, but older data may use recurring_resource_assignments
+      const qty = getAssignedQty(t.resource_assignments, resourceId) ||
+                  getAssignedQty(t.recurring_resource_assignments, resourceId);
+      if (qty === 0 || !t.recurring_date) continue;
+      const [y, m, d] = t.recurring_date.split("-").map(Number);
+      const tDay = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+      if (tDay === day && timesOverlap(startTime, endTime, t.recurring_start_time ?? "00:00", t.recurring_end_time ?? "01:00")) {
+        count += qty;
+      }
+    } else {
+      const qty = getAssignedQty(t.resource_assignments, resourceId);
+      if (qty === 0) continue;
+      // Count tournament once if any round falls on the same weekday and overlaps
+      for (const round of t.rounds ?? []) {
+        if (!round.date) continue;
+        const [y, m, d] = round.date.split("-").map(Number);
+        const rDay = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+        if (rDay === day && timesOverlap(startTime, endTime, round.start_time, round.end_time)) {
+          count += qty;
+          break;
+        }
+      }
     }
-    if (concurrent > peakUsage) peakUsage = concurrent;
   }
 
-  return peakUsage;
+  return count;
 }
 
-// Returns the names of classes/tournaments that overlap in time and use this resource.
-// Used to show "who else is using this" in the class form equipment section.
-// Structural (day-of-week based) — no specific date needed.
-export function getResourceConflictingEvents(
-  resource: PhysicalEquipment,
+// ─── CORE: exact-date usage ───────────────────────────────────────────────────
+//
+// Count how many units are in use on a SPECIFIC date (YYYY-MM-DD) and time range.
+// Classes match by weekday of that date. Non-recurring tournaments match by exact date.
+// Used in the tournament form where rounds have specific dates.
+export function calcUsedOnDate(
+  resourceId: string,
+  date: string,      // YYYY-MM-DD
+  startTime: string, // HH:MM
+  endTime: string,   // HH:MM
   allClasses: Class[],
-  ignoreClassId?: string,
-  allTournaments: Tournament[] = []
-): string[] {
-  // Build the same entries list as calcResourceAvailability
-  const entries: { slot: ScheduleSlot; qty: number; name: string }[] = [];
+  allTournaments: Tournament[],
+  ignoreTournamentId: string | undefined
+): number {
+  if (!date || !startTime || !endTime) return 0;
 
+  const dayName = HEBREW_DAYS_LOCAL[new Date(date).getDay()];
+  let count = 0;
+
+  // Classes: match by weekday
   for (const cls of allClasses) {
-    if (cls.id === ignoreClassId) continue;
-    const qty = getAssignedQty(cls.resource_assignments, resource.id);
+    const qty = getAssignedQty(cls.resource_assignments, resourceId);
     if (qty === 0) continue;
     for (const slot of cls.slots ?? []) {
-      entries.push({ slot, qty, name: cls.name });
+      if (slot.day === dayName && timesOverlap(startTime, endTime, slot.start_time, slot.end_time)) {
+        count += qty;
+        break;
+      }
     }
   }
 
+  // Tournaments
   for (const t of allTournaments) {
+    if (t.id === ignoreTournamentId) continue;
     if (t.is_recurring) {
-      const qty = getAssignedQty(t.recurring_resource_assignments, resource.id);
+      // Recurring: match by weekday — check both fields (form saves to resource_assignments)
+      const qty = getAssignedQty(t.resource_assignments, resourceId) ||
+                  getAssignedQty(t.recurring_resource_assignments, resourceId);
       if (qty === 0 || !t.recurring_date) continue;
       const [y, m, d] = t.recurring_date.split("-").map(Number);
-      const day = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
-      entries.push({
-        qty,
-        name: t.name,
-        slot: { id: t.id, day, start_time: t.recurring_start_time ?? "00:00", end_time: t.recurring_end_time ?? "01:00", room_id: "", recurrence: "שבועי", start_date: t.recurring_date },
-      });
+      const tDay = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+      if (tDay === dayName && timesOverlap(startTime, endTime, t.recurring_start_time ?? "00:00", t.recurring_end_time ?? "01:00")) {
+        count += qty;
+      }
     } else {
-      // Same de-duplication as calcResourceAvailability — rounds on different calendar dates
-      // but the same weekday+time are not simultaneous, so only push one entry per unique slot.
-      const qty = getAssignedQty(t.resource_assignments, resource.id);
+      // Non-recurring: match by exact date
+      const qty = getAssignedQty(t.resource_assignments, resourceId);
       if (qty === 0) continue;
-      const seenSlots = new Set<string>();
-      for (const round of t.rounds ?? []) {
-        if (!round.date) continue;
-        const [y, m, d] = round.date.split("-").map(Number);
-        const day = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
-        const slotKey = `${day}-${round.start_time}-${round.end_time}`;
-        if (seenSlots.has(slotKey)) continue;
-        seenSlots.add(slotKey);
-        entries.push({
-          qty,
-          name: t.name,
-          slot: { id: round.id, day, start_time: round.start_time, end_time: round.end_time, room_id: "", recurrence: "חד פעמי", start_date: round.date },
-        });
+      for (const r of t.rounds ?? []) {
+        if (r.date === date && timesOverlap(startTime, endTime, r.start_time, r.end_time)) {
+          count += qty;
+          break;
+        }
       }
     }
   }
 
-  // Find all entries that overlap with any other entry — collect unique names
-  const conflicting = new Set<string>();
-  for (let i = 0; i < entries.length; i++) {
-    for (let j = i + 1; j < entries.length; j++) {
-      if (slotsOverlapTime(entries[i].slot, entries[j].slot)) {
-        conflicting.add(entries[i].name);
-        conflicting.add(entries[j].name);
-      }
-    }
-  }
-  return [...conflicting];
+  return count;
 }
 
-// Returns the names of classes/tournaments using this resource at a specific date+time.
-// Used to show "who else is using this" in the tournament form equipment section.
-export function getResourceConflictingEventsOnDateTime(
-  resource: PhysicalEquipment,
-  date: string,
+// ─── FOR CLASS FORM: worst case across all class slots ───────────────────────
+//
+// A class runs on multiple slots (e.g. Monday + Wednesday).
+// Returns the maximum usage across all slots — the worst-case scenario.
+// This is how many units are already committed during the busiest slot.
+export function calcUsedDuringClassSlots(
+  resourceId: string,
+  classSlots: ScheduleSlot[],   // the slots of the class being edited
+  allClasses: Class[],
+  ignoreClassId: string | undefined,
+  allTournaments: Tournament[]
+): number {
+  let maxUsage = 0;
+  for (const slot of classSlots) {
+    const usage = calcUsedAtWindow(
+      resourceId, slot.day, slot.start_time, slot.end_time,
+      allClasses, ignoreClassId, allTournaments, undefined
+    );
+    if (usage > maxUsage) maxUsage = usage;
+  }
+  return maxUsage;
+}
+
+// ─── CONFLICTING EVENT NAMES ──────────────────────────────────────────────────
+//
+// Same logic as calcUsedAtWindow but returns event names instead of counts.
+// Used to display "who else is using this resource" warnings.
+export function getConflictingNamesAtWindow(
+  resourceId: string,
+  day: string,
   startTime: string,
   endTime: string,
   allClasses: Class[],
+  ignoreClassId: string | undefined,
   allTournaments: Tournament[],
-  ignoreTournamentId?: string
+  ignoreTournamentId: string | undefined
 ): string[] {
-  if (!date || !startTime || !endTime) return [];
-
-  const dayName = HEBREW_DAYS_LOCAL[new Date(date).getDay()];
-
-  function overlaps(s1: string, e1: string, s2: string, e2: string) {
-    return timeToMins(s1) < timeToMins(e2) && timeToMins(s2) < timeToMins(e1);
-  }
-
   const names: string[] = [];
 
   for (const cls of allClasses) {
-    if (getAssignedQty(cls.resource_assignments, resource.id) === 0) continue;
+    if (cls.id === ignoreClassId) continue;
+    if (getAssignedQty(cls.resource_assignments, resourceId) === 0) continue;
     for (const slot of cls.slots ?? []) {
-      if (slot.day === dayName && overlaps(startTime, endTime, slot.start_time, slot.end_time)) {
+      if (slot.day === day && timesOverlap(startTime, endTime, slot.start_time, slot.end_time)) {
         names.push(cls.name);
-        break; // count each class once
+        break;
       }
     }
   }
@@ -218,18 +218,23 @@ export function getResourceConflictingEventsOnDateTime(
   for (const t of allTournaments) {
     if (t.id === ignoreTournamentId) continue;
     if (t.is_recurring) {
-      if (getAssignedQty(t.recurring_resource_assignments, resource.id) === 0) continue;
-      if (
-        t.recurring_date &&
-        HEBREW_DAYS_LOCAL[new Date(...t.recurring_date.split("-").map(Number) as [number, number, number]).getDay()] === dayName &&
-        overlaps(startTime, endTime, t.recurring_start_time ?? "00:00", t.recurring_end_time ?? "01:00")
-      ) {
+      // Check both fields — same reason as in calcUsedAtWindow
+      const hasQty = getAssignedQty(t.resource_assignments, resourceId) > 0 ||
+                     getAssignedQty(t.recurring_resource_assignments, resourceId) > 0;
+      if (!hasQty) continue;
+      if (!t.recurring_date) continue;
+      const [y, m, d] = t.recurring_date.split("-").map(Number);
+      const tDay = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+      if (tDay === day && timesOverlap(startTime, endTime, t.recurring_start_time ?? "00:00", t.recurring_end_time ?? "01:00")) {
         names.push(t.name);
       }
     } else {
-      if (getAssignedQty(t.resource_assignments, resource.id) === 0) continue;
+      if (getAssignedQty(t.resource_assignments, resourceId) === 0) continue;
       for (const round of t.rounds ?? []) {
-        if (round.date === date && overlaps(startTime, endTime, round.start_time, round.end_time)) {
+        if (!round.date) continue;
+        const [y, m, d] = round.date.split("-").map(Number);
+        const rDay = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+        if (rDay === day && timesOverlap(startTime, endTime, round.start_time, round.end_time)) {
           names.push(t.name);
           break;
         }
@@ -240,76 +245,132 @@ export function getResourceConflictingEventsOnDateTime(
   return names;
 }
 
-// Hebrew day names indexed by JS getDay() (0=Sunday)
-const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
-// Count how many units of a resource are in use on a specific date+time range.
-// Checks both class slots (by weekday match) and other tournament rounds (by exact date).
-// Used to show availability hints in the tournament equipment selector.
-export function calcResourceUsageOnDateTime(
-  resource: PhysicalEquipment,
-  date: string,        // YYYY-MM-DD
-  startTime: string,   // HH:MM
-  endTime: string,     // HH:MM
+// Names of conflicting events on a specific date (used in tournament form).
+export function getConflictingNamesOnDate(
+  resourceId: string,
+  date: string,
+  startTime: string,
+  endTime: string,
   allClasses: Class[],
   allTournaments: Tournament[],
-  ignoreTournamentId?: string
-): number {
-  if (!date || !startTime || !endTime) return 0;
+  ignoreTournamentId: string | undefined
+): string[] {
+  if (!date || !startTime || !endTime) return [];
+  const dayName = HEBREW_DAYS_LOCAL[new Date(date).getDay()];
+  const names: string[] = [];
 
-  // Get Hebrew day name for the given date (e.g. "ראשון")
-  const dayName = HEBREW_DAYS[new Date(date).getDay()];
-
-  // Helper: do two HH:MM time ranges overlap?
-  function overlaps(s1: string, e1: string, s2: string, e2: string) {
-    return timeToMins(s1) < timeToMins(e2) && timeToMins(s2) < timeToMins(e1);
-  }
-
-  let count = 0;
-
-  // Sum quantities from classes whose recurring weekly slot matches the weekday and time
   for (const cls of allClasses) {
-    const qty = getAssignedQty(cls.resource_assignments, resource.id);
-    if (qty === 0) continue;
+    if (getAssignedQty(cls.resource_assignments, resourceId) === 0) continue;
     for (const slot of cls.slots ?? []) {
-      if (slot.day === dayName && overlaps(startTime, endTime, slot.start_time, slot.end_time)) {
-        count += qty;
-        break; // count each class once even if it has multiple overlapping slots
+      if (slot.day === dayName && timesOverlap(startTime, endTime, slot.start_time, slot.end_time)) {
+        names.push(cls.name);
+        break;
       }
     }
   }
 
-  // Sum quantities from other tournament rounds on the exact same date that overlap
   for (const t of allTournaments) {
     if (t.id === ignoreTournamentId) continue;
     if (t.is_recurring) {
-      // Match by day-of-week (not anchor date) — a recurring tournament on every Thursday
-      // conflicts with any other Thursday, not just the anchor date
-      const qty = getAssignedQty(t.recurring_resource_assignments, resource.id);
-      if (qty === 0 || !t.recurring_date) continue;
-      const [ry, rm, rd] = t.recurring_date.split("-").map(Number);
-      const recurringDay = HEBREW_DAYS[new Date(ry, rm - 1, rd).getDay()];
-      if (
-        recurringDay === dayName &&
-        overlaps(startTime, endTime, t.recurring_start_time ?? "", t.recurring_end_time ?? "")
-      ) {
-        count += qty;
+      if (getAssignedQty(t.recurring_resource_assignments, resourceId) === 0) continue;
+      if (!t.recurring_date) continue;
+      const [y, m, d] = t.recurring_date.split("-").map(Number);
+      const tDay = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+      if (tDay === dayName && timesOverlap(startTime, endTime, t.recurring_start_time ?? "00:00", t.recurring_end_time ?? "01:00")) {
+        names.push(t.name);
       }
     } else {
-      // Equipment for non-recurring tournaments is stored at tournament level (t.resource_assignments),
-      // not per-round. Check each round for a date+time match, then count the tournament-level qty.
-      const qty = getAssignedQty(t.resource_assignments, resource.id);
-      if (qty === 0) continue;
+      if (getAssignedQty(t.resource_assignments, resourceId) === 0) continue;
       for (const r of t.rounds ?? []) {
-        if (r.date === date && overlaps(startTime, endTime, r.start_time, r.end_time)) {
-          count += qty;
-          break; // count each tournament once even if multiple rounds somehow match
+        if (r.date === date && timesOverlap(startTime, endTime, r.start_time, r.end_time)) {
+          names.push(t.name);
+          break;
         }
       }
     }
   }
 
-  return count;
+  return names;
+}
+
+// For a class: collect conflicting event names across ALL slots (union).
+export function getConflictingNamesDuringClassSlots(
+  resourceId: string,
+  classSlots: ScheduleSlot[],
+  allClasses: Class[],
+  ignoreClassId: string | undefined,
+  allTournaments: Tournament[]
+): string[] {
+  const nameSet = new Set<string>();
+  for (const slot of classSlots) {
+    const names = getConflictingNamesAtWindow(
+      resourceId, slot.day, slot.start_time, slot.end_time,
+      allClasses, ignoreClassId, allTournaments, undefined
+    );
+    names.forEach((n) => nameSet.add(n));
+  }
+  return [...nameSet];
+}
+
+// ─── LEGACY ALIASES (kept for TournamentDetailModal / ViewExistingClassDetailModal) ──
+// These two callers check if an event's equipment is overbooked AT ITS OWN TIME.
+
+// For a tournament detail view: is this resource overbooked during any of its rounds?
+export function isTournamentResourceOverbooked(
+  resource: PhysicalEquipment,
+  tournament: Tournament,
+  qty: number,
+  allClasses: Class[],
+  allTournaments: Tournament[]
+): boolean {
+  if (tournament.is_recurring) {
+    if (!tournament.recurring_date) return false;
+    const [y, m, d] = tournament.recurring_date.split("-").map(Number);
+    const day = HEBREW_DAYS_LOCAL[new Date(y, m - 1, d).getDay()];
+    const used = calcUsedAtWindow(
+      resource.id, day,
+      tournament.recurring_start_time ?? "00:00",
+      tournament.recurring_end_time ?? "01:00",
+      allClasses, undefined, allTournaments, tournament.id
+    );
+    return qty + used > resource.quantity;
+  } else {
+    // Check each round — overbooked if any round exceeds stock
+    for (const round of tournament.rounds ?? []) {
+      if (!round.date) continue;
+      const used = calcUsedOnDate(
+        resource.id, round.date, round.start_time, round.end_time,
+        allClasses, allTournaments, tournament.id
+      );
+      if (qty + used > resource.quantity) return true;
+    }
+    return false;
+  }
+}
+
+// Backward-compat alias used by AvailabilityCheckerModal (accepts resource object, not just ID)
+export function calcResourceUsageOnDateTime(
+  resource: PhysicalEquipment,
+  date: string,
+  startTime: string,
+  endTime: string,
+  allClasses: Class[],
+  allTournaments: Tournament[],
+  ignoreTournamentId?: string
+): number {
+  return calcUsedOnDate(resource.id, date, startTime, endTime, allClasses, allTournaments, ignoreTournamentId);
+}
+
+// For a class detail view: is this resource overbooked during any of the class's slots?
+export function isClassResourceOverbooked(
+  resource: PhysicalEquipment,
+  cls: Class,
+  qty: number,
+  allClasses: Class[],
+  allTournaments: Tournament[]
+): boolean {
+  const used = calcUsedDuringClassSlots(resource.id, cls.slots ?? [], allClasses, cls.id, allTournaments);
+  return qty + used > resource.quantity;
 }
 
 /**
@@ -339,6 +400,49 @@ export function computeClassStatus(cls: Class): Class["status"] {
   if (allFuture) return "מתוכנן";
 
   return "פעיל";
+}
+
+/**
+ * Returns IDs of classes that conflict (room + time + day-of-week) with any event.
+ * Used in the schedule page to mark classes with event conflicts.
+ */
+export function getClassIdsConflictingWithEvents(
+  allClasses: Class[],
+  allEvents: Event[],
+  rooms: Room[]
+): Set<string> {
+  const conflictIds = new Set<string>();
+
+  // Helper: resolve a room_id to its display name
+  const roomName = (roomId: string) => rooms.find((r) => r.id === roomId)?.name ?? "";
+
+  for (const cls of allClasses) {
+    let hasConflict = false;
+    outer: for (const slot of cls.slots ?? []) {
+      const slotRoom = roomName(slot.room_id);
+      if (!slotRoom) continue;
+
+      for (const ev of allEvents) {
+        if (ev.room !== slotRoom) continue;
+        if (!timesOverlap(slot.start_time, slot.end_time, ev.start_time, ev.end_time)) continue;
+
+        // Check if the event ever occurs on this slot's day-of-week
+        const slotDow = HEBREW_DAYS_LOCAL.indexOf(slot.day);
+        if (ev.recurrence_type === "חד פעמי") {
+          if (!ev.date) continue;
+          const [y, m, d] = ev.date.split("-").map(Number);
+          if (new Date(y, m - 1, d).getDay() === slotDow) { hasConflict = true; break outer; }
+        } else {
+          // Recurring event — check if any of its days match the slot's day
+          const evDows = (ev.days_of_week ?? []).map((day) => HEBREW_DAYS_LOCAL.indexOf(day));
+          if (evDows.includes(slotDow)) { hasConflict = true; break outer; }
+        }
+      }
+    }
+    if (hasConflict) conflictIds.add(cls.id);
+  }
+
+  return conflictIds;
 }
 
 // Return the IDs of all classes whose slots share a room + time with the target class

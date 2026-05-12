@@ -8,20 +8,29 @@ import ViewExistingClassDetailModal from "@/app/classes/ViewExistingClassDetailM
 import ClassFormModal from "@/app/classes/ClassFormModal";
 import TournamentDetailModal from "@/app/tournaments/TournamentDetailModal";
 import TournamentFormModal from "@/app/tournaments/TournamentFormModal";
+import EventDetailModal from "@/app/tournaments/events/EventDetailModal";
+import EventFormModal from "@/app/tournaments/events/EventFormModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { updateDocument, addDocument, deleteDocument } from "@/firebase/firestore";
-import { getSlotsForDates } from "@/lib/scheduleHelpers";
-import { getConflictingClassIds } from "@/lib/classHelpers";
+import { getSlotsForDates, slotOccursOnDate } from "@/lib/scheduleHelpers";
+import { getConflictingClassIds, getClassIdsConflictingWithEvents } from "@/lib/classHelpers";
 import { getConflictingRoundIds, recurringTournamentOccursOnDate } from "@/lib/tournamentHelpers";
 import {
   getClassIdsWithTournamentConflicts,
   getTournamentIdsWithClassConflicts,
 } from "@/lib/crossConflictHelpers";
-import type { Class, Tournament } from "@/lib/types";
+import { eventOccursOnDate } from "@/lib/eventHelpers";
+import type { Class, Tournament, Event } from "@/lib/types";
 import type { DayData } from "./calendarTypes";
 
 // --- helpers ---
+
+// Check if two HH:MM time ranges overlap
+function timesOverlapLocal(s1: string, e1: string, s2: string, e2: string): boolean {
+  const toMins = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+  return toMins(s1) < toMins(e2) && toMins(s2) < toMins(e1);
+}
 
 // Use local date parts — toISOString() returns UTC and shifts the date in UTC+2/3 (Israel)
 function toDateStr(d: Date): string {
@@ -45,12 +54,15 @@ function weekOf(date: Date): Set<string> {
 // --- page ---
 
 export default function SchedulePage() {
-  const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings, tournaments } = useData();
+  const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings, tournaments, events: allEvents } = useData();
 
   // Selected dates — default: current week (Sun–Sat)
   const [selectedDates, setSelectedDates] = useState<Set<string>>(() => weekOf(new Date()));
   const [detailClass, setDetailClass] = useState<Class | null>(null);
   const [detailTournament, setDetailTournament] = useState<Tournament | null>(null);
+  const [detailEvent, setDetailEvent] = useState<Event | null>(null);
+  const [editEvent, setEditEvent] = useState<Event | null>(null);
+  const [savingEvent, setSavingEvent] = useState(false);
   const [editTournament, setEditTournament] = useState<Tournament | null>(null);
   const [editTarget, setEditTarget] = useState<Class | null>(null);
   const [saving, setSaving] = useState(false);
@@ -65,7 +77,7 @@ export default function SchedulePage() {
     if (dates.length > 0) setSelectedDates(new Set(dates));
   };
 
-  // Conflict detection — class-vs-class + class-vs-tournament
+  // Conflict detection — class-vs-class + class-vs-tournament + class-vs-event
   const conflictIds = useMemo(() => {
     const ids = new Set<string>();
 
@@ -80,8 +92,12 @@ export default function SchedulePage() {
     );
     crossConflicts.forEach((id) => ids.add(id));
 
+    // Class vs event (room + time + day-of-week)
+    const eventConflicts = getClassIdsConflictingWithEvents(classes, allEvents, rooms);
+    eventConflicts.forEach((id) => ids.add(id));
+
     return ids;
-  }, [classes, tournaments, rooms, enrollments, selectedDates]);
+  }, [classes, tournaments, rooms, enrollments, selectedDates, allEvents]);
 
   // Fetch slots for exactly the selected dates
   const slots = useMemo(
@@ -97,14 +113,45 @@ export default function SchedulePage() {
     [tournaments, classes, rooms, enrollments, selectedDates]
   );
 
-  // Pre-compute conflicting round IDs for all tournaments (round-vs-class + round-vs-round)
+  // Pre-compute conflicting round IDs for all tournaments (round-vs-class + round-vs-round + round-vs-event)
   const tournamentConflictMap = useMemo(() => {
     const map = new Map<string, Set<string>>(); // tournamentId → Set<roundId>
     for (const t of tournaments) {
-      map.set(t.id, getConflictingRoundIds(t, classes, tournaments));
+      map.set(t.id, getConflictingRoundIds(t, classes, tournaments, allEvents));
     }
     return map;
-  }, [tournaments, classes]);
+  }, [tournaments, classes, allEvents]);
+
+  /**
+   * Check if a recurring tournament conflicts with any other tournament on a SPECIFIC date.
+   * For non-recurring tournaments: check if any round falls on that exact date.
+   * This avoids false positives from past rounds that already happened.
+   */
+  function recurringTournamentHasConflictOnDate(t: Tournament, dateStr: string): boolean {
+    if (!t.room || !t.recurring_start_time || !t.recurring_end_time) return false;
+    for (const other of tournaments) {
+      if (other.id === t.id || other.status === "בוטל") continue;
+      if (other.is_recurring) {
+        // Other recurring: must be on the same date (both recur today) + same room + time overlap
+        if (!recurringTournamentOccursOnDate(other, dateStr)) continue;
+        if (other.room !== t.room) continue;
+        if (timesOverlapLocal(t.recurring_start_time, t.recurring_end_time, other.recurring_start_time ?? "", other.recurring_end_time ?? "")) {
+          return true;
+        }
+      } else {
+        // Non-recurring: only the round on this exact date can conflict
+        for (const round of other.rounds ?? []) {
+          if (round.date !== dateStr) continue;
+          const roundRoom = round.location || other.room;
+          if (roundRoom && roundRoom !== t.room) continue;
+          if (timesOverlapLocal(t.recurring_start_time, t.recurring_end_time, round.start_time, round.end_time)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
 
   // ---- Filter option lists (for the filter bar dropdowns) ----
 
@@ -254,7 +301,13 @@ export default function SchedulePage() {
               end_time: t.recurring_end_time ?? "01:00",
               location: t.room,
             };
-            tournamentEvents.push({ tournament: t, round: syntheticRound, hasConflict: tournamentCrossConflictIds.has(t.id), isRecurring: true });
+            tournamentEvents.push({
+              tournament: t,
+              round: syntheticRound,
+              // Conflict with a class OR with another tournament on this specific date
+              hasConflict: tournamentCrossConflictIds.has(t.id) || recurringTournamentHasConflictOnDate(t, dateStr),
+              isRecurring: true,
+            });
           }
         } else {
           // Regular tournament with fixed rounds
@@ -272,11 +325,43 @@ export default function SchedulePage() {
         }
       }
 
-      return { date, dateStr, isToday: dateStr === todayStr, events, tournamentEvents };
-    });
-  }, [selectedDates, slots, classes, teachers, rooms, enrollments, conflictIds, todayStr, tournaments, tournamentConflictMap, tournamentCrossConflictIds, visibleClassIds, visibleTournamentIds]);
+      // אירועים (events) ליום זה — עם בדיקת קונפליקט מול חוגים ותחרויות
+      const eventItems = allEvents
+        .filter((ev) => eventOccursOnDate(ev, dateStr))
+        .map((ev) => {
+          // בדוק אם האירוע מתנגש עם חוג באותו יום/חדר/שעה
+          const conflictsWithClass = classes.some((cls) =>
+            (cls.slots ?? []).some((slot) => {
+              if (rooms.find((r) => r.id === slot.room_id)?.name !== ev.room) return false;
+              if (!slotOccursOnDate(slot, dateStr)) return false;
+              return timesOverlapLocal(ev.start_time, ev.end_time, slot.start_time, slot.end_time);
+            })
+          );
+          // בדוק אם האירוע מתנגש עם תחרות באותו יום/חדר/שעה
+          const conflictsWithTournament = tournaments.some((t) => {
+            if (t.status === "בוטל" || t.room !== ev.room) return false;
+            if (t.is_recurring) {
+              return recurringTournamentOccursOnDate(t, dateStr) &&
+                timesOverlapLocal(ev.start_time, ev.end_time, t.recurring_start_time ?? "", t.recurring_end_time ?? "");
+            }
+            return (t.rounds ?? []).some((r) =>
+              r.date === dateStr && timesOverlapLocal(ev.start_time, ev.end_time, r.start_time, r.end_time)
+            );
+          });
+          // בדוק אם האירוע מתנגש עם אירוע אחר באותו יום/חדר/שעה
+          const conflictsWithEvent = allEvents.some((other) => {
+            if (other.id === ev.id || other.room !== ev.room) return false;
+            if (!eventOccursOnDate(other, dateStr)) return false;
+            return timesOverlapLocal(ev.start_time, ev.end_time, other.start_time, other.end_time);
+          });
+          return { event: ev, hasConflict: conflictsWithClass || conflictsWithTournament || conflictsWithEvent };
+        });
 
-  const totalEvents = days.reduce((n, d) => n + d.events.length + (d.tournamentEvents?.length ?? 0), 0);
+      return { date, dateStr, isToday: dateStr === todayStr, events, tournamentEvents, eventItems };
+    });
+  }, [selectedDates, slots, classes, teachers, rooms, enrollments, conflictIds, todayStr, tournaments, tournamentConflictMap, tournamentCrossConflictIds, visibleClassIds, visibleTournamentIds, allEvents]);
+
+  const totalEvents = days.reduce((n, d) => n + d.events.length + (d.tournamentEvents?.length ?? 0) + (d.eventItems?.length ?? 0), 0);
 
   return (
     <PageShell title="לוח זמנים">
@@ -312,7 +397,7 @@ export default function SchedulePage() {
 
         {/* Main calendar grid — takes remaining space */}
         <div className="flex-1 min-w-0">
-          <CalendarGrid days={days} onEventClick={setDetailClass} onTournamentClick={setDetailTournament} />
+          <CalendarGrid days={days} onEventClick={setDetailClass} onTournamentClick={setDetailTournament} onEventItemClick={setDetailEvent} />
         </div>
 
       </div>
@@ -367,6 +452,7 @@ export default function SchedulePage() {
           allStudents={students}
           allClasses={classes}
           allTournaments={tournaments}
+          allEvents={allEvents}
           allRooms={rooms}
           allTeachers={teachers}
           physicalEquipment={physicalEquipment}
@@ -380,6 +466,51 @@ export default function SchedulePage() {
               setEditTournament(null);
             } catch { showToast("שגיאה בשמירה, נסה שוב", "error"); }
             finally { setSaving(false); }
+          }}
+        />
+      )}
+
+      {/* Event detail modal */}
+      {detailEvent && !editEvent && (
+        <EventDetailModal
+          event={detailEvent}
+          onEdit={() => { setEditEvent(detailEvent); setDetailEvent(null); }}
+          onDelete={async () => {
+            try {
+              await deleteDocument("events", detailEvent.id);
+              showToast("האירוע נמחק", "success");
+            } catch {
+              showToast("שגיאה במחיקה, נסה שוב", "error");
+            }
+            setDetailEvent(null);
+          }}
+          onClose={() => setDetailEvent(null)}
+        />
+      )}
+
+      {/* Event edit modal */}
+      {editEvent && (
+        <EventFormModal
+          mode="edit"
+          event={editEvent}
+          allClasses={classes}
+          allTournaments={tournaments}
+          allEvents={allEvents}
+          rooms={rooms}
+          saving={savingEvent}
+          onClose={() => setEditEvent(null)}
+          onSave={async (data) => {
+            if (!data.name.trim()) { showToast("שם האירוע הוא שדה חובה", "error"); return; }
+            setSavingEvent(true);
+            try {
+              await updateDocument("events", editEvent.id, data);
+              showToast("האירוע עודכן בהצלחה", "success");
+              setEditEvent(null);
+            } catch {
+              showToast("שגיאה בשמירה, נסה שוב", "error");
+            } finally {
+              setSavingEvent(false);
+            }
           }}
         />
       )}

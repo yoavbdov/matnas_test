@@ -10,7 +10,7 @@ import Btn from "@/components/shared/Btn";
 import Badge from "@/components/shared/Badge";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { fmtDate } from "@/lib/utils";
-import { calcResourceAvailability } from "@/lib/classHelpers";
+import { isTournamentResourceOverbooked } from "@/lib/classHelpers";
 import type { Tournament, Student, Teacher, PhysicalEquipment, Class } from "@/lib/types";
 
 interface Props {
@@ -163,13 +163,11 @@ export default function TournamentDetailModal({
                     </span>
                   );
                 })}
-                {/* Show warning if any resource is overbooked together with other events */}
+                {/* Warning: resource overbooked at the time this tournament runs */}
                 {(tournament.resource_assignments ?? []).some((a) => {
                   const eq = physicalEquipment.find((e) => e.id === a.resource_id);
                   if (!eq) return false;
-                  const otherTournaments = allTournaments.filter((t) => t.id !== tournament.id);
-                  const usedElsewhere = calcResourceAvailability(eq, allClasses, undefined, otherTournaments);
-                  return a.quantity > eq.quantity - usedElsewhere;
+                  return isTournamentResourceOverbooked(eq, tournament, a.quantity, allClasses, allTournaments);
                 }) && (
                   <span className="text-xs text-red-500 font-medium">⚠ חסר ציוד</span>
                 )}

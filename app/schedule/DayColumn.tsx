@@ -1,27 +1,34 @@
 // One day column in the calendar grid — draws hour lines and positions events
-// Renders both class events and tournament round events, laid out side-by-side when they overlap.
+// Renders class events, tournament round events, and event items, laid out side-by-side when they overlap.
 import { HOUR_HEIGHT, timeToMinutes } from "./calendarUtils";
 import CalendarEvent from "./CalendarEvent";
 import TournamentCalendarEvent from "./TournamentCalendarEvent";
-import type { CalendarEventData, TournamentEventData, DayData } from "./calendarTypes";
-import type { Class, Tournament } from "@/lib/types";
+import EventCalendarEvent from "./EventCalendarEvent";
+import type { CalendarEventData, TournamentEventData, EventCalendarData, DayData } from "./calendarTypes";
+import type { Class, Tournament, Event } from "@/lib/types";
 
 interface Props {
   day: DayData;
   onEventClick: (cls: Class) => void;
   onTournamentClick?: (t: Tournament) => void;
+  onEventItemClick?: (ev: Event) => void;
 }
 
 // Each item in the unified layout has a kind + start/end for sorting/overlap detection
 type LayoutClass = { kind: "class" } & CalendarEventData;
 type LayoutTournament = { kind: "tournament" } & TournamentEventData;
-type LayoutItem = LayoutClass | LayoutTournament;
+type LayoutEventItem = { kind: "event" } & EventCalendarData;
+type LayoutItem = LayoutClass | LayoutTournament | LayoutEventItem;
 
 function getTime(item: LayoutItem): { start: number; end: number } {
   if (item.kind === "class") {
     return { start: timeToMinutes(item.slot.start_time), end: timeToMinutes(item.slot.end_time) };
   }
-  return { start: timeToMinutes(item.round.start_time), end: timeToMinutes(item.round.end_time) };
+  if (item.kind === "tournament") {
+    return { start: timeToMinutes(item.round.start_time), end: timeToMinutes(item.round.end_time) };
+  }
+  // event
+  return { start: timeToMinutes(item.event.start_time), end: timeToMinutes(item.event.end_time) };
 }
 
 // Greedy column assignment so overlapping events appear side-by-side
@@ -42,11 +49,12 @@ function layoutItems(items: LayoutItem[]) {
   return assigned.map((item) => ({ ...item, colCount }));
 }
 
-export default function DayColumn({ day, onEventClick, onTournamentClick }: Props) {
-  // Combine class events and tournament events into one unified layout
+export default function DayColumn({ day, onEventClick, onTournamentClick, onEventItemClick }: Props) {
+  // Combine all three types into one unified layout for overlap detection
   const classItems: LayoutItem[] = day.events.map((e) => ({ kind: "class" as const, ...e }));
   const tournamentItems: LayoutItem[] = (day.tournamentEvents ?? []).map((e) => ({ kind: "tournament" as const, ...e }));
-  const laid = layoutItems([...classItems, ...tournamentItems]);
+  const eventItems: LayoutItem[] = (day.eventItems ?? []).map((e) => ({ kind: "event" as const, ...e }));
+  const laid = layoutItems([...classItems, ...tournamentItems, ...eventItems]);
 
   return (
     <div
@@ -92,18 +100,31 @@ export default function DayColumn({ day, onEventClick, onTournamentClick }: Prop
             />
           );
         }
-        // tournament round
-        const { tournament, round, hasConflict, isRecurring, colIndex, colCount } = item;
+        if (item.kind === "tournament") {
+          const { tournament, round, hasConflict, isRecurring, colIndex, colCount } = item;
+          return (
+            <TournamentCalendarEvent
+              key={`tournament-${tournament.id}-${round.id}`}
+              tournament={tournament}
+              round={round}
+              hasConflict={hasConflict}
+              isRecurring={isRecurring}
+              colIndex={colIndex}
+              colCount={colCount}
+              onClick={() => onTournamentClick?.(tournament)}
+            />
+          );
+        }
+        // אירוע (event)
+        const { event, hasConflict, colIndex, colCount } = item;
         return (
-          <TournamentCalendarEvent
-            key={`tournament-${tournament.id}-${round.id}`}
-            tournament={tournament}
-            round={round}
+          <EventCalendarEvent
+            key={`event-${event.id}`}
+            event={event}
             hasConflict={hasConflict}
-            isRecurring={isRecurring}
             colIndex={colIndex}
             colCount={colCount}
-            onClick={() => onTournamentClick?.(tournament)}
+            onClick={() => onEventItemClick?.(event)}
           />
         );
       })}

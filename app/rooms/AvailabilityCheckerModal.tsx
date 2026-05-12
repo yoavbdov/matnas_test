@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { X, CheckCircle, AlertCircle } from "lucide-react";
 import Field from "@/components/shared/Field";
+import ClockTimePicker from "@/components/shared/ClockTimePicker";
 import { calcResourceUsageOnDateTime } from "@/lib/classHelpers";
 import type { PhysicalEquipment, Class, Tournament } from "@/lib/types";
 
@@ -142,10 +143,10 @@ export default function AvailabilityCheckerModal({ physicalEquipment, classes, t
               {/* Time range */}
               <div className="grid grid-cols-2 gap-3">
                 <Field label="משעה">
-                  <input type="time" className={inp} value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                  <ClockTimePicker value={startTime} onChange={setStartTime} />
                 </Field>
                 <Field label="עד שעה">
-                  <input type="time" className={inp} value={endTime} min={startTime} onChange={(e) => setEndTime(e.target.value)} />
+                  <ClockTimePicker value={endTime} onChange={setEndTime} />
                 </Field>
               </div>
 

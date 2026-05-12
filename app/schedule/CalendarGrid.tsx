@@ -5,15 +5,16 @@ import TimeColumn from "./TimeColumn";
 import DayColumn from "./DayColumn";
 import DayHeaderRow from "./DayHeaderRow";
 import type { DayData } from "./calendarTypes";
-import type { Class, Tournament } from "@/lib/types";
+import type { Class, Tournament, Event } from "@/lib/types";
 
 interface Props {
   days: DayData[];
   onEventClick: (cls: Class) => void;
   onTournamentClick?: (t: Tournament) => void;
+  onEventItemClick?: (ev: Event) => void;
 }
 
-export default function CalendarGrid({ days, onEventClick, onTournamentClick }: Props) {
+export default function CalendarGrid({ days, onEventClick, onTournamentClick, onEventItemClick }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // On first render, scroll to START_HOUR (default 8:00) so mornings are visible
@@ -37,7 +38,7 @@ export default function CalendarGrid({ days, onEventClick, onTournamentClick }: 
         {/* RTL: Sunday on the right, Saturday on the left, time column on the far left */}
         <div className="flex" dir="rtl">
           {days.map((day) => (
-            <DayColumn key={day.dateStr} day={day} onEventClick={onEventClick} onTournamentClick={onTournamentClick} />
+            <DayColumn key={day.dateStr} day={day} onEventClick={onEventClick} onTournamentClick={onTournamentClick} onEventItemClick={onEventItemClick} />
           ))}
           <TimeColumn />
         </div>

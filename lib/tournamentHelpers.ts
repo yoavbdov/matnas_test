@@ -5,7 +5,8 @@
 
 import { timeToMins } from "./utils";
 import { slotOccursOnDate } from "./scheduleHelpers";
-import type { Tournament, TournamentRound, Class } from "./types";
+import { eventOccursOnDate } from "./eventHelpers";
+import type { Tournament, TournamentRound, Class, Event } from "./types";
 
 /** Check if two time ranges overlap (exclusive boundaries) */
 function timesOverlap(
@@ -40,7 +41,8 @@ export function roundConflictsWithClasses(
 }
 
 /**
- * Returns true if a round conflicts with any round in other tournaments.
+ * Returns true if a round conflicts with any round in other tournaments,
+ * OR with a recurring tournament that falls on the same day-of-week.
  * ignoreTournamentId — skip the tournament being edited (so it doesn't conflict with itself).
  */
 export function roundConflictsWithTournaments(
@@ -48,11 +50,33 @@ export function roundConflictsWithTournaments(
   allTournaments: Tournament[],
   ignoreTournamentId?: string
 ): boolean {
+  const [ry, rm, rd] = round.date.split("-").map(Number);
+  const roundDow = new Date(ry, rm - 1, rd).getDay();
+
   for (const t of allTournaments) {
     if (t.id === ignoreTournamentId) continue;
+    if (t.status === "בוטל") continue;
+
+    // Check against non-recurring rounds (same exact date + same room)
     for (const other of t.rounds ?? []) {
       if (other.date !== round.date) continue;
+      if (round.location && other.location && round.location !== other.location) continue;
       if (timesOverlap(round.start_time, round.end_time, other.start_time, other.end_time)) {
+        return true;
+      }
+    }
+
+    // Check against recurring tournament: same day-of-week + same room + time overlap
+    if (t.is_recurring && t.recurring_date && t.recurring_start_time && t.recurring_end_time) {
+      const [ty, tm, td] = t.recurring_date.split("-").map(Number);
+      const tDow = new Date(ty, tm - 1, td).getDay();
+      // Skip if they are in different rooms (both must have a room set to compare)
+      const sameRoom = !round.location || !t.room || round.location === t.room;
+      if (
+        tDow === roundDow &&
+        sameRoom &&
+        timesOverlap(round.start_time, round.end_time, t.recurring_start_time, t.recurring_end_time)
+      ) {
         return true;
       }
     }
@@ -61,19 +85,106 @@ export function roundConflictsWithTournaments(
 }
 
 /**
+ * For recurring tournaments: find conflicts with other tournaments that share
+ * the same room, day-of-week, and overlapping time.
+ * Returns human-readable conflict strings like "תחרות: שם התחרות".
+ */
+export function getRecurringTournamentConflicts(
+  tournament: Tournament,
+  allTournaments: Tournament[]
+): string[] {
+  if (
+    !tournament.is_recurring ||
+    !tournament.recurring_date ||
+    !tournament.recurring_start_time ||
+    !tournament.recurring_end_time ||
+    !tournament.room
+  ) return [];
+
+  const { room, recurring_start_time, recurring_end_time, recurring_date } = tournament;
+  const [ty, tm, td] = recurring_date.split("-").map(Number);
+  const recurringDow = new Date(ty, tm - 1, td).getDay();
+
+  // Only warn about future conflicts — past rounds are already done
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+  const conflicts: string[] = [];
+
+  for (const t of allTournaments) {
+    if (t.id === tournament.id) continue;
+    if (t.status === "בוטל") continue;
+
+    if (t.is_recurring && t.recurring_date && t.recurring_start_time && t.recurring_end_time) {
+      // Other recurring tournament: must share the same room, day-of-week, and time
+      if (t.room !== room) continue;
+      const [oty, otm, otd] = t.recurring_date.split("-").map(Number);
+      const otDow = new Date(oty, otm - 1, otd).getDay();
+      if (
+        otDow === recurringDow &&
+        timesOverlap(recurring_start_time, recurring_end_time, t.recurring_start_time, t.recurring_end_time)
+      ) {
+        conflicts.push(`תחרות: ${t.name}`);
+      }
+    } else {
+      // Non-recurring tournament: room is stored per-round in round.location (not on the tournament).
+      // Only check FUTURE rounds — past rounds are over and can't conflict going forward.
+      for (const round of t.rounds ?? []) {
+        if (round.date < today) continue; // past — skip
+        // Use round.location first; fall back to t.room if the round has no location set
+        const roundRoom = round.location || t.room;
+        if (roundRoom && roundRoom !== room) continue; // different room — skip
+        const [rry, rrm, rrd] = round.date.split("-").map(Number);
+        const rDow = new Date(rry, rrm - 1, rrd).getDay();
+        if (
+          rDow === recurringDow &&
+          timesOverlap(recurring_start_time, recurring_end_time, round.start_time, round.end_time)
+        ) {
+          conflicts.push(`תחרות: ${t.name}`);
+          break; // one conflict per tournament is enough
+        }
+      }
+    }
+  }
+
+  return [...new Set(conflicts)];
+}
+
+/**
+ * Returns true if a tournament round conflicts with any event on that date + same room + overlapping time.
+ */
+export function roundConflictsWithEvents(
+  round: TournamentRound,
+  allEvents: Event[]
+): boolean {
+  for (const ev of allEvents) {
+    // Room must match (both must be set)
+    if (!round.location || !ev.room) continue;
+    if (round.location !== ev.room) continue;
+    if (!eventOccursOnDate(ev, round.date)) continue;
+    if (timesOverlap(round.start_time, round.end_time, ev.start_time, ev.end_time)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * For a given tournament, returns the set of round IDs that have any conflict
- * (either with a class or with another tournament round).
+ * (with a class, another tournament round, or an event).
  */
 export function getConflictingRoundIds(
   tournament: Tournament,
   allClasses: Class[],
-  allTournaments: Tournament[]
+  allTournaments: Tournament[],
+  allEvents: Event[] = []
 ): Set<string> {
   const conflictIds = new Set<string>();
   for (const round of tournament.rounds ?? []) {
     const classConflict = roundConflictsWithClasses(round, allClasses);
     const tournamentConflict = roundConflictsWithTournaments(round, allTournaments, tournament.id);
-    if (classConflict || tournamentConflict) {
+    const eventConflict = roundConflictsWithEvents(round, allEvents);
+    if (classConflict || tournamentConflict || eventConflict) {
       conflictIds.add(round.id);
     }
   }

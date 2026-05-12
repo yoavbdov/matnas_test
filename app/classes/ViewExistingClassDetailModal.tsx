@@ -11,7 +11,7 @@ import Badge from "@/components/shared/Badge";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
-import { getConflictingClassIds, calcResourceAvailability } from "@/lib/classHelpers";
+import { getConflictingClassIds, isClassResourceOverbooked } from "@/lib/classHelpers";
 import type { Class, Teacher, Room, PhysicalEquipment, Student, Enrollment, Tournament } from "@/lib/types";
 
 interface Props {
@@ -177,12 +177,11 @@ export default function ViewExistingClassDetailModal({
                     </span>
                   ) : null;
                 })}
-                {/* Show warning if any resource is overbooked together with other events */}
+                {/* Warning: resource overbooked during this class's time slots */}
                 {(classItem.resource_assignments ?? []).some((a) => {
                   const res = physicalEquipment.find((r) => r.id === a.resource_id);
                   if (!res) return false;
-                  const usedElsewhere = calcResourceAvailability(res, allClasses, classItem.id, allTournaments);
-                  return a.quantity > res.quantity - usedElsewhere;
+                  return isClassResourceOverbooked(res, classItem, a.quantity, allClasses, allTournaments);
                 }) && (
                   <span className="text-xs text-red-500 font-medium">⚠ חסר ציוד</span>
                 )}

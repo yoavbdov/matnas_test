@@ -1,5 +1,5 @@
 // Local types used across the calendar components
-import type { Class, Teacher, Room, ScheduleSlot, Tournament, TournamentRound } from "@/lib/types";
+import type { Class, Teacher, Room, ScheduleSlot, Tournament, TournamentRound, Event } from "@/lib/types";
 
 /** A single class event to render in the calendar grid */
 export interface CalendarEventData {
@@ -19,13 +19,20 @@ export interface TournamentEventData {
   isRecurring?: boolean; // true for recurring tournaments (no fixed rounds)
 }
 
+/** An event (אירוע) to render in the calendar grid */
+export interface EventCalendarData {
+  event: Event;
+  hasConflict: boolean;
+}
+
 /** All data needed to render one day column */
 export interface DayData {
   date: Date;
   dateStr: string; // YYYY-MM-DD
   isToday: boolean;
-  events: CalendarEventData[];           // class events
+  events: CalendarEventData[];             // class events
   tournamentEvents: TournamentEventData[]; // tournament round events
+  eventItems: EventCalendarData[];         // אירועים (ללא ציוד / מדריך)
 }
 
 export type ViewMode = "week" | "day";

@@ -6,6 +6,7 @@ import TeachersTable from "./TeachersTable";
 import TeacherFormModal from "./TeacherFormModal";
 import TeacherDetailModal from "./TeacherDetailModal";
 import TeacherUploadPanel from "./TeacherUploadPanel";
+import TeacherAvailabilityModal from "./TeacherAvailabilityModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument } from "@/firebase/firestore";
@@ -28,6 +29,7 @@ export default function TeachersPage() {
   const [form, setForm] = useState<Omit<Teacher, "id">>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [availabilityOpen, setAvailabilityOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -87,6 +89,7 @@ export default function TeachersPage() {
         statusFilter={statusFilter}
         onFilterStatus={setStatusFilter}
         onAddTeacher={openAdd}
+        onCheckAvailability={() => setAvailabilityOpen(true)}
         onExport={exportCSV}
         onImport={() => setImportOpen(true)}
         maxSearchLength={settings.MAX_SEARCH_LENGTH}
@@ -114,6 +117,14 @@ export default function TeachersPage() {
 
       {importOpen && (
         <TeacherUploadPanel onClose={() => setImportOpen(false)} />
+      )}
+
+      {availabilityOpen && (
+        <TeacherAvailabilityModal
+          teachers={teachers}
+          classes={classes}
+          onClose={() => setAvailabilityOpen(false)}
+        />
       )}
 
       {detailTeacher && (

@@ -1,16 +1,17 @@
 "use client";
 // בחירת ציוד פיזי לתחרות — רשימת הוספה/הסרה עם כמות לכל פריט
-// מציג כמה יחידות פנויות בתאריך ובשעה של הסיבוב/תחרות
+// כשיש תאריך ושעה (מסיבוב): מציג כמה יחידות פנויות באותו זמן בדיוק
+// כשאין תאריך (תחרות חוזרת ללא עיגון): מציג זמינות לפי יום השבוע
 import { Plus, X, AlertTriangle } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import Field from "@/components/shared/Field";
 import {
-  calcResourceUsageOnDateTime,
-  getResourceConflictingEventsOnDateTime,
-  calcResourceAvailability,
-  getResourceConflictingEvents,
+  calcUsedAtWindow,
+  getConflictingNamesAtWindow,
 } from "@/lib/classHelpers";
 import type { PhysicalEquipment, Class, Tournament, ResourceAssignment } from "@/lib/types";
+
+const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
@@ -18,7 +19,7 @@ interface Props {
   assignments: ResourceAssignment[];
   onChange: (assignments: ResourceAssignment[]) => void;
   physicalEquipment: PhysicalEquipment[];
-  // Date and time for availability hints
+  // Exact date+time from the selected round (most precise)
   date?: string;
   startTime?: string;
   endTime?: string;
@@ -54,6 +55,12 @@ export default function TournamentEquipmentSelect({
     onChange(assignments.map((a, i) => (i === idx ? { ...a, ...patch } : a)));
   }
 
+  // Derive day-of-week from the date (works for both recurring anchor date and round date).
+  // We always use weekday-based matching — same logic as classes — so conflicts are
+  // detected consistently regardless of whether a date is an anchor or a specific round.
+  const day = date ? HEBREW_DAYS[new Date(date).getDay()] : undefined;
+  const knowsTime = !!(day && startTime && endTime);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -75,44 +82,59 @@ export default function TournamentEquipmentSelect({
         {assignments.map((a, idx) => {
           const eq = physicalEquipment.find((r) => r.id === a.resource_id);
 
-          // When date+time are known: use exact-date analysis. Otherwise: structural (day-of-week) fallback.
-          // The structural fallback excludes the current tournament so it doesn't conflict with itself.
-          const otherTournaments = allTournaments.filter((t) => t.id !== currentTournamentId);
-          const inUse = eq
-            ? (date && startTime && endTime)
-              ? calcResourceUsageOnDateTime(eq, date, startTime, endTime, allClasses, allTournaments, currentTournamentId)
-              : calcResourceAvailability(eq, allClasses, undefined, otherTournaments)
-            : 0;
-          const available = eq ? eq.quantity - inUse : 0;
+          // How many units are already committed at this tournament's day+time
+          let usedElsewhere = 0;
+          let conflictingNames: string[] = [];
+
+          if (eq && knowsTime) {
+            // Same logic as classes: match by weekday so any event on the same day conflicts
+            usedElsewhere = calcUsedAtWindow(
+              eq.id, day!, startTime!, endTime!,
+              allClasses, undefined, allTournaments, currentTournamentId
+            );
+          }
+
+          const available = eq ? eq.quantity - usedElsewhere : 0;
           const shortage = a.quantity > available;
-          // Names of conflicting events (shown when shortage)
-          const conflictingNames = shortage && eq
-            ? (date && startTime && endTime)
-              ? getResourceConflictingEventsOnDateTime(eq, date, startTime, endTime, allClasses, allTournaments, currentTournamentId)
-              : getResourceConflictingEvents(eq, allClasses, undefined, otherTournaments)
-            : [];
+
+          if (shortage && eq && knowsTime) {
+            conflictingNames = getConflictingNamesAtWindow(
+              eq.id, day!, startTime!, endTime!,
+              allClasses, undefined, allTournaments, currentTournamentId
+            );
+          }
 
           return (
-            <div key={idx} className={`flex items-start gap-3 p-3 rounded-xl border bg-gray-50 ${shortage ? "border-red-200" : "border-gray-100"}`}>
+            <div
+              key={idx}
+              className={`flex items-start gap-3 p-3 rounded-xl border bg-gray-50 ${shortage ? "border-red-200" : "border-gray-100"}`}
+            >
               {/* Equipment selector */}
               <div className="flex-1">
                 <Field label="ציוד">
                   <select
                     className={inp}
                     value={a.resource_id}
-                    onChange={(e) => {
-                      // When switching equipment, reset quantity to 1 to avoid exceeding new item's availability
-                      setField(idx, { resource_id: e.target.value, quantity: 1 });
-                    }}
+                    onChange={(e) => setField(idx, { resource_id: e.target.value, quantity: 1 })}
                   >
-                    {physicalEquipment.map((eq) => (
-                      <option key={eq.id} value={eq.id} disabled={chosen.has(eq.id) && eq.id !== a.resource_id}>
-                        {eq.name} (סה״כ: {eq.quantity})
-                      </option>
-                    ))}
+                    {physicalEquipment.map((item) => {
+                      // Show available units at the tournament's time, or total if time unknown
+                      const itemUsed = knowsTime
+                        ? calcUsedAtWindow(item.id, day!, startTime!, endTime!, allClasses, undefined, allTournaments, currentTournamentId)
+                        : 0;
+                      const itemAvailable = item.quantity - itemUsed;
+                      const label = knowsTime
+                        ? `${item.name} (פנוי: ${itemAvailable})`
+                        : `${item.name} (סה״כ: ${item.quantity})`;
+                      return (
+                        <option key={item.id} value={item.id} disabled={chosen.has(item.id) && item.id !== a.resource_id}>
+                          {label}
+                        </option>
+                      );
+                    })}
                   </select>
                 </Field>
-                {/* Show which other events are using this resource */}
+                {/* Show which other events are using this resource at the same time */}
                 {shortage && conflictingNames.length > 0 && (
                   <p className="mt-1 text-xs text-red-500">
                     ⚠ גם משתמש/ת: {conflictingNames.join(", ")}
@@ -120,7 +142,7 @@ export default function TournamentEquipmentSelect({
                 )}
               </div>
 
-              {/* Quantity — capped to available units when date+time are known */}
+              {/* Quantity input — no hard cap, shortage warning shown separately */}
               <div className="w-24">
                 <Field label="כמות">
                   <input
@@ -128,16 +150,12 @@ export default function TournamentEquipmentSelect({
                     className={inp}
                     value={a.quantity}
                     min={1}
-                    max={date && startTime && endTime ? available : (eq?.quantity ?? 999)}
-                    onChange={(e) => {
-                      const cap = date && startTime && endTime ? available : (eq?.quantity ?? 999);
-                      setField(idx, { quantity: Math.min(cap, Math.max(1, Number(e.target.value))) });
-                    }}
+                    onChange={(e) => setField(idx, { quantity: Math.max(1, Number(e.target.value)) })}
                   />
                 </Field>
               </div>
 
-              {/* Availability hint — shown always when shortage, otherwise only when date+time are known */}
+              {/* Availability hint */}
               <div className="w-24 text-xs text-center pt-4 shrink-0">
                 {eq && (
                   shortage ? (
@@ -145,9 +163,11 @@ export default function TournamentEquipmentSelect({
                       <AlertTriangle size={12} />
                       חסר {a.quantity - available}
                     </span>
-                  ) : (date && startTime && endTime) ? (
+                  ) : knowsTime ? (
                     <span className="text-gray-400">פנוי: {available}</span>
-                  ) : null
+                  ) : (
+                    <span className="text-gray-400">סה״כ: {eq.quantity}</span>
+                  )
                 )}
               </div>
 

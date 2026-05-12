@@ -1,4 +1,9 @@
 "use client";
+/*
+  דף תחרויות ואירועים — שני טאבים:
+  1. תחרויות (הלוגיקה הקיימת)
+  2. אירועים (חדש)
+*/
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import PageShell from "@/components/shared/PageShell";
@@ -6,137 +11,221 @@ import TournamentsToolbar from "./TournamentsToolbar";
 import TournamentsTable from "./TournamentsTable";
 import TournamentFormModal from "./TournamentFormModal";
 import TournamentDetailModal from "./TournamentDetailModal";
+import EventsTable from "./events/EventsTable";
+import EventFormModal from "./events/EventFormModal";
+import EventDetailModal from "./events/EventDetailModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
-import type { Tournament, Room } from "@/lib/types";
+import type { Tournament, Event } from "@/lib/types";
 
-// תאריך היום בפורמט YYYY-MM-DD
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// --- Tab Button ---
+function TabBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-5 py-2.5 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${
+        active
+          ? "border-teal-600 text-teal-700 bg-white"
+          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 export default function TournamentsPage() {
-  const { tournaments, students, classes, rooms, teachers, physicalEquipment } = useData();
+  const { tournaments, students, classes, rooms, teachers, physicalEquipment, events } = useData();
   const { showToast } = useToast();
   const searchParams = useSearchParams();
 
+  // --- Tab state — מסונכרן עם #hash בURL (כמו דף החדרים) ---
+  const [activeTab, setActiveTabState] = useState<"tournaments" | "events">("tournaments");
+
+  useEffect(() => {
+    // קרא את ה-hash בטעינה ראשונית
+    if (window.location.hash === "#events") setActiveTabState("events");
+  }, []);
+
+  function setActiveTab(tab: "tournaments" | "events") {
+    setActiveTabState(tab);
+    window.location.hash = tab === "events" ? "events" : "";
+  }
+
+  // --- Tournaments state ---
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Tournament["status"] | "הכל">("הכל");
-  // כאשר פעיל — מסנן תחרויות שיש להן סבב/מועד היום
   const [todayActive, setTodayActive] = useState(false);
-  const [showAdd, setShowAdd] = useState(false);
+  const [showAddTournament, setShowAddTournament] = useState(false);
   const [detailTournament, setDetailTournament] = useState<Tournament | null>(null);
   const [editTournament, setEditTournament] = useState<Tournament | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [savingTournament, setSavingTournament] = useState(false);
 
-  // אם הגענו מלוח הבקרה עם ?today=true — הפעל פילטר "היום" אוטומטית
+  // --- Events state ---
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [detailEvent, setDetailEvent] = useState<Event | null>(null);
+  const [editEvent, setEditEvent] = useState<Event | null>(null);
+  const [savingEvent, setSavingEvent] = useState(false);
+
+  // אם הגענו מלוח הבקרה עם ?today=true — הפעל פילטר "היום"
   useEffect(() => {
-    if (searchParams.get("today") === "true") {
-      setTodayActive(true);
-    }
+    if (searchParams.get("today") === "true") setTodayActive(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function handleToggleToday() {
-    setTodayActive((prev) => !prev);
-  }
 
   const today = todayStr();
 
-  // Filter tournaments by search, status, and optionally "today"
-  const filtered = useMemo(() => {
+  // --- Filtered tournaments ---
+  const filteredTournaments = useMemo(() => {
     return tournaments.filter((t) => {
       if (statusFilter !== "הכל" && t.status !== statusFilter) return false;
       if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
       if (todayActive) {
         if (t.status === "בוטל") return false;
-        const hasRoundToday = t.is_recurring
+        const hasToday = t.is_recurring
           ? t.recurring_date === today
           : t.rounds.some((r) => r.date === today);
-        if (!hasRoundToday) return false;
+        if (!hasToday) return false;
       }
       return true;
     });
   }, [tournaments, search, statusFilter, todayActive, today]);
 
-  async function handleAdd(data: Omit<Tournament, "id">) {
+  // --- Tournament CRUD ---
+  async function handleAddTournament(data: Omit<Tournament, "id">) {
     if (!data.name.trim()) { showToast("שם התחרות הוא שדה חובה", "error"); return; }
-    setSaving(true);
+    setSavingTournament(true);
     try {
       await addDocument("tournaments", data);
       showToast("התחרות נוצרה בהצלחה", "success");
-      setShowAdd(false);
+      setShowAddTournament(false);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      showToast(`שגיאה ביצירת תחרות: ${msg}`, "error");
-      console.error("handleAdd error:", err);
-    }
-    finally { setSaving(false); }
+      showToast(`שגיאה ביצירת תחרות: ${err instanceof Error ? err.message : err}`, "error");
+    } finally { setSavingTournament(false); }
   }
 
-  async function handleEdit(data: Omit<Tournament, "id">) {
+  async function handleEditTournament(data: Omit<Tournament, "id">) {
     if (!editTournament) return;
     if (!data.name.trim()) { showToast("שם התחרות הוא שדה חובה", "error"); return; }
-    setSaving(true);
+    setSavingTournament(true);
     try {
       await updateDocument("tournaments", editTournament.id, data);
       showToast("התחרות עודכנה בהצלחה", "success");
       setEditTournament(null);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      showToast(`שגיאה בשמירת התחרות: ${msg}`, "error");
-      console.error("handleEdit error:", err);
-    }
-    finally { setSaving(false); }
+      showToast(`שגיאה בשמירת התחרות: ${err instanceof Error ? err.message : err}`, "error");
+    } finally { setSavingTournament(false); }
   }
 
-  async function handleDelete(t: Tournament) {
+  async function handleDeleteTournament(t: Tournament) {
     try {
       await deleteDocument("tournaments", t.id);
       showToast("התחרות נמחקה", "success");
       setDetailTournament(null);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      showToast(`שגיאה במחיקת התחרות: ${msg}`, "error");
-      console.error("handleDelete error:", err);
+      showToast(`שגיאה במחיקת התחרות: ${err instanceof Error ? err.message : err}`, "error");
+    }
+  }
+
+  // --- Event CRUD ---
+  async function handleAddEvent(data: Omit<Event, "id">) {
+    if (!data.name.trim()) { showToast("שם האירוע הוא שדה חובה", "error"); return; }
+    setSavingEvent(true);
+    try {
+      await addDocument("events", { ...data, created_at: new Date().toISOString() });
+      showToast("האירוע נוצר בהצלחה", "success");
+      setShowAddEvent(false);
+    } catch (err) {
+      showToast(`שגיאה ביצירת אירוע: ${err instanceof Error ? err.message : err}`, "error");
+    } finally { setSavingEvent(false); }
+  }
+
+  async function handleEditEvent(data: Omit<Event, "id">) {
+    if (!editEvent) return;
+    if (!data.name.trim()) { showToast("שם האירוע הוא שדה חובה", "error"); return; }
+    setSavingEvent(true);
+    try {
+      await updateDocument("events", editEvent.id, data);
+      showToast("האירוע עודכן בהצלחה", "success");
+      setEditEvent(null);
+    } catch (err) {
+      showToast(`שגיאה בשמירת האירוע: ${err instanceof Error ? err.message : err}`, "error");
+    } finally { setSavingEvent(false); }
+  }
+
+  async function handleDeleteEvent(ev: Event) {
+    try {
+      await deleteDocument("events", ev.id);
+      showToast("האירוע נמחק", "success");
+      setDetailEvent(null);
+    } catch (err) {
+      showToast(`שגיאה במחיקת האירוע: ${err instanceof Error ? err.message : err}`, "error");
     }
   }
 
   return (
-    <PageShell title="תחרויות">
+    <PageShell title="תחרויות ואירועים">
 
-      <TournamentsToolbar
-        search={search}
-        onSearch={setSearch}
-        statusFilter={statusFilter}
-        onStatusFilter={setStatusFilter}
-        todayActive={todayActive}
-        onToggleToday={handleToggleToday}
-        onAdd={() => setShowAdd(true)}
-      />
+      {/* טאבים */}
+      <div className="flex gap-1 border-b border-gray-200 mb-5" dir="rtl">
+        <TabBtn label="🏆 תחרויות" active={activeTab === "tournaments"} onClick={() => setActiveTab("tournaments")} />
+        <TabBtn label="📅 אירועים" active={activeTab === "events"} onClick={() => setActiveTab("events")} />
+      </div>
 
-      <TournamentsTable
-        tournaments={filtered}
-        onRowClick={setDetailTournament}
-      />
+      {/* ===== טאב תחרויות ===== */}
+      {activeTab === "tournaments" && (
+        <>
+          <TournamentsToolbar
+            search={search}
+            onSearch={setSearch}
+            statusFilter={statusFilter}
+            onStatusFilter={setStatusFilter}
+            todayActive={todayActive}
+            onToggleToday={() => setTodayActive((p) => !p)}
+            onAdd={() => setShowAddTournament(true)}
+          />
+          <TournamentsTable tournaments={filteredTournaments} onRowClick={setDetailTournament} />
+        </>
+      )}
 
-      {/* Add modal */}
-      {showAdd && (
+      {/* ===== טאב אירועים ===== */}
+      {activeTab === "events" && (
+        <>
+          {/* כפתור הוספת אירוע */}
+          <div className="flex justify-start mb-4" dir="rtl">
+            <button
+              type="button"
+              onClick={() => setShowAddEvent(true)}
+              className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700"
+            >
+              + אירוע חדש
+            </button>
+          </div>
+          <EventsTable events={events} onRowClick={setDetailEvent} />
+        </>
+      )}
+
+      {/* ===== מודאלים — תחרויות ===== */}
+      {showAddTournament && (
         <TournamentFormModal
           mode="add"
           allStudents={students}
           allClasses={classes}
           allTournaments={tournaments}
+          allEvents={events}
           allRooms={rooms}
           allTeachers={teachers}
           physicalEquipment={physicalEquipment}
-          saving={saving}
-          onClose={() => setShowAdd(false)}
-          onSave={handleAdd}
+          saving={savingTournament}
+          onClose={() => setShowAddTournament(false)}
+          onSave={handleAddTournament}
         />
       )}
-
-      {/* Edit modal */}
       {editTournament && (
         <TournamentFormModal
           mode="edit"
@@ -144,16 +233,15 @@ export default function TournamentsPage() {
           allStudents={students}
           allClasses={classes}
           allTournaments={tournaments}
+          allEvents={events}
           allRooms={rooms}
           allTeachers={teachers}
           physicalEquipment={physicalEquipment}
-          saving={saving}
+          saving={savingTournament}
           onClose={() => setEditTournament(null)}
-          onSave={handleEdit}
+          onSave={handleEditTournament}
         />
       )}
-
-      {/* Detail modal */}
       {detailTournament && (
         <TournamentDetailModal
           tournament={detailTournament}
@@ -162,12 +250,45 @@ export default function TournamentsPage() {
           physicalEquipment={physicalEquipment}
           allClasses={classes}
           allTournaments={tournaments}
-          onEdit={() => {
-            setEditTournament(detailTournament);
-            setDetailTournament(null);
-          }}
-          onDelete={() => handleDelete(detailTournament)}
+          onEdit={() => { setEditTournament(detailTournament); setDetailTournament(null); }}
+          onDelete={() => handleDeleteTournament(detailTournament)}
           onClose={() => setDetailTournament(null)}
+        />
+      )}
+
+      {/* ===== מודאלים — אירועים ===== */}
+      {/* DetailModal מרונדר ראשון — FormModal (add/edit) תמיד מעל */}
+      {detailEvent && !editEvent && !showAddEvent && (
+        <EventDetailModal
+          event={detailEvent}
+          onEdit={() => { setEditEvent(detailEvent); setDetailEvent(null); }}
+          onDelete={() => handleDeleteEvent(detailEvent)}
+          onClose={() => setDetailEvent(null)}
+        />
+      )}
+      {showAddEvent && (
+        <EventFormModal
+          mode="add"
+          allClasses={classes}
+          allTournaments={tournaments}
+          allEvents={events}
+          rooms={rooms}
+          saving={savingEvent}
+          onClose={() => setShowAddEvent(false)}
+          onSave={handleAddEvent}
+        />
+      )}
+      {editEvent && (
+        <EventFormModal
+          mode="edit"
+          event={editEvent}
+          allClasses={classes}
+          allTournaments={tournaments}
+          allEvents={events}
+          rooms={rooms}
+          saving={savingEvent}
+          onClose={() => setEditEvent(null)}
+          onSave={handleEditEvent}
         />
       )}
 

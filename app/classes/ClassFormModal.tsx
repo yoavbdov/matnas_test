@@ -188,6 +188,7 @@ export default function ClassFormModal({
         allClasses={allClasses}
         allTournaments={allTournaments}
         currentClassId={classItem?.id}
+        currentClassSlots={form.slots ?? []}
         onChange={setAssignments}
       />
 

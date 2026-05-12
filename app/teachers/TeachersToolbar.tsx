@@ -1,6 +1,6 @@
 "use client";
 // סרגל כלים מעל טבלת המדריכים
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, CalendarCheck } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
@@ -11,13 +11,14 @@ interface Props {
   statusFilter: "הכל" | "פעיל" | "לא פעיל";
   onFilterStatus: (v: "הכל" | "פעיל" | "לא פעיל") => void;
   onAddTeacher: () => void;
+  onCheckAvailability: () => void;
   onExport: () => void;
   onImport: () => void;
   maxSearchLength: number;
 }
 
 export default function TeachersToolbar({
-  search, onSearch, statusFilter, onFilterStatus, onAddTeacher, onExport, onImport, maxSearchLength,
+  search, onSearch, statusFilter, onFilterStatus, onAddTeacher, onCheckAvailability, onExport, onImport, maxSearchLength,
 }: Props) {
   const sel = "border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400";
 
@@ -41,6 +42,9 @@ export default function TeachersToolbar({
       <div className="flex gap-2">
         <CsvImportBtn onClick={onImport} />
         <CsvExportBtn onClick={onExport} />
+        <Btn variant="secondary" onClick={onCheckAvailability}>
+          <CalendarCheck size={15} />בדוק זמינות
+        </Btn>
         <Btn onClick={onAddTeacher}>
           <Plus size={15} />הוסף מדריך
         </Btn>

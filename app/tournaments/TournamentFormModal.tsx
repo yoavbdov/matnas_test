@@ -13,7 +13,7 @@ import TournamentBasicFields, {
 import TournamentRoundsEditor from "./TournamentRoundsEditor";
 import TournamentPlayersPanel from "./TournamentPlayersPanel";
 import FindSuitablePlayersModal from "./FindSuitablePlayersModal";
-import { getConflictingRoundIds, computeTournamentStatus } from "@/lib/tournamentHelpers";
+import { getConflictingRoundIds, computeTournamentStatus, getRecurringTournamentConflicts } from "@/lib/tournamentHelpers";
 import type {
   Tournament,
   TournamentRound,
@@ -24,6 +24,7 @@ import type {
   Teacher,
   PhysicalEquipment,
   ResourceAssignment,
+  Event,
 } from "@/lib/types";
 
 interface Props {
@@ -32,6 +33,7 @@ interface Props {
   allStudents: Student[];
   allClasses: Class[];
   allTournaments: Tournament[];
+  allEvents: Event[];
   allRooms: Room[];
   allTeachers: Teacher[];
   physicalEquipment: PhysicalEquipment[];
@@ -77,6 +79,7 @@ export default function TournamentFormModal({
   allStudents,
   allClasses,
   allTournaments,
+  allEvents,
   allRooms,
   allTeachers,
   physicalEquipment,
@@ -88,17 +91,36 @@ export default function TournamentFormModal({
   const [form, setForm] = useState(() => buildInitial(tournament));
   const [showFindPlayers, setShowFindPlayers] = useState(false);
 
-  // Live conflict detection for rounds
+  // Live conflict detection for rounds (non-recurring tournaments)
   const conflictRoundIds = useMemo(() => {
     const fakeTournament: Tournament = {
       id: tournament?.id ?? "__new__",
       ...form,
       created_at: "",
     };
-    return getConflictingRoundIds(fakeTournament, allClasses, allTournaments);
-  }, [form.rounds, allClasses, allTournaments, tournament?.id]);
+    return getConflictingRoundIds(fakeTournament, allClasses, allTournaments, allEvents);
+  }, [form.rounds, allClasses, allTournaments, allEvents, tournament?.id]);
 
-  const hasConflicts = conflictRoundIds.size > 0;
+  // Live conflict detection for recurring tournaments (room + day-of-week + time)
+  const recurringConflicts = useMemo(() => {
+    if (!form.is_recurring) return [];
+    const fakeTournament: Tournament = {
+      id: tournament?.id ?? "__new__",
+      ...form,
+      created_at: "",
+    };
+    return getRecurringTournamentConflicts(fakeTournament, allTournaments);
+  }, [
+    form.is_recurring,
+    form.room,
+    form.recurring_date,
+    form.recurring_start_time,
+    form.recurring_end_time,
+    allTournaments,
+    tournament?.id,
+  ]);
+
+  const hasConflicts = conflictRoundIds.size > 0 || recurringConflicts.length > 0;
 
   // All tournaments show the Rounds tab (recurring uses it for date/time)
   const tabs = ["פרטים ", "סיבובים", "שחקנים"] as const;
@@ -154,10 +176,16 @@ export default function TournamentFormModal({
             className="flex items-center justify-between w-full gap-3"
             dir="rtl"
           >
-            {/* Conflict warning */}
+            {/* Conflict warning — rounds tournament */}
             {hasConflicts && !form.is_recurring && (
               <span className="text-red-600 text-sm font-semibold flex items-center gap-1">
                 ⚠ {conflictRoundIds.size} סיבובים עם התנגשות
+              </span>
+            )}
+            {/* Conflict warning — recurring tournament */}
+            {recurringConflicts.length > 0 && (
+              <span className="text-red-600 text-sm font-semibold flex items-center gap-1">
+                ⚠ התנגשות חדר עם: {recurringConflicts.join(", ")}
               </span>
             )}
             <div className="flex gap-2 mr-auto">
