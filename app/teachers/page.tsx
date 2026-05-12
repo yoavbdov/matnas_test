@@ -10,6 +10,8 @@ import TeacherAvailabilityModal from "./TeacherAvailabilityModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument } from "@/firebase/firestore";
+import { formatPhone } from "@/lib/utils";
+import { validatePhone, VALIDATION_ERRORS } from "@/lib/validators";
 import type { Teacher } from "@/lib/types";
 
 function emptyForm(): Omit<Teacher, "id"> {
@@ -48,13 +50,21 @@ export default function TeachersPage() {
     if (!form.first_name.trim() || !form.last_name.trim()) {
       showToast("שם פרטי ושם משפחה הם שדות חובה", "error"); return;
     }
+    if (validatePhone(form.phone)) {
+      showToast(VALIDATION_ERRORS.PHONE, "error"); return;
+    }
+    // Format phone as "053-2422215" before writing to Firestore
+    const docData = {
+      ...form,
+      phone: form.phone ? formatPhone(form.phone) : undefined,
+    };
     setSaving(true);
     try {
       if (formModal === "add") {
-        await addDocument("teachers", form);
+        await addDocument("teachers", docData);
         showToast("המדריך נוסף בהצלחה", "success");
       } else if (editTarget) {
-        await updateDocument("teachers", editTarget.id, form);
+        await updateDocument("teachers", editTarget.id, docData);
         showToast("הפרטים עודכנו בהצלחה", "success");
       }
       setFormModal(null);
@@ -92,7 +102,6 @@ export default function TeachersPage() {
         onCheckAvailability={() => setAvailabilityOpen(true)}
         onExport={exportCSV}
         onImport={() => setImportOpen(true)}
-        maxSearchLength={settings.MAX_SEARCH_LENGTH}
       />
 
       <p className="text-xs text-gray-400 mb-3">{filtered.length} מדריכים</p>

@@ -2,10 +2,10 @@
 // Students who are already in the group are excluded from search results.
 
 import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
 import Modal from "@/components/shared/Modal";
+import SearchInput from "@/components/shared/SearchInput";
 import Btn from "@/components/shared/Btn";
-import type { Student, LeagueGroupMember, AppSettings } from "@/lib/types";
+import type { Student, LeagueGroupMember } from "@/lib/types";
 
 interface Props {
   groupId: string;
@@ -14,7 +14,6 @@ interface Props {
   saving: boolean;
   onAdd: (studentId: string) => void; // called when user clicks "הוסף"
   onClose: () => void;
-  settings: Required<AppSettings>;
 }
 
 export default function AddPlayerModal({
@@ -24,7 +23,6 @@ export default function AddPlayerModal({
   saving,
   onAdd,
   onClose,
-  settings,
 }: Props) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null); // selected student ID
@@ -71,21 +69,16 @@ export default function AddPlayerModal({
     >
       <div className="space-y-3">
         {/* Search input */}
-        <div className="relative">
-          <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setSelected(null); // clear selection when search changes
-            }}
-            placeholder="חיפוש לפי שם..."
-            maxLength={settings.MAX_SEARCH_LENGTH}
-            className="w-full border border-gray-200 rounded-lg pr-8 pl-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400"
-            autoFocus
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={(v) => {
+            setSearch(v);
+            setSelected(null); // clear selection when search changes
+          }}
+          placeholder="חיפוש לפי שם..."
+          autoFocus
+          className="w-full"
+        />
 
         {/* Results list */}
         <div className="max-h-64 overflow-y-auto space-y-1">

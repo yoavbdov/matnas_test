@@ -5,7 +5,7 @@ import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
 import Badge from "@/components/shared/Badge";
 import EnrollModal from "./EnrollModal";
-import { calcAge, gradeFromDob, fmtDate } from "@/lib/utils";
+import { calcAge, gradeFromDob, fmtDate, formatPhone } from "@/lib/utils";
 import { deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -151,9 +151,9 @@ export default function StudentDetailModal({
               value={student.dob ? fmtDate(student.dob) : undefined}
             />
             <Row label="תעודת זהות" value={student.israeli_id} />
-            <Row label="טלפון" value={student.phone} />
+            <Row label="טלפון" value={student.phone ? formatPhone(student.phone) : undefined} />
             <Row label="הורה / איש קשר" value={student.parent_name} />
-            <Row label="טלפון הורה" value={student.parent_phone} />
+            <Row label="טלפון הורה" value={student.parent_phone ? formatPhone(student.parent_phone) : undefined} />
             <Row label="אימייל" value={student.email} />
             <Row label="כתובת" value={student.address} />
 

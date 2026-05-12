@@ -1,6 +1,7 @@
 "use client";
 // סרגל חיפוש, סינון ופעולות מעל טבלת החוגים — עיצוב זהה ל-StudentsToolbar
-import { Search, Plus, CalendarCheck } from "lucide-react";
+import { Plus, CalendarCheck } from "lucide-react";
+import SearchInput from "@/components/shared/SearchInput";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
@@ -60,7 +61,6 @@ interface Props {
   onAddClass: () => void;
   onExport: () => void;
   onImport: () => void;
-  maxSearchLength: number;
 }
 
 export default function ClassesToolbar({
@@ -90,24 +90,17 @@ export default function ClassesToolbar({
   onAddClass,
   onExport,
   onImport,
-  maxSearchLength,
 }: Props) {
   return (
     <div className="flex flex-col gap-3 mb-5">
       {/* שורה 1: חיפוש + כפתורי פעולה */}
       <div className="flex gap-2 items-center justify-between">
-        <div className="relative min-w-45 flex-1 max-w-xs">
-          <Search
-            size={14}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            value={search}
-            onChange={(e) => onSearch(e.target.value.slice(0, maxSearchLength))}
-            placeholder="חיפוש לפי שם חוג…"
-            className="w-full border border-gray-200 rounded-lg pr-8 pl-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={onSearch}
+          placeholder="חיפוש לפי שם חוג…"
+          className="min-w-45 flex-1 max-w-xs"
+        />
         <div className="flex gap-2">
           <CsvImportBtn onClick={onImport} />
           <CsvExportBtn onClick={onExport} />

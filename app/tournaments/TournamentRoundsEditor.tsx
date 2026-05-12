@@ -1,24 +1,35 @@
 /*
-  Manage rounds for a tournament:
-  - Toggle: "recurring tournament" — when on, show only date+time instead of rounds
-  - Set number of rounds (1–20)
-  - Each round: date, start time, end time, location, notes
-  - "Auto-fill" button: fills all rounds with 1-week intervals from round 1
-  - Inline editing per round (expand/collapse)
+  TournamentRoundsEditor — manages rounds for a non-recurring tournament.
+  Each round appears as a card with labeled editable fields, mirroring ClassSlotsTab.
+  Auto-fill fills all rounds with 1-week intervals from a chosen anchor round.
 */
 "use client";
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Wand2 } from "lucide-react";
+import { Trash2, Wand2 } from "lucide-react";
 import { autoFillRoundDates } from "@/lib/tournamentHelpers";
+import { validateTimeRange } from "@/lib/validators";
 import TimeSelect from "@/components/shared/TimeSelect";
 import type { TournamentRound, Room } from "@/lib/types";
+
+const inp =
+  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 bg-white";
+
+const MAX_ROUNDS = 20;
+
+function newId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function makeRound(roundNumber: number): TournamentRound {
+  return { id: newId(), round_number: roundNumber, date: "", start_time: "09:00", end_time: "13:00" };
+}
 
 interface Props {
   rounds: TournamentRound[];
   onChange: (rounds: TournamentRound[]) => void;
-  conflictRoundIds?: Set<string>; // round IDs with scheduling conflicts
+  conflictRoundIds?: Set<string>;
   allRooms: Room[];
-  // Recurring fields — passed from parent form
+  // Recurring fields
   isRecurring: boolean;
   recurringDate?: string;
   recurringStartTime?: string;
@@ -33,45 +44,6 @@ interface Props {
   }) => void;
 }
 
-const MAX_ROUNDS = 20;
-
-// Small reusable room dropdown used in both recurring and per-round contexts
-function RoomSelect({
-  allRooms,
-  value,
-  onChange,
-}: {
-  allRooms: Room[];
-  value: string;
-  onChange: (val: string) => void;
-}) {
-  return (
-    <select
-      className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      <option value="">— ללא חדר —</option>
-      {allRooms.map((r) => (
-        <option key={r.id} value={r.name}>
-          {r.name}
-          {r.number ? ` (${r.number})` : ""}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-// Generate a stable unique ID for a new round
-function newId() {
-  return Math.random().toString(36).slice(2, 10);
-}
-
-// Build a default round object for a given round number
-function makeRound(roundNumber: number): TournamentRound {
-  return { id: newId(), round_number: roundNumber, date: "", start_time: "09:00", end_time: "13:00" };
-}
-
 export default function TournamentRoundsEditor({
   rounds,
   onChange,
@@ -84,13 +56,9 @@ export default function TournamentRoundsEditor({
   recurringRoom,
   onRecurringChange,
 }: Props) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  // Track whether auto-fill was already applied; reset when a round time is manually changed
   const [autoFillApplied, setAutoFillApplied] = useState(false);
-  // 1-based round number to start auto-fill from (default: round 1)
   const [startFromRound, setStartFromRound] = useState(1);
 
-  // Change the total number of rounds — add or remove from the end
   function setRoundCount(count: number) {
     const clamped = Math.min(MAX_ROUNDS, Math.max(1, count));
     if (clamped > rounds.length) {
@@ -100,13 +68,10 @@ export default function TournamentRoundsEditor({
       onChange([...rounds, ...added]);
     } else {
       onChange(rounds.slice(0, clamped));
-      // Reset start-from if the selected round was removed
       if (startFromRound > clamped) setStartFromRound(1);
     }
   }
 
-  // Update a single field on a single round.
-  // If the user changes a time field, unlock the auto-fill button.
   function updateRound(id: string, patch: Partial<TournamentRound>) {
     if (patch.start_time !== undefined || patch.end_time !== undefined) {
       setAutoFillApplied(false);
@@ -114,35 +79,23 @@ export default function TournamentRoundsEditor({
     onChange(rounds.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   }
 
-  // Auto-fill rounds starting from `startFromRound` with 1-week intervals.
-  // The anchor round must have a date; rounds before it are left untouched.
   function handleAutoFill() {
-    const anchorIndex = startFromRound - 1; // convert 1-based to 0-based
+    const anchorIndex = startFromRound - 1;
     const anchor = rounds[anchorIndex];
     if (!anchor?.date) return;
     onChange(
-      autoFillRoundDates(
-        rounds,
-        anchor.date,
-        anchor.start_time,
-        anchor.end_time,
-        anchor.location,
-        anchorIndex
-      )
+      autoFillRoundDates(rounds, anchor.date, anchor.start_time, anchor.end_time, anchor.location, anchorIndex)
     );
-    setAutoFillApplied(true); // lock button until user manually changes a time
+    setAutoFillApplied(true);
   }
 
-  // Show auto-fill button only when round 1 has a date and there are multiple rounds
   const showAutoFill = rounds.length > 1 && !!rounds[0]?.date;
-
-  // Rounds that have a date filled — valid choices for "start from"
   const roundsWithDate = rounds.filter((r) => !!r.date);
 
   return (
     <div className="space-y-4" dir="rtl">
 
-      {/* Recurring toggle — moved here from Basic Fields */}
+      {/* Recurring toggle */}
       <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5">
         <input
           type="checkbox"
@@ -156,188 +109,162 @@ export default function TournamentRoundsEditor({
         </label>
       </div>
 
-      {/* Recurring mode: show date, time, and room */}
+      {/* Recurring mode */}
       {isRecurring && (
-        <div className="grid grid-cols-2 gap-3 bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="grid grid-cols-2 gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
           <div className="col-span-2">
             <label className="block text-xs font-medium text-gray-600 mb-1">תאריך</label>
             <input
               type="date"
-              className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+              className={inp}
               value={recurringDate ?? ""}
               onChange={(e) => onRecurringChange({ recurring_date: e.target.value })}
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">שעת התחלה</label>
-            <TimeSelect
-              className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
-              value={recurringStartTime ?? "09:00"}
-              onChange={(v) => onRecurringChange({ recurring_start_time: v })}
-            />
+            <TimeSelect className={inp} value={recurringStartTime ?? "09:00"} onChange={(v) => onRecurringChange({ recurring_start_time: v })} />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">שעת סיום</label>
-            <TimeSelect
-              className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
-              value={recurringEndTime ?? "13:00"}
-              onChange={(v) => onRecurringChange({ recurring_end_time: v })}
-            />
+            <TimeSelect className={inp} value={recurringEndTime ?? "13:00"} onChange={(v) => onRecurringChange({ recurring_end_time: v })} />
           </div>
+          {validateTimeRange(recurringStartTime ?? "09:00", recurringEndTime ?? "13:00") && (
+            <p className="col-span-2 text-xs text-red-500">שעת הסיום חייבת להיות אחרי שעת ההתחלה</p>
+          )}
           <div className="col-span-2">
             <label className="block text-xs font-medium text-gray-600 mb-1">חדר / אולם</label>
-            <RoomSelect
-              allRooms={allRooms}
-              value={recurringRoom ?? ""}
-              onChange={(val) => onRecurringChange({ room: val })}
-            />
+            <select className={inp} value={recurringRoom ?? ""} onChange={(e) => onRecurringChange({ room: e.target.value })}>
+              <option value="">— ללא חדר —</option>
+              {allRooms.map((r) => (
+                <option key={r.id} value={r.name}>{r.name}{r.number ? ` (${r.number})` : ""}</option>
+              ))}
+            </select>
           </div>
         </div>
       )}
 
       {/* Normal rounds mode */}
       {!isRecurring && (
-      <>
-      <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-700">מספר סיבובים:</label>
-        <input
-          type="number"
-          min={1}
-          max={MAX_ROUNDS}
-          value={rounds.length}
-          onChange={(e) => setRoundCount(Number(e.target.value))}
-          className="w-20 border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-center"
-        />
-        <span className="text-xs text-gray-400">(מקסימום {MAX_ROUNDS})</span>
-      </div>
+        <>
+          {/* Round count + auto-fill on same row */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">מספר סיבובים:</label>
+              <input
+                type="number"
+                min={1}
+                max={MAX_ROUNDS}
+                value={rounds.length}
+                onChange={(e) => setRoundCount(Number(e.target.value))}
+                className="w-16 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-center bg-white"
+              />
+            </div>
 
-      {/* Auto-fill controls — appear after round 1 has a date */}
-      {showAutoFill && (
-        <div className="flex flex-wrap items-center gap-3 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
-
-          {/* "Start from round X" selector — only shows rounds that already have a date */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-teal-800 font-medium whitespace-nowrap">החל מסיבוב:</label>
-            <select
-              className="border border-teal-300 rounded-lg px-2 py-1 text-sm bg-white"
-              value={startFromRound}
-              onChange={(e) => {
-                setStartFromRound(Number(e.target.value));
-                setAutoFillApplied(false); // reset lock when anchor changes
-              }}
-            >
-              {roundsWithDate.map((r) => (
-                <option key={r.id} value={r.round_number}>
-                  סיבוב {r.round_number} ({r.date})
-                </option>
-              ))}
-            </select>
+            {/* Auto-fill — compact inline pill */}
+            {showAutoFill && (
+              <div className="flex items-center gap-2 mr-auto">
+                <select
+                  className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs bg-white text-gray-600"
+                  value={startFromRound}
+                  onChange={(e) => { setStartFromRound(Number(e.target.value)); setAutoFillApplied(false); }}
+                >
+                  {roundsWithDate.map((r) => (
+                    <option key={r.id} value={r.round_number}>מסיבוב {r.round_number}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleAutoFill}
+                  disabled={autoFillApplied}
+                  title={autoFillApplied ? "בוצע מילוי — שנה שעה כדי לאפשר שוב" : "מלא תאריכים בהפרש שבוע"}
+                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+                    autoFillApplied
+                      ? "text-gray-400 border-gray-200 bg-white cursor-not-allowed"
+                      : "text-teal-700 border-teal-300 bg-teal-50 hover:bg-teal-100"
+                  }`}
+                >
+                  <Wand2 size={13} />
+                  מלא אוטומטית
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* The fill button itself */}
-          <button
-            type="button"
-            onClick={handleAutoFill}
-            disabled={autoFillApplied}
-            title={autoFillApplied ? "כבר בוצע מילוי אוטומטי — שנה שעה של סיבוב כדי לאפשר שוב" : undefined}
-            className={`flex items-center gap-2 text-sm font-medium border rounded-lg px-3 py-1.5 transition-colors ${
-              autoFillApplied
-                ? "text-gray-400 border-gray-200 bg-white cursor-not-allowed"
-                : "text-teal-700 hover:text-teal-800 border-teal-400 bg-white hover:bg-teal-100"
-            }`}
-          >
-            <Wand2 size={15} />
-            מלא אוטומטית — הפרש שבוע
-          </button>
-        </div>
-      )}
-
-      {/* List of rounds */}
-      <div className="space-y-2" dir="rtl">
-        {rounds.map((round) => {
-          const isExpanded = expandedId === round.id;
-          const hasConflict = conflictRoundIds?.has(round.id);
-
-          return (
-            <div
-              key={round.id}
-              className={`border rounded-lg overflow-hidden ${
-                hasConflict ? "border-red-400 bg-red-50" : "border-gray-200 bg-white"
-              }`}
-            >
-              {/* Round header — click to expand/collapse */}
-              <button
-                type="button"
-                onClick={() => setExpandedId(isExpanded ? null : round.id)}
-                className="w-full flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold text-gray-700">סיבוב {round.round_number}</span>
-                  {round.date && (
-                    <span className="text-gray-500">
-                      {round.date} • {round.start_time}–{round.end_time}
+          {/* Round rows — one compact line per round */}
+          <div className="space-y-2">
+            {rounds.map((round) => {
+              const hasConflict = conflictRoundIds?.has(round.id);
+              const timeErr = validateTimeRange(round.start_time, round.end_time);
+              return (
+                <div key={round.id} className="space-y-1">
+                  <div
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2 bg-gray-50 border ${
+                      hasConflict ? "border-red-300" : "border-gray-100"
+                    }`}
+                  >
+                    {/* Round number label */}
+                    <span className="text-xs font-semibold text-gray-400 w-12 shrink-0">
+                      סיבוב {round.round_number}
                     </span>
-                  )}
-                  {!round.date && <span className="text-gray-400 italic">ללא תאריך</span>}
-                  {hasConflict && (
-                    <span className="text-red-600 font-bold text-xs">⚠ התנגשות</span>
-                  )}
-                </div>
-                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </button>
 
-              {/* Expanded round editor */}
-              {isExpanded && (
-                <div className="px-4 pb-4 pt-1 border-t border-gray-100 grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">תאריך</label>
+                    {/* תאריך */}
                     <input
                       type="date"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                      className="border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none focus:border-teal-400 w-32 shrink-0"
                       value={round.date}
                       onChange={(e) => updateRound(round.id, { date: e.target.value })}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">חדר / אולם</label>
-                    <RoomSelect
-                      allRooms={allRooms}
-                      value={round.location ?? ""}
-                      onChange={(val) => updateRound(round.id, { location: val })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">שעת התחלה</label>
+
+                    {/* שעת התחלה – שעת סיום */}
                     <TimeSelect
-                      className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                      className="border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none focus:border-teal-400 w-20 shrink-0"
                       value={round.start_time}
                       onChange={(v) => updateRound(round.id, { start_time: v })}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">שעת סיום</label>
+                    <span className="text-gray-400 text-xs shrink-0">–</span>
                     <TimeSelect
-                      className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                      className="border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none focus:border-teal-400 w-20 shrink-0"
                       value={round.end_time}
                       onChange={(v) => updateRound(round.id, { end_time: v })}
                     />
+
+                    {/* חדר */}
+                    <select
+                      className="border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none focus:border-teal-400 flex-1 min-w-0"
+                      value={round.location ?? ""}
+                      onChange={(e) => updateRound(round.id, { location: e.target.value })}
+                    >
+                      <option value="">— חדר —</option>
+                      {allRooms.map((r) => (
+                        <option key={r.id} value={r.name}>{r.name}</option>
+                      ))}
+                    </select>
+
+                    {hasConflict && <span className="text-red-500 text-xs shrink-0">⚠</span>}
+
+                    {/* Remove */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = rounds
+                          .filter((r) => r.id !== round.id)
+                          .map((r, i) => ({ ...r, round_number: i + 1 }));
+                        onChange(updated);
+                      }}
+                      className="text-red-300 hover:text-red-500 shrink-0"
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">הערות לסיבוב</label>
-                    <input
-                      className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
-                      value={round.notes ?? ""}
-                      onChange={(e) => updateRound(round.id, { notes: e.target.value })}
-                      placeholder="הערות (אופציונלי)"
-                    />
-                  </div>
+                  {timeErr && (
+                    <p className="text-xs text-red-500 px-3">שעת הסיום חייבת להיות אחרי שעת ההתחלה</p>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      </>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

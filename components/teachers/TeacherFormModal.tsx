@@ -3,6 +3,7 @@ import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import TagInput from "@/components/shared/TagInput";
 import Btn from "@/components/shared/Btn";
+import { LIMITS, digitsOnly } from "@/lib/validators";
 import type { Teacher, AppSettings } from "@/lib/types";
 
 const inp =
@@ -64,19 +65,20 @@ export default function TeacherFormModal({
             onChange={(e) => set("last_name", e.target.value)}
           />
         </Field>
-        <Field label="טלפון">
+        <Field label="טלפון" hint="10 ספרות בלבד">
           <input
             className={inp}
             value={form.phone ?? ""}
-            maxLength={settings.MAX_PHONE_LENGTH}
-            onChange={(e) => set("phone", e.target.value)}
+            inputMode="numeric"
+            onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))}
           />
         </Field>
-        <Field label="אימייל">
+        <Field label="אימייל" hint={`עד ${LIMITS.EMAIL} תווים`}>
           <input
             type="email"
             className={inp}
             value={form.email ?? ""}
+            maxLength={LIMITS.EMAIL}
             onChange={(e) => set("email", e.target.value)}
           />
         </Field>

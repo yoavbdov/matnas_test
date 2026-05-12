@@ -2,6 +2,7 @@
 // כל שדה שניתן למלא ידנית בטופס השחקן נתמך כאן
 
 import { CHESS_TITLES, GRADE_LABELS } from "@/lib/constants";
+import { formatPhone } from "@/lib/utils";
 import type { AppSettings } from "@/lib/types";
 
 export interface ParsedRow {
@@ -136,10 +137,13 @@ export function parseStudentCSV(text: string, settings: Required<AppSettings>): 
       const digits = p.replace(/\D/g, "");
       return digits.length === 9 ? "0" + digits : digits;
     };
-    const phoneNorm = phone ? normalizePhone(phone) : "";
-    const parentPhoneNorm = parentPhone ? normalizePhone(parentPhone) : "";
-    if (phone && !/^\d{9,10}$/.test(phoneNorm)) errors.push("טלפון לא תקין");
-    if (parentPhone && !/^\d{9,10}$/.test(parentPhoneNorm)) errors.push("טלפון הורה לא תקין");
+    const phoneDigits = phone ? normalizePhone(phone) : "";
+    const parentPhoneDigits = parentPhone ? normalizePhone(parentPhone) : "";
+    if (phone && !/^\d{9,10}$/.test(phoneDigits)) errors.push("טלפון לא תקין");
+    if (parentPhone && !/^\d{9,10}$/.test(parentPhoneDigits)) errors.push("טלפון הורה לא תקין");
+    // שמור עם מקף: 053-2422215
+    const phoneNorm = phoneDigits.length === 10 ? formatPhone(phoneDigits) : phoneDigits;
+    const parentPhoneNorm = parentPhoneDigits.length === 10 ? formatPhone(parentPhoneDigits) : parentPhoneDigits;
 
     // תעודת זהות
     const israeli_id = idRaw?.replace(/\D/g, "");

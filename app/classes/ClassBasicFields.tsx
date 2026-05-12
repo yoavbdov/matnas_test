@@ -1,20 +1,12 @@
-// שדות בסיסיים של חוג: שם, תיאור, הגבלות גיל, הגבלות מד כושר, משתתפים
-// מבנה זהה לטופס התחרות לצורך עקביות חזותית
-import Field from "@/components/shared/Field";
+// שדות בסיסיים של חוג: שם, מדריך, קיבולת, תיאור, טווחי גיל/דירוג
+// כל שורה קומפקטית — טווחים מוצגים כ-min–max בשורה אחת
 import { CLASS_COLORS } from "@/lib/constants";
+import { LIMITS } from "@/lib/validators";
 import type { Class, Teacher, AppSettings } from "@/lib/types";
 
+// קלאס אחיד לשדות קלט
 const inp =
-  "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
-
-// Section title used to separate logical groups
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-      {children}
-    </p>
-  );
-}
+  "border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 type FormData = Omit<Class, "id">;
 
@@ -25,6 +17,22 @@ interface Props {
   onChange: <K extends keyof FormData>(k: K, v: FormData[K]) => void;
 }
 
+// שורה קומפקטית: תווית + תוכן
+function Row({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3 py-1">
+      <span className="text-xs text-gray-500 w-32 shrink-0">{label}</span>
+      <div className="flex-1">{children}</div>
+    </div>
+  );
+}
+
 export default function ClassBasicFields({
   form,
   teachers,
@@ -32,25 +40,24 @@ export default function ClassBasicFields({
   onChange,
 }: Props) {
   return (
-    <div className="space-y-5" dir="rtl">
-      {/* שם */}
-      <Field label="שם החוג" required>
+    <div className="space-y-1" dir="rtl">
+      {/* שם החוג */}
+      <Row label="שם חוג">
         <input
-          className={inp}
+          className={`${inp} w-full`}
           value={form.name}
           maxLength={settings.MAX_STRING_LENGTH}
           onChange={(e) => onChange("name", e.target.value)}
         />
-      </Field>
+      </Row>
 
-      {/* מדריך — ספציפי לחוג */}
-      <Field label="מדריך" required>
+      {/* מדריך */}
+      <Row label="מדריך">
         <select
-          className={inp}
+          className={`${inp} w-full`}
           value={form.teacher_id}
           onChange={(e) => onChange("teacher_id", e.target.value)}
         >
-          <option value="">— בחר מדריך —</option>
           {teachers
             .filter((t) => t.status === "פעיל")
             .map((t) => (
@@ -59,123 +66,113 @@ export default function ClassBasicFields({
               </option>
             ))}
         </select>
-      </Field>
+      </Row>
+
+      {/* קיבולת מקסימלית */}
+      <Row label="קיבולת מקסימלית">
+        <input
+          type="number"
+          className={`${inp} w-24`}
+          value={form.capacity}
+          min={1}
+          max={settings.MAX_ROOM_CAPACITY}
+          onChange={(e) =>
+            onChange("capacity", Math.max(1, Number(e.target.value)))
+          }
+        />
+      </Row>
 
       {/* תיאור */}
-      <Field label="תיאור">
+      <Row label="תיאור">
         <textarea
-          className={`${inp} resize-none`}
+          className={`${inp} w-full resize-none`}
           rows={2}
           value={form.description ?? ""}
-          placeholder="תיאור קצר של החוג (אופציונלי)"
+          maxLength={LIMITS.DESCRIPTION}
+          placeholder="תיאור קצר (אופציונלי)"
           onChange={(e) => onChange("description", e.target.value)}
         />
-      </Field>
+      </Row>
 
-      {/* הגבלות גיל */}
-      <div className="max-w-2xl">
-        <SectionLabel>הגבלות גיל</SectionLabel>
-        <div className="flex gap-3">
-          <Field label="גיל מינימלי">
-            <input
-              type="number"
-              className={inp}
-              value={form.age_min ?? ""}
-              min={0}
-              max={settings.MAX_AGE}
-              placeholder="ללא הגבלה"
-              onChange={(e) =>
-                onChange(
-                  "age_min",
-                  e.target.value ? Number(e.target.value) : undefined,
-                )
-              }
-            />
-          </Field>
-          <Field label="גיל מקסימלי">
-            <input
-              type="number"
-              className={inp}
-              value={form.age_max ?? ""}
-              min={0}
-              max={settings.MAX_AGE}
-              placeholder="ללא הגבלה"
-              onChange={(e) =>
-                onChange(
-                  "age_max",
-                  e.target.value ? Number(e.target.value) : undefined,
-                )
-              }
-            />
-          </Field>
-        </div>
-      </div>
-
-      {/* הגבלות מד כושר */}
-      <div className="max-w-2xl">
-        <SectionLabel>הגבלות מד כושר</SectionLabel>
-        <div className="flex gap-3">
-          <Field label="דירוג מינימלי">
-            <input
-              type="number"
-              className={inp}
-              value={form.rating_min ?? ""}
-              min={0}
-              max={3000}
-              placeholder="ללא הגבלה"
-              onChange={(e) =>
-                onChange(
-                  "rating_min",
-                  e.target.value ? Number(e.target.value) : undefined,
-                )
-              }
-            />
-          </Field>
-          <Field label="דירוג מקסימלי">
-            <input
-              type="number"
-              className={inp}
-              value={form.rating_max ?? ""}
-              min={0}
-              max={3000}
-              placeholder="ללא הגבלה"
-              onChange={(e) =>
-                onChange(
-                  "rating_max",
-                  e.target.value ? Number(e.target.value) : undefined,
-                )
-              }
-            />
-          </Field>
-        </div>
-      </div>
-
-      {/* משתתפים — קיבולת מקסימלית */}
-      <div>
-        <SectionLabel>משתתפים</SectionLabel>
-        <Field label="קיבולת מקסימלית">
+      {/* טווח מד כושר — min – max בשורה אחת */}
+      <Row label="טווח מד כושר">
+        <div className="flex items-center gap-2">
           <input
             type="number"
-            className={inp}
-            value={form.capacity}
-            min={1}
-            max={settings.MAX_ROOM_CAPACITY}
+            className={`${inp} w-20`}
+            value={form.rating_min ?? ""}
+            min={0}
+            max={settings.MAX_INT_INPUT}
+            placeholder="מינ׳"
             onChange={(e) =>
-              onChange("capacity", Math.max(1, Number(e.target.value)))
+              onChange(
+                "rating_min",
+                e.target.value ? Number(e.target.value) : undefined,
+              )
             }
           />
-        </Field>
-      </div>
+          <span className="text-gray-400 text-sm">–</span>
+          <input
+            type="number"
+            className={`${inp} w-20`}
+            value={form.rating_max ?? ""}
+            min={0}
+            max={settings.MAX_INT_INPUT}
+            placeholder="מקס׳"
+            onChange={(e) =>
+              onChange(
+                "rating_max",
+                e.target.value ? Number(e.target.value) : undefined,
+              )
+            }
+          />
+        </div>
+      </Row>
+
+      {/* טווח גילאים — min – max בשורה אחת */}
+      <Row label="טווח גילאים">
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            className={`${inp} w-20`}
+            value={form.age_min ?? ""}
+            min={0}
+            max={settings.MAX_AGE}
+            placeholder="מינ׳"
+            onChange={(e) =>
+              onChange(
+                "age_min",
+                e.target.value ? Number(e.target.value) : undefined,
+              )
+            }
+          />
+          <span className="text-gray-400 text-sm">–</span>
+          <input
+            type="number"
+            className={`${inp} w-20`}
+            value={form.age_max ?? ""}
+            min={0}
+            max={settings.MAX_AGE}
+            placeholder="מקס׳"
+            onChange={(e) =>
+              onChange(
+                "age_max",
+                e.target.value ? Number(e.target.value) : undefined,
+              )
+            }
+          />
+        </div>
+      </Row>
 
       {/* צבע זיהוי */}
-      <Field label="צבע זיהוי">
-        <div className="flex gap-2 mt-1">
+      <Row label="צבע זיהוי">
+        <div className="flex gap-2">
           {CLASS_COLORS.map((c) => (
             <button
               key={c}
               type="button"
               onClick={() => onChange("color", c)}
-              className={`w-7 h-7 rounded-full border-2 transition-transform ${
+              className={`w-6 h-6 rounded-full border-2 transition-transform ${
                 form.color === c
                   ? "border-gray-700 scale-110"
                   : "border-transparent"
@@ -184,7 +181,7 @@ export default function ClassBasicFields({
             />
           ))}
         </div>
-      </Field>
+      </Row>
     </div>
   );
 }

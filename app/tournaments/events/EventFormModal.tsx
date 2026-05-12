@@ -10,6 +10,7 @@ import { useState, useMemo } from "react";
 import Field from "@/components/shared/Field";
 import { CLASS_COLORS } from "@/lib/constants";
 import { getEventConflicts } from "@/lib/eventHelpers";
+import { LIMITS, validateTimeRange, VALIDATION_ERRORS } from "@/lib/validators";
 import EventOneTimeFields from "./EventOneTimeFields";
 import EventRecurringFields from "./EventRecurringFields";
 import type { Event, Class, Tournament, Room } from "@/lib/types";
@@ -134,6 +135,10 @@ export default function EventFormModal({
   function handleSave() {
     if (!form.name.trim()) return;
     if (!form.recurrence_type) return;
+    if (validateTimeRange(form.startTime, form.endTime)) {
+      // The inline error in the sub-form already shows — just block save silently
+      return;
+    }
     onSave(draft);
   }
 
@@ -153,16 +158,18 @@ export default function EventFormModal({
             <input
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
               value={form.name}
+              maxLength={LIMITS.NAME}
               onChange={(e) => patch({ name: e.target.value })}
               placeholder="לדוגמה: טורניר פתיחת שנה"
             />
           </Field>
 
-          <Field label="תיאור">
+          <Field label="תיאור" hint={`עד ${LIMITS.DESCRIPTION} תווים`}>
             <textarea
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none"
               rows={2}
               value={form.description}
+              maxLength={LIMITS.DESCRIPTION}
               onChange={(e) => patch({ description: e.target.value })}
               placeholder="תיאור קצר (אופציונלי)"
             />
@@ -238,11 +245,12 @@ export default function EventFormModal({
         {/* הערות */}
         {form.recurrence_type && (
           <div className="mt-4 space-y-4">
-            <Field label="הערות">
+            <Field label="הערות" hint={`עד ${LIMITS.NOTES} תווים`}>
               <textarea
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none"
                 rows={2}
                 value={form.notes}
+                maxLength={LIMITS.NOTES}
                 onChange={(e) => patch({ notes: e.target.value })}
               />
             </Field>

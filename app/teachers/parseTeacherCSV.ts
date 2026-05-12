@@ -1,5 +1,6 @@
 // פונקציית ניתוח קובץ CSV לייבוא מדריכים
 // שדות חובה: שם פרטי, שם משפחה
+import { formatPhone } from "@/lib/utils";
 
 export interface ParsedTeacherRow {
   lineNum: number;
@@ -64,8 +65,10 @@ export function parseTeacherCSV(text: string): ParsedTeacherRow[] {
       const digits = p.replace(/\D/g, "");
       return digits.length === 9 ? "0" + digits : digits;
     };
-    const phone = phoneRaw ? normalizePhone(phoneRaw) : "";
-    if (phoneRaw && !/^\d{9,10}$/.test(phone)) errors.push("טלפון לא תקין");
+    const phoneDigits = phoneRaw ? normalizePhone(phoneRaw) : "";
+    if (phoneRaw && !/^\d{9,10}$/.test(phoneDigits)) errors.push("טלפון לא תקין");
+    // שמור עם מקף: 053-2422215
+    const phone = phoneDigits.length === 10 ? formatPhone(phoneDigits) : phoneDigits;
 
     // הסמכות — מופרדות ב-"|"
     const certifications = certsRaw?.trim()

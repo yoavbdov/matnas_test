@@ -4,6 +4,7 @@ import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import TagInput from "@/components/shared/TagInput";
 import Btn from "@/components/shared/Btn";
+import { LIMITS, digitsOnly } from "@/lib/validators";
 import type { Teacher, AppSettings } from "@/lib/types";
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
@@ -37,11 +38,11 @@ export default function TeacherFormModal({ mode, form, setForm, saving, onClose,
         <Field label="שם משפחה" required>
           <input className={inp} value={form.last_name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("last_name", e.target.value)} />
         </Field>
-        <Field label="טלפון">
-          <input className={inp} value={form.phone ?? ""} maxLength={settings.MAX_PHONE_LENGTH} onChange={(e) => set("phone", e.target.value)} />
+        <Field label="טלפון" hint="10 ספרות בלבד">
+          <input className={inp} value={form.phone ?? ""} inputMode="numeric" onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))} />
         </Field>
-        <Field label="אימייל">
-          <input type="email" className={inp} value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} />
+        <Field label="אימייל" hint={`עד ${LIMITS.EMAIL} תווים`}>
+          <input type="email" className={inp} value={form.email ?? ""} maxLength={LIMITS.EMAIL} onChange={(e) => set("email", e.target.value)} />
         </Field>
         <Field label="סטטוס">
           <select className={inp} value={form.status} onChange={(e) => set("status", e.target.value as Teacher["status"])}>

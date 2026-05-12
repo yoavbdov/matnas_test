@@ -54,3 +54,50 @@ Avoid premature abstraction
 
 If a new developer cannot understand a file in 30 seconds, it is too complex.
 Make sure to add comments!
+
+## Validation & Field Conventions
+
+All validation constants live in `lib/validators.ts` (LIMITS object).
+All forms must import from there — never hardcode limits inline.
+
+### Field limits
+
+| Field type | Max length | Notes |
+|---|---|---|
+| Name (שם — student / teacher / class / group / event / tournament / room / equipment) | 50 chars | `settings.MAX_STRING_LENGTH` |
+| Description (תיאור) | 300 chars | `LIMITS.DESCRIPTION` |
+| Notes / הערות | 300 chars | `settings.MAX_NOTE_LENGTH` |
+| Email | 40 chars | `LIMITS.EMAIL` |
+| Address / כתובת | 50 chars | `LIMITS.ADDRESS` |
+| Phone (טלפון) | exactly 10 digits | `LIMITS.PHONE` — see phone rules below |
+| Israeli ID / ת"ז | 9 digits only | `LIMITS.ISRAELI_ID` |
+| Age / גיל | 0–120 | `settings.MAX_AGE` |
+| Chess rating / מד כושר | 0–9999 (4 digits) | `settings.MAX_INT_INPUT` |
+| Israeli chess player number | 6 digits only | `LIMITS.ISRAELI_CHESS_ID` |
+| FIDE ID | 9 digits only | `LIMITS.FIDE_ID` |
+| Attendance note | 120 chars | `LIMITS.ATTENDANCE_NOTE` |
+
+### Phone rules
+- Input: digits only (`inputMode="numeric"`, onChange uses `digitsOnly(value, 10)`)
+- Validation on save: must be exactly 10 digits (use `validatePhone()`)
+- **Storage format: always `053-2422215` — apply `formatPhone()` from `lib/utils.ts` before every `addDocument`/`updateDocument` call AND in every CSV/Excel parser before returning the parsed row**
+- Display format: always pass through `formatPhone()` in tables and detail modals
+- `formatPhone("0532422215")` → `"053-2422215"`, `formatPhone("053-2422215")` → `"053-2422215"` (idempotent)
+
+### Digit-only fields
+Use `digitsOnly(value, maxDigits)` from `lib/validators.ts` in `onChange`:
+- Phone, Israeli ID, Israeli chess ID, FIDE ID
+
+### Error messages
+All error messages are defined in `VALIDATION_ERRORS` in `lib/validators.ts`.
+Use them in `showToast()` — never write error strings inline.
+
+## Shared UI Conventions
+
+### CSV buttons
+Always use the shared components — never inline custom buttons for CSV actions:
+- Export (ייצוא): `<CsvExportBtn onClick={...} />` from `components/shared/CsvExportBtn.tsx`
+- Import (ייבוא): `<CsvImportBtn onClick={...} />` from `components/shared/CsvImportBtn.tsx`
+
+Both are green (`bg-green-600`) with white text and a Download/Upload icon.
+Any new CSV export or import action must use these components.

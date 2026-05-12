@@ -18,13 +18,13 @@ import {
 
 const navItems = [
   { href: "/dashboard", label: "לוח בקרה", icon: LayoutDashboard },
-  { href: "/students", label: "שחקנים", icon: Users },
-  { href: "/classes", label: "חוגים", icon: BookOpen },
-  { href: "/attendance", label: "נוכחות", icon: ClipboardCheck },
-  { href: "/teachers", label: "מדריכים", icon: UserCheck },
-  { href: "/rooms", label: "חדרים וציוד", icon: DoorOpen },
   { href: "/schedule", label: "לוח זמנים", icon: Calendar },
+  { href: "/students", label: "שחקנים", icon: Users },
+  { href: "/teachers", label: "מדריכים", icon: UserCheck },
+  { href: "/classes", label: "חוגים", icon: BookOpen },
   { href: "/tournaments", label: "תחרויות ואירועים", icon: Trophy },
+  { href: "/rooms", label: "חדרים וציוד", icon: DoorOpen },
+  { href: "/attendance", label: "נוכחות", icon: ClipboardCheck },
   { href: "/league-groups", label: "קבוצות ליגה", icon: Layers },
 ];
 

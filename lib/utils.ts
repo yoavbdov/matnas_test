@@ -65,7 +65,10 @@ export function clampNumber(val: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, val));
 }
 
-// Strip non-digit characters and cap at 10 digits for Israeli phone numbers
+// Format an Israeli phone number: "0532422215" → "053-2422215"
+// Strips non-digits first so it handles already-formatted input gracefully.
 export function formatPhone(phone: string): string {
-  return phone.replace(/\D/g, "").slice(0, 10);
+  const digits = phone.replace(/\D/g, "").slice(0, 10);
+  if (digits.length === 10) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return digits;
 }

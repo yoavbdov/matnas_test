@@ -4,6 +4,7 @@
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
+import { LIMITS } from "@/lib/validators";
 import type { LeagueGroup, LeagueCategory, LeagueType, AppSettings } from "@/lib/types";
 
 // Shared input style — matches all other form modals in the app
@@ -104,12 +105,12 @@ export default function LeagueGroupFormModal({
         </Field>
 
         {/* Description */}
-        <Field label="תיאור">
+        <Field label="תיאור" hint={`עד ${LIMITS.DESCRIPTION} תווים`}>
           <input
             type="text"
             value={form.description ?? ""}
             onChange={(e) => set("description", e.target.value)}
-            maxLength={settings.MAX_STRING_LENGTH}
+            maxLength={LIMITS.DESCRIPTION}
             className={inp}
           />
         </Field>

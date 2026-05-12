@@ -1,7 +1,10 @@
 "use client";
+import { useState, useMemo } from "react";
 import { useData } from "@/context/DataContext";
-import { useMemo } from "react";
+import ViewExistingClassDetailModal from "@/app/classes/ViewExistingClassDetailModal";
+import type { Class } from "@/lib/types";
 
+// Color theme per enrollment ratio
 function enrollmentTheme(ratio: number) {
   if (ratio >= 1) return { bar: "bg-red-500", label: "מלא", text: "text-red-600" };
   if (ratio >= 0.8) return { bar: "bg-orange-400", label: "כמעט מלא", text: "text-orange-500" };
@@ -9,7 +12,10 @@ function enrollmentTheme(ratio: number) {
 }
 
 export default function EnrollmentStatusList() {
-  const { classes, enrollments } = useData();
+  const { classes, enrollments, teachers, rooms, physicalEquipment, students, tournaments } = useData();
+
+  // The class whose detail modal is open (null = closed)
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
 
   const items = useMemo(() => {
     return classes
@@ -39,7 +45,12 @@ export default function EnrollmentStatusList() {
           {items.map(({ cls, enrolled, ratio }) => {
             const { bar, label, text } = enrollmentTheme(ratio);
             return (
-              <div key={cls.id} className="px-5 py-4">
+              // לחיצה על שורה פותחת את מודל פרטי החוג
+              <div
+                key={cls.id}
+                className="px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setSelectedClass(cls)}
+              >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-800">{cls.name}</span>
                   <div className="flex items-center gap-3">
@@ -59,6 +70,22 @@ export default function EnrollmentStatusList() {
             );
           })}
         </div>
+      )}
+
+      {/* מודל פרטי חוג — נפתח בלחיצה על שורה */}
+      {selectedClass && (
+        <ViewExistingClassDetailModal
+          classItem={selectedClass}
+          teachers={teachers}
+          rooms={rooms}
+          physicalEquipment={physicalEquipment}
+          students={students}
+          enrollments={enrollments}
+          allClasses={classes}
+          allTournaments={tournaments}
+          onClose={() => setSelectedClass(null)}
+          onEdit={() => setSelectedClass(null)} // מנווט לדף החוגים אם צריך עריכה
+        />
       )}
     </section>
   );

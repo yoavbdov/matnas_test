@@ -1,13 +1,18 @@
 "use client";
-// טופס הוספה/עריכה של חוג — שדות, מפגשים, ציוד, תלמידים
+/*
+  ClassFormModal — create or edit a class.
+  Tabs: פרטים / מפגשים / תלמידים
+  Mirrors the structure of TournamentFormModal for visual consistency.
+*/
 import { useState } from "react";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
 import ClassBasicFields from "./ClassBasicFields";
-import ClassScheduleSlots from "./ClassScheduleSlots";
 import ClassResources from "./ClassResources";
-import ClassEnrollmentPanel from "./ClassEnrollmentPanel";
+import ClassSlotsTab from "./ClassSlotsTab";
+import ClassStudentsTab from "./ClassStudentsTab";
 import { CLASS_COLORS } from "@/lib/constants";
+import { LIMITS } from "@/lib/validators";
 import type {
   Class,
   Teacher,
@@ -25,8 +30,8 @@ type FormData = Omit<Class, "id">;
 
 // Enrollment changes to apply on save
 export interface EnrollmentChanges {
-  toAdd: string[];       // student IDs to enroll
-  toRemove: string[];    // enrollment document IDs to delete
+  toAdd: string[];    // student IDs to enroll
+  toRemove: string[]; // enrollment document IDs to delete
 }
 
 interface Props {
@@ -73,151 +78,143 @@ export default function ClassFormModal({
   onClose,
   onSave,
 }: Props) {
+  const [tab, setTab] = useState<"פרטים" | "מפגשים" | "תלמידים">("פרטים");
   const [form, setForm] = useState<FormData>(() =>
     classItem
-      ? { ...classItem, slots: [...(classItem.slots ?? [])], resource_assignments: [...(classItem.resource_assignments ?? [])] }
+      ? {
+          ...classItem,
+          slots: [...(classItem.slots ?? [])],
+          resource_assignments: [...(classItem.resource_assignments ?? [])],
+        }
       : emptyForm()
   );
 
-  // Pending enrollment changes — applied when the user clicks Save
+  // Pending enrollment changes — applied on save
   const [pendingAdd, setPendingAdd] = useState<string[]>([]);
   const [pendingRemove, setPendingRemove] = useState<string[]>([]);
-
-  const assignments: ResourceAssignment[] = form.resource_assignments ?? [];
-  function setAssignments(next: ResourceAssignment[]) {
-    setForm((f) => ({ ...f, resource_assignments: next }));
-  }
 
   function set<K extends keyof FormData>(k: K, v: FormData[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  function handleSlotChange(idx: number, patch: Partial<ScheduleSlot>) {
-    setForm((f) => {
-      const slots = [...(f.slots ?? [])];
-      slots[idx] = { ...slots[idx], ...patch };
-      return { ...f, slots };
-    });
+  function setSlots(slots: ScheduleSlot[]) {
+    setForm((f) => ({ ...f, slots }));
   }
 
-  function addSlot() {
-    // Use local date (not toISOString which is UTC and can shift the date in Israel UTC+3)
-    const now = new Date();
-    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    // Derive day name from local date so slot.day and start_date are always in sync
-    const HDAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-    const todayDay = HDAYS[now.getDay()];
-
-    setForm((f) => ({
-      ...f,
-      slots: [
-        ...(f.slots ?? []),
-        {
-          id: crypto.randomUUID(),
-          day: todayDay,
-          start_time: "16:00",
-          end_time: "17:00",
-          room_id: "",
-          recurrence: "שבועי",
-          start_date: localDate,
-        },
-      ],
-    }));
-  }
-
-  function removeSlot(idx: number) {
-    setForm((f) => ({
-      ...f,
-      slots: (f.slots ?? []).filter((_, i) => i !== idx),
-    }));
-  }
-
-  // Enrollment handlers
-  function handleAddStudent(studentId: string) {
-    setPendingAdd((prev) => [...prev, studentId]);
-  }
-
-  function handleRemoveEnrollment(enrollmentId: string) {
-    setPendingRemove((prev) => [...prev, enrollmentId]);
-  }
-
-  function handleUndoAdd(studentId: string) {
-    setPendingAdd((prev) => prev.filter((id) => id !== studentId));
+  function setAssignments(next: ResourceAssignment[]) {
+    setForm((f) => ({ ...f, resource_assignments: next }));
   }
 
   function handleSave() {
     onSave(form, { toAdd: pendingAdd, toRemove: pendingRemove });
   }
 
+  const tabs = ["פרטים", "מפגשים", "תלמידים"] as const;
+
   return (
     <Modal
-      title={mode === "add" ? "הוספת חוג" : "עריכת חוג"}
+      title={mode === "add" ? "הוספת חוג" : `עריכת חוג — ${classItem?.name}`}
       onClose={onClose}
-      size="xl"
+      size="lg"
       footer={
-        <>
-          <Btn variant="secondary" onClick={onClose}>ביטול</Btn>
-          <Btn onClick={handleSave} loading={saving}>שמור</Btn>
-        </>
+        <div className="flex items-center justify-between w-full gap-3" dir="rtl">
+          <div className="flex gap-2 mr-auto">
+            <Btn variant="ghost" onClick={onClose} disabled={saving}>ביטול</Btn>
+            <Btn onClick={handleSave} loading={saving} disabled={!form.name.trim()}>
+              {mode === "add" ? "צור חוג" : "שמור שינויים"}
+            </Btn>
+          </div>
+        </div>
       }
     >
-      <ClassBasicFields
-        form={form}
-        teachers={teachers}
-        settings={settings}
-        onChange={set}
-      />
+      {/* Tab bar */}
+      <div className="flex gap-1 border-b border-gray-200 mb-5" dir="rtl">
+        {tabs.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+              tab === t
+                ? "border-b-2 border-teal-600 text-teal-700"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
 
-      <hr className="my-5 border-gray-100" />
-      <ClassScheduleSlots
-        slots={form.slots ?? []}
-        rooms={rooms}
-        allClasses={allClasses}
-        allTournaments={allTournaments}
-        teacherId={form.teacher_id}
-        currentClassId={classItem?.id}
-        onAdd={addSlot}
-        onRemove={removeSlot}
-        onChange={handleSlotChange}
-      />
+      {/* Tab content */}
+      <div className="h-105 overflow-y-auto">
 
-      <hr className="my-5 border-gray-100" />
-      <ClassResources
-        assignments={assignments}
-        physicalEquipment={physicalEquipment}
-        allClasses={allClasses}
-        allTournaments={allTournaments}
-        currentClassId={classItem?.id}
-        currentClassSlots={form.slots ?? []}
-        onChange={setAssignments}
-      />
+        {tab === "פרטים" && (
+          <div className="space-y-5" dir="rtl">
+            {/* Name, instructor, description, ratings, age, capacity, color */}
+            <ClassBasicFields
+              form={form}
+              teachers={teachers}
+              settings={settings}
+              onChange={set}
+            />
 
-      <hr className="my-5 border-gray-100" />
-      {/* Enrollment section — add/remove students with conflict warnings */}
-      <ClassEnrollmentPanel
-        students={students}
-        allEnrollments={enrollments}
-        allClasses={allClasses}
-        allTournaments={allTournaments}
-        formSlots={form.slots ?? []}
-        currentClassId={classItem?.id}
-        pendingAdd={pendingAdd}
-        pendingRemove={pendingRemove}
-        onAddStudent={handleAddStudent}
-        onRemoveEnrollment={handleRemoveEnrollment}
-        onUndoAdd={handleUndoAdd}
-      />
+            <hr className="border-gray-100" />
 
-      <hr className="my-5 border-gray-100" />
-      <div>
-        <label className="text-xs font-medium text-gray-600">הערות</label>
-        <textarea
-          className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400"
-          rows={3}
-          value={form.notes ?? ""}
-          maxLength={settings.MAX_NOTE_LENGTH}
-          onChange={(e) => set("notes", e.target.value)}
-        />
+            {/* Equipment */}
+            <ClassResources
+              assignments={form.resource_assignments ?? []}
+              physicalEquipment={physicalEquipment}
+              allClasses={allClasses}
+              allTournaments={allTournaments}
+              currentClassId={classItem?.id}
+              currentClassSlots={form.slots ?? []}
+              onChange={setAssignments}
+            />
+
+            <hr className="border-gray-100" />
+
+            {/* Notes */}
+            <div>
+              <label className="text-xs font-medium text-gray-600">הערות</label>
+              <textarea
+                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400 resize-none"
+                rows={3}
+                value={form.notes ?? ""}
+                maxLength={LIMITS.NOTES}
+                onChange={(e) => set("notes", e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {tab === "מפגשים" && (
+          <ClassSlotsTab
+            slots={form.slots ?? []}
+            rooms={rooms}
+            allClasses={allClasses}
+            allTournaments={allTournaments}
+            teacherId={form.teacher_id}
+            currentClassId={classItem?.id}
+            onChange={setSlots}
+          />
+        )}
+
+        {tab === "תלמידים" && (
+          <ClassStudentsTab
+            className={form.name}
+            students={students}
+            allEnrollments={enrollments}
+            allClasses={allClasses}
+            allTournaments={allTournaments}
+            formSlots={form.slots ?? []}
+            currentClassId={classItem?.id}
+            pendingAdd={pendingAdd}
+            pendingRemove={pendingRemove}
+            onAddStudent={(id) => setPendingAdd((p) => [...p, id])}
+            onRemoveEnrollment={(enrollId) => setPendingRemove((p) => [...p, enrollId])}
+            onUndoAdd={(id) => setPendingAdd((p) => p.filter((x) => x !== id))}
+          />
+        )}
       </div>
     </Modal>
   );

@@ -1,6 +1,6 @@
 // טבלת השחקנים — מציגה את כל השחקנים המסוננים עם מיון לפי עמודה
 import Badge from "@/components/shared/Badge";
-import { calcAge, gradeFromDob } from "@/lib/utils";
+import { calcAge, gradeFromDob, formatPhone } from "@/lib/utils";
 import type { Student, Enrollment, AppSettings } from "@/lib/types";
 
 export type SortCol = "name" | "age" | "grade" | "rating" | "fide_rating" | "phone" | "classes" | "status";
@@ -97,7 +97,7 @@ export default function StudentsTable({ students, enrollments, onRowClick, setti
                   )}
                 </td>
                 <td className="px-4 py-3 text-gray-700">{s.fide_rating ?? "—"}</td>
-                <td className="px-4 py-3 text-gray-500">{s.parent_phone || s.phone || "—"}</td>
+                <td className="px-4 py-3 text-gray-500">{(s.parent_phone || s.phone) ? formatPhone(s.parent_phone || s.phone || "") : "—"}</td>
                 <td className="px-4 py-3 text-gray-600">{classCount || "—"}</td>
                 <td className="px-4 py-3">
                   <Badge label={s.status} color={s.status === "פעיל" ? "green" : "gray"} />

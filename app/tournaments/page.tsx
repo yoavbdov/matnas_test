@@ -17,6 +17,7 @@ import EventDetailModal from "./events/EventDetailModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
+import { validateTimeRange } from "@/lib/validators";
 import type { Tournament, Event } from "@/lib/types";
 
 function todayStr() {
@@ -97,8 +98,23 @@ export default function TournamentsPage() {
   }, [tournaments, search, statusFilter, todayActive, today]);
 
   // --- Tournament CRUD ---
+  // Returns error message for invalid time ranges, or null if all OK
+  function validateTournamentTimes(data: Omit<Tournament, "id">): string | null {
+    if (data.is_recurring) {
+      const start = data.recurring_start_time ?? "";
+      const end = data.recurring_end_time ?? "";
+      if (validateTimeRange(start, end)) return "שעת הסיום חייבת להיות אחרי שעת ההתחלה בתחרות החוזרת";
+    } else {
+      const badRound = (data.rounds ?? []).find((r) => validateTimeRange(r.start_time, r.end_time));
+      if (badRound) return `שעת הסיום חייבת להיות אחרי שעת ההתחלה (סיבוב ${badRound.round_number})`;
+    }
+    return null;
+  }
+
   async function handleAddTournament(data: Omit<Tournament, "id">) {
     if (!data.name.trim()) { showToast("שם התחרות הוא שדה חובה", "error"); return; }
+    const timeErr = validateTournamentTimes(data);
+    if (timeErr) { showToast(timeErr, "error"); return; }
     setSavingTournament(true);
     try {
       await addDocument("tournaments", data);
@@ -112,6 +128,8 @@ export default function TournamentsPage() {
   async function handleEditTournament(data: Omit<Tournament, "id">) {
     if (!editTournament) return;
     if (!data.name.trim()) { showToast("שם התחרות הוא שדה חובה", "error"); return; }
+    const timeErr = validateTournamentTimes(data);
+    if (timeErr) { showToast(timeErr, "error"); return; }
     setSavingTournament(true);
     try {
       await updateDocument("tournaments", editTournament.id, data);
@@ -240,6 +258,10 @@ export default function TournamentsPage() {
           saving={savingTournament}
           onClose={() => setEditTournament(null)}
           onSave={handleEditTournament}
+          onDelete={async () => {
+            await handleDeleteTournament(editTournament!);
+            setEditTournament(null);
+          }}
         />
       )}
       {detailTournament && (

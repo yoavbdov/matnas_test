@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "ts-node --compiler-options {\"module\":\"commonjs\"} lib/validators.test.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

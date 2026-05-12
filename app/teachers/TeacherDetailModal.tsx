@@ -6,6 +6,7 @@ import Btn from "@/components/shared/Btn";
 import Badge from "@/components/shared/Badge";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteDocument } from "@/firebase/firestore";
+import { formatPhone } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import type { Teacher, Class, Enrollment } from "@/lib/types";
 
@@ -69,7 +70,7 @@ export default function TeacherDetailModal({ teacher, classes, enrollments, onCl
         </div>
 
         <Row label="שם מלא" value={`${teacher.first_name} ${teacher.last_name}`} />
-        <Row label="טלפון" value={teacher.phone} />
+        <Row label="טלפון" value={teacher.phone ? formatPhone(teacher.phone) : undefined} />
         <Row label="אימייל" value={teacher.email} />
 
         {(teacher.certifications ?? []).length > 0 && (

@@ -158,6 +158,9 @@ export default function ClassesPage() {
   async function handleSave(form: Omit<Class, "id">, enrollmentChanges: EnrollmentChanges) {
     if (!form.name.trim()) { showToast("שם החוג הוא שדה חובה", "error"); return; }
     if (!form.teacher_id) { showToast("יש לבחור מדריך", "error"); return; }
+    // Validate time ranges for all schedule slots
+    const badSlot = (form.slots ?? []).find((s) => s.end_time <= s.start_time);
+    if (badSlot) { showToast("שעת הסיום חייבת להיות אחרי שעת ההתחלה בכל המפגשים", "error"); return; }
 
     // Compute status automatically from slot dates (like tournaments)
     const withStatus = { ...form, status: computeClassStatus({ ...form, id: editTarget?.id ?? "" }) };
@@ -246,7 +249,6 @@ export default function ClassesPage() {
         onAddClass={openAdd}
         onExport={exportCSV}
         onImport={() => setImportOpen(true)}
-        maxSearchLength={settings.MAX_SEARCH_LENGTH}
       />
 
       <p className="text-xs text-gray-400 mb-3">{filtered.length} חוגים</p>

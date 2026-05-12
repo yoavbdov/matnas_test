@@ -1,5 +1,6 @@
 // Search bar + status filter + "New Tournament" button for the tournaments page
 import Btn from "@/components/shared/Btn";
+import SearchInput from "@/components/shared/SearchInput";
 import { Plus, CalendarCheck } from "lucide-react";
 import type { Tournament } from "@/lib/types";
 
@@ -22,11 +23,11 @@ export default function TournamentsToolbar({ search, onSearch, statusFilter, onS
     <div className="flex items-center gap-3 mb-5 flex-wrap" dir="rtl">
 
       {/* Search */}
-      <input
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-56"
-        placeholder="חיפוש לפי שם תחרות..."
+      <SearchInput
         value={search}
-        onChange={(e) => onSearch(e.target.value)}
+        onChange={onSearch}
+        placeholder="חיפוש לפי שם תחרות..."
+        className="w-56"
       />
 
       {/* Status filter */}

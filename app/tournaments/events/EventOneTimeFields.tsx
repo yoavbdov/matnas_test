@@ -1,6 +1,7 @@
 // שדות לאירוע חד-פעמי: תאריך, שעות, וחדר
 import Field from "@/components/shared/Field";
 import TimeSelect from "@/components/shared/TimeSelect";
+import { validateTimeRange } from "@/lib/validators";
 import type { Room } from "@/lib/types";
 
 interface Props {
@@ -9,13 +10,25 @@ interface Props {
   endTime: string;
   room: string;
   rooms: Room[];
-  onChange: (patch: { date?: string; startTime?: string; endTime?: string; room?: string }) => void;
+  onChange: (patch: {
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+    room?: string;
+  }) => void;
 }
 
-export default function EventOneTimeFields({ date, startTime, endTime, room, rooms, onChange }: Props) {
+export default function EventOneTimeFields({
+  date,
+  startTime,
+  endTime,
+  room,
+  rooms,
+  onChange,
+}: Props) {
+  const timeError = validateTimeRange(startTime, endTime);
   return (
     <div className="space-y-4" dir="rtl">
-
       {/* תאריך */}
       <Field label="תאריך האירוע" required>
         <input
@@ -43,6 +56,7 @@ export default function EventOneTimeFields({ date, startTime, endTime, room, roo
           />
         </Field>
       </div>
+      {timeError && <p className="text-xs text-red-500 -mt-2">{timeError}</p>}
 
       {/* חדר */}
       <Field label="חדר" required>
@@ -51,7 +65,6 @@ export default function EventOneTimeFields({ date, startTime, endTime, room, roo
           value={room}
           onChange={(e) => onChange({ room: e.target.value })}
         >
-          <option value="">— בחר חדר —</option>
           {rooms.map((r) => (
             <option key={r.id} value={r.name}>
               {r.name}
@@ -59,7 +72,6 @@ export default function EventOneTimeFields({ date, startTime, endTime, room, roo
           ))}
         </select>
       </Field>
-
     </div>
   );
 }

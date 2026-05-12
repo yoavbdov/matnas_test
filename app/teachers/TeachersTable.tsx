@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import Badge from "@/components/shared/Badge";
+import { formatPhone } from "@/lib/utils";
 import type { Teacher, Class } from "@/lib/types";
 
 type SortKey = "name" | "phone" | "activeClasses" | "status";
@@ -119,7 +120,7 @@ export default function TeachersTable({ teachers, classes, onRowClick }: Props) 
                 className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50"
               >
                 <td className="px-4 py-3 font-medium text-gray-800">{t.first_name} {t.last_name}</td>
-                <td className="px-4 py-3 text-gray-500">{t.phone || "—"}</td>
+                <td className="px-4 py-3 text-gray-500">{t.phone ? formatPhone(t.phone) : "—"}</td>
                 <td className="px-4 py-3 text-gray-600">{activeClasses}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">

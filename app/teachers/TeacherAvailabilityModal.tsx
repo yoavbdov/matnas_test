@@ -9,6 +9,7 @@ import { X, CalendarCheck, Search } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { checkTeacherAvailability } from "@/lib/teacherAvailability";
+import { formatPhone } from "@/lib/utils";
 import type { Teacher, Class } from "@/lib/types";
 
 interface Props {
@@ -161,7 +162,7 @@ export default function TeacherAvailabilityModal({ teachers, classes, onClose }:
                       <li key={t.id} className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2 text-sm">
                         <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
                         {t.first_name} {t.last_name}
-                        {t.phone && <span className="text-gray-400 text-xs mr-auto">{t.phone}</span>}
+                        {t.phone && <span className="text-gray-400 text-xs mr-auto">{formatPhone(t.phone)}</span>}
                       </li>
                     ))}
                   </ul>

@@ -45,7 +45,9 @@ export default function ExportCsvModal({
         dir="rtl"
         onClick={(e) => e.stopPropagation()} // prevent backdrop click
       >
-        <h2 className="text-lg font-bold text-gray-800 mb-4">ייצוא נוכחות ל-CSV</h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-4">
+          ייצוא נוכחות ל-CSV
+        </h2>
 
         <label className="block text-sm text-gray-600 mb-1">בחר חוג</label>
         <select
@@ -53,7 +55,6 @@ export default function ExportCsvModal({
           value={selectedClassId}
           onChange={(e) => setSelectedClassId(e.target.value)}
         >
-          <option value="">— בחר חוג —</option>
           {classes.map((cls) => (
             <option key={cls.id} value={cls.id}>
               {cls.name}

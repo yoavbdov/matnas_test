@@ -12,7 +12,6 @@
         • If combined value ≤ max → accept, auto-advance hour→minute
         • If combined value > max → treat second digit as standalone units (tens=0)
 
-  Size: entire MUI dialog is scaled ×1.5 via CSS zoom.
 */
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -316,8 +315,6 @@ export default function ClockTimePicker({
                 boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
                 direction: "ltr",
                 overflow: "hidden",
-                // Scale the entire dialog — zoom affects layout (unlike transform)
-                zoom: 1.2,
               },
 
               // Force portrait: toolbar above clock, not beside it

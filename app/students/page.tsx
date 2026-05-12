@@ -11,7 +11,8 @@ import ExcelUploadPanel from "./ExcelUploadPanel";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument } from "@/firebase/firestore";
-import { calcAge, gradeFromDob } from "@/lib/utils";
+import { calcAge, gradeFromDob, formatPhone } from "@/lib/utils";
+import { validatePhone, VALIDATION_ERRORS } from "@/lib/validators";
 import type { Student } from "@/lib/types";
 
 function emptyForm(): Omit<Student, "id"> {
@@ -192,16 +193,29 @@ export default function StudentsPage() {
       showToast("שם ותאריך לידה הם שדות חובה", "error");
       return;
     }
+    // Validate phone numbers before saving
+    if (validatePhone(form.phone)) {
+      showToast(VALIDATION_ERRORS.PHONE, "error"); return;
+    }
+    if (validatePhone(form.parent_phone)) {
+      showToast(VALIDATION_ERRORS.PARENT_PHONE, "error"); return;
+    }
+    // Format phones as "053-2422215" before writing to Firestore
+    const docData = {
+      ...form,
+      phone: form.phone ? formatPhone(form.phone) : undefined,
+      parent_phone: form.parent_phone ? formatPhone(form.parent_phone) : undefined,
+    };
     setSaving(true);
     try {
       if (formModal === "add") {
         await addDocument("students", {
-          ...form,
+          ...docData,
           created_at: new Date().toISOString().slice(0, 10),
         });
         showToast("השחקן נוסף בהצלחה", "success");
       } else if (editTarget) {
-        await updateDocument("students", editTarget.id, form);
+        await updateDocument("students", editTarget.id, docData);
         showToast("הפרטים עודכנו בהצלחה", "success");
       }
       setFormModal(null);
@@ -235,7 +249,6 @@ export default function StudentsPage() {
         onAddStudent={openAdd}
         onExport={() => exportCSV(displayedStudents)}
         onImport={() => setImportOpen(true)}
-        maxSearchLength={settings.MAX_SEARCH_LENGTH}
       />
 
       <p className="text-xs text-gray-400 mb-3">{displayedStudents.length} שחקנים</p>

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { LIMITS } from "@/lib/validators";
 
 // ---- Types ----
 
@@ -78,7 +79,8 @@ function FilterDropdown({
         <input
           ref={inputRef}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => setQuery(e.target.value.slice(0, LIMITS.SEARCH))}
+          maxLength={LIMITS.SEARCH}
           placeholder="חיפוש..."
           className="w-full text-sm px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-right"
           dir="rtl"

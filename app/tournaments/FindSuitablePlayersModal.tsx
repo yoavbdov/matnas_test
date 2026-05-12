@@ -9,6 +9,7 @@
 "use client";
 import { useState } from "react";
 import { Download, AlertTriangle } from "lucide-react";
+import SearchInput from "@/components/shared/SearchInput";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
 import type { Student } from "@/lib/types";
@@ -205,11 +206,11 @@ export default function FindSuitablePlayersModal({
         </div>
 
         {/* Search */}
-        <input
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          placeholder="חיפוש לפי שם..."
+        <SearchInput
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={setSearch}
+          placeholder="חיפוש לפי שם..."
+          className="w-full"
         />
 
         {/* Select all / clear */}

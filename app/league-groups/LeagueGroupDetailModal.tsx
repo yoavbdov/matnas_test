@@ -171,7 +171,6 @@ export default function LeagueGroupDetailModal({
           saving={saving}
           onAdd={handleAddPlayer}
           onClose={() => setAddOpen(false)}
-          settings={settings}
         />
       )}
     </>

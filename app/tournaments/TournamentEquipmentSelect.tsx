@@ -4,7 +4,6 @@
 // כשאין תאריך (תחרות חוזרת ללא עיגון): מציג זמינות לפי יום השבוע
 import { Plus, X, AlertTriangle } from "lucide-react";
 import Btn from "@/components/shared/Btn";
-import Field from "@/components/shared/Field";
 import {
   calcUsedAtWindow,
   getConflictingNamesAtWindow,
@@ -13,7 +12,7 @@ import type { PhysicalEquipment, Class, Tournament, ResourceAssignment } from "@
 
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
-const inp = "w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
+const inp = "w-full border border-gray-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   assignments: ResourceAssignment[];
@@ -107,72 +106,62 @@ export default function TournamentEquipmentSelect({
           return (
             <div
               key={idx}
-              className={`flex items-start gap-3 p-3 rounded-xl border bg-gray-50 ${shortage ? "border-red-200" : "border-gray-100"}`}
+              className={`flex items-center gap-2 px-2 py-1.5 rounded-lg border bg-gray-50 ${shortage ? "border-red-200" : "border-gray-100"}`}
             >
               {/* Equipment selector */}
               <div className="flex-1">
-                <Field label="ציוד">
-                  <select
-                    className={inp}
-                    value={a.resource_id}
-                    onChange={(e) => setField(idx, { resource_id: e.target.value, quantity: 1 })}
-                  >
-                    {physicalEquipment.map((item) => {
-                      // Show available units at the tournament's time, or total if time unknown
-                      const itemUsed = knowsTime
-                        ? calcUsedAtWindow(item.id, day!, startTime!, endTime!, allClasses, undefined, allTournaments, currentTournamentId)
-                        : 0;
-                      const itemAvailable = item.quantity - itemUsed;
-                      const label = knowsTime
-                        ? `${item.name} (פנוי: ${itemAvailable})`
-                        : `${item.name} (סה״כ: ${item.quantity})`;
-                      return (
-                        <option key={item.id} value={item.id} disabled={chosen.has(item.id) && item.id !== a.resource_id}>
-                          {label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </Field>
+                <select
+                  className={inp}
+                  value={a.resource_id}
+                  onChange={(e) => setField(idx, { resource_id: e.target.value, quantity: 1 })}
+                >
+                  {physicalEquipment.map((item) => {
+                    const itemUsed = knowsTime
+                      ? calcUsedAtWindow(item.id, day!, startTime!, endTime!, allClasses, undefined, allTournaments, currentTournamentId)
+                      : 0;
+                    const itemAvailable = item.quantity - itemUsed;
+                    const label = knowsTime
+                      ? `${item.name} (פנוי: ${itemAvailable})`
+                      : `${item.name} (סה״כ: ${item.quantity})`;
+                    return (
+                      <option key={item.id} value={item.id} disabled={chosen.has(item.id) && item.id !== a.resource_id}>
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
                 {/* Show which other events are using this resource at the same time */}
                 {shortage && conflictingNames.length > 0 && (
-                  <p className="mt-1 text-xs text-red-500">
+                  <p className="mt-0.5 text-xs text-red-500">
                     ⚠ גם משתמש/ת: {conflictingNames.join(", ")}
                   </p>
                 )}
               </div>
 
-              {/* Quantity input — no hard cap, shortage warning shown separately */}
-              <div className="w-24">
-                <Field label="כמות">
-                  <input
-                    type="number"
-                    className={inp}
-                    value={a.quantity}
-                    min={1}
-                    onChange={(e) => setField(idx, { quantity: Math.max(1, Number(e.target.value)) })}
-                  />
-                </Field>
-              </div>
+              {/* Quantity */}
+              <input
+                type="number"
+                className="border border-gray-200 rounded-md px-2 py-1 text-sm w-16 focus:outline-none focus:border-teal-400"
+                value={a.quantity}
+                min={1}
+                onChange={(e) => setField(idx, { quantity: Math.max(1, Number(e.target.value)) })}
+              />
 
               {/* Availability hint */}
-              <div className="w-24 text-xs text-center pt-4 shrink-0">
-                {eq && (
-                  shortage ? (
-                    <span className="flex items-center gap-1 text-red-500 font-medium">
-                      <AlertTriangle size={12} />
-                      חסר {a.quantity - available}
-                    </span>
-                  ) : knowsTime ? (
-                    <span className="text-gray-400">פנוי: {available}</span>
-                  ) : (
-                    <span className="text-gray-400">סה״כ: {eq.quantity}</span>
-                  )
-                )}
-              </div>
+              {eq && (
+                shortage ? (
+                  <span className="flex items-center gap-1 text-red-500 font-medium text-xs w-16 shrink-0">
+                    <AlertTriangle size={11} />חסר {a.quantity - available}
+                  </span>
+                ) : (
+                  <span className="text-gray-400 text-xs w-16 shrink-0">
+                    {knowsTime ? `פנוי: ${available}` : `סה״כ: ${eq.quantity}`}
+                  </span>
+                )
+              )}
 
-              <button type="button" onClick={() => remove(idx)} className="mt-4 text-gray-300 hover:text-red-400">
-                <X size={16} />
+              <button type="button" onClick={() => remove(idx)} className="text-gray-300 hover:text-red-400">
+                <X size={15} />
               </button>
             </div>
           );

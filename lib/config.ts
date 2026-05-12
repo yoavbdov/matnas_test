@@ -1,8 +1,8 @@
 import type { AppSettings } from "./types";
 
 export const DEFAULT_SETTINGS: Required<AppSettings> = {
-  MAX_STRING_LENGTH: 15,
-  MAX_NOTE_LENGTH: 400,
+  MAX_STRING_LENGTH: 50,   // all name fields (student, teacher, class, etc.)
+  MAX_NOTE_LENGTH: 300,    // all notes/הערות fields
   MAX_SEARCH_LENGTH: 100,
   MAX_INT_INPUT: 9999,
   MAX_AGE: 120,

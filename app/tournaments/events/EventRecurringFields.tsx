@@ -2,13 +2,14 @@
 import Field from "@/components/shared/Field";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { DAYS } from "@/lib/constants";
+import { validateTimeRange } from "@/lib/validators";
 import type { Room } from "@/lib/types";
 
 interface Props {
-  daysOfWeek: string[];       // ימים שנבחרו
-  startDate: string;          // YYYY-MM-DD — מתי האירוע מתחיל
-  isPermanent: boolean;       // ללא הגבלת זמן
-  endDate: string;            // YYYY-MM-DD — תאריך סיום (מבוטל כאשר isPermanent)
+  daysOfWeek: string[]; // ימים שנבחרו
+  startDate: string; // YYYY-MM-DD — מתי האירוע מתחיל
+  isPermanent: boolean; // ללא הגבלת זמן
+  endDate: string; // YYYY-MM-DD — תאריך סיום (מבוטל כאשר isPermanent)
   startTime: string;
   endTime: string;
   room: string;
@@ -25,9 +26,17 @@ interface Props {
 }
 
 export default function EventRecurringFields({
-  daysOfWeek, startDate, isPermanent, endDate,
-  startTime, endTime, room, rooms, onChange,
+  daysOfWeek,
+  startDate,
+  isPermanent,
+  endDate,
+  startTime,
+  endTime,
+  room,
+  rooms,
+  onChange,
 }: Props) {
+  const timeError = validateTimeRange(startTime, endTime);
 
   function toggleDay(day: string) {
     const updated = daysOfWeek.includes(day)
@@ -38,7 +47,6 @@ export default function EventRecurringFields({
 
   return (
     <div className="space-y-4" dir="rtl">
-
       {/* ימים בשבוע */}
       <Field label="ימי המפגש בשבוע" required>
         <div className="flex flex-wrap gap-2 mt-1">
@@ -78,7 +86,9 @@ export default function EventRecurringFields({
             onChange={(e) => onChange({ isPermanent: e.target.checked })}
             className="w-4 h-4 accent-teal-600"
           />
-          <span className="text-sm font-medium text-gray-700">אירוע תמידי (ללא תאריך סיום)</span>
+          <span className="text-sm font-medium text-gray-700">
+            אירוע תמידי (ללא תאריך סיום)
+          </span>
         </label>
 
         <Field label="תאריך סיום">
@@ -94,7 +104,9 @@ export default function EventRecurringFields({
             onChange={(e) => onChange({ endDate: e.target.value })}
           />
           {isPermanent && (
-            <p className="text-xs text-gray-400 mt-1">האירוע לא יסתיים אוטומטית</p>
+            <p className="text-xs text-gray-400 mt-1">
+              האירוע לא יסתיים אוטומטית
+            </p>
           )}
         </Field>
       </div>
@@ -116,6 +128,7 @@ export default function EventRecurringFields({
           />
         </Field>
       </div>
+      {timeError && <p className="text-xs text-red-500 -mt-2">{timeError}</p>}
 
       {/* חדר */}
       <Field label="חדר" required>
@@ -124,7 +137,6 @@ export default function EventRecurringFields({
           value={room}
           onChange={(e) => onChange({ room: e.target.value })}
         >
-          <option value="">— בחר חדר —</option>
           {rooms.map((r) => (
             <option key={r.id} value={r.name}>
               {r.name}
@@ -132,7 +144,6 @@ export default function EventRecurringFields({
           ))}
         </select>
       </Field>
-
     </div>
   );
 }

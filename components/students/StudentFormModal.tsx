@@ -3,6 +3,7 @@ import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
 import { CHESS_TITLES } from "@/lib/constants";
+import { LIMITS, digitsOnly } from "@/lib/validators";
 import type { Student } from "@/lib/types";
 import type { AppSettings } from "@/lib/types";
 
@@ -45,34 +46,34 @@ export default function StudentFormModal({ mode, form, setForm, saving, onClose,
             <option>פעיל</option><option>לא פעיל</option>
           </select>
         </Field>
-        <Field label="תעודת זהות" hint={`${settings.ID_NUMBER_LENGTH} ספרות`}>
-          <input className={inp} value={form.israeli_id ?? ""} maxLength={settings.ID_NUMBER_LENGTH} onChange={(e) => set("israeli_id", e.target.value)} />
+        <Field label="תעודת זהות" hint={`עד ${LIMITS.ISRAELI_ID} ספרות בלבד`}>
+          <input className={inp} value={form.israeli_id ?? ""} inputMode="numeric" onChange={(e) => set("israeli_id", digitsOnly(e.target.value, LIMITS.ISRAELI_ID))} />
         </Field>
-        <Field label="טלפון">
-          <input className={inp} value={form.phone ?? ""} maxLength={settings.MAX_PHONE_LENGTH} onChange={(e) => set("phone", e.target.value)} />
+        <Field label="טלפון" hint="10 ספרות בלבד">
+          <input className={inp} value={form.phone ?? ""} inputMode="numeric" onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))} />
         </Field>
         <Field label="שם הורה">
           <input className={inp} value={form.parent_name ?? ""} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("parent_name", e.target.value)} />
         </Field>
-        <Field label="טלפון הורה">
-          <input className={inp} value={form.parent_phone ?? ""} maxLength={settings.MAX_PHONE_LENGTH} onChange={(e) => set("parent_phone", e.target.value)} />
+        <Field label="טלפון הורה" hint="10 ספרות בלבד">
+          <input className={inp} value={form.parent_phone ?? ""} inputMode="numeric" onChange={(e) => set("parent_phone", digitsOnly(e.target.value, LIMITS.PHONE))} />
         </Field>
-        <Field label="אימייל">
-          <input type="email" className={inp} value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} />
+        <Field label="אימייל" hint={`עד ${LIMITS.EMAIL} תווים`}>
+          <input type="email" className={inp} value={form.email ?? ""} maxLength={LIMITS.EMAIL} onChange={(e) => set("email", e.target.value)} />
         </Field>
-        <Field label="כתובת">
-          <input className={inp} value={form.address ?? ""} maxLength={settings.MAX_STRING_LENGTH * 2} onChange={(e) => set("address", e.target.value)} />
+        <Field label="כתובת" hint={`עד ${LIMITS.ADDRESS} תווים`}>
+          <input className={inp} value={form.address ?? ""} maxLength={LIMITS.ADDRESS} onChange={(e) => set("address", e.target.value)} />
         </Field>
       </div>
 
       <hr className="my-4 border-gray-100" />
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">פרטי שחמט</p>
       <div className="grid grid-cols-2 gap-4">
-        <Field label="מספר שחקן ישראלי">
-          <input className={inp} value={form.israeli_chess_id ?? ""} onChange={(e) => set("israeli_chess_id", e.target.value)} />
+        <Field label="מספר שחקן ישראלי" hint={`עד ${LIMITS.ISRAELI_CHESS_ID} ספרות`}>
+          <input className={inp} value={form.israeli_chess_id ?? ""} inputMode="numeric" onChange={(e) => set("israeli_chess_id", digitsOnly(e.target.value, LIMITS.ISRAELI_CHESS_ID))} />
         </Field>
-        <Field label="FIDE ID">
-          <input className={inp} value={form.fide_id ?? ""} onChange={(e) => set("fide_id", e.target.value)} />
+        <Field label="FIDE ID" hint={`עד ${LIMITS.FIDE_ID} ספרות`}>
+          <input className={inp} value={form.fide_id ?? ""} inputMode="numeric" onChange={(e) => set("fide_id", digitsOnly(e.target.value, LIMITS.FIDE_ID))} />
         </Field>
         <Field label="דירוג ישראלי">
           <input type="number" className={inp} value={form.israeli_rating ?? ""} min={0} max={settings.MAX_INT_INPUT} onChange={(e) => set("israeli_rating", e.target.value ? Number(e.target.value) : undefined)} />

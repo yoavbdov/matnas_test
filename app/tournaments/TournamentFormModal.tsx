@@ -7,12 +7,12 @@
 import { useState, useMemo } from "react";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import TournamentBasicFields, {
   TournamentFormData,
 } from "./TournamentBasicFields";
 import TournamentRoundsEditor from "./TournamentRoundsEditor";
 import TournamentPlayersPanel from "./TournamentPlayersPanel";
-import FindSuitablePlayersModal from "./FindSuitablePlayersModal";
 import { getConflictingRoundIds, computeTournamentStatus, getRecurringTournamentConflicts } from "@/lib/tournamentHelpers";
 import type {
   Tournament,
@@ -40,6 +40,7 @@ interface Props {
   saving: boolean;
   onClose: () => void;
   onSave: (data: Omit<Tournament, "id">) => Promise<void>;
+  onDelete?: () => void; // only in edit mode
 }
 
 // Build the initial form state for both add and edit modes
@@ -86,10 +87,11 @@ export default function TournamentFormModal({
   saving,
   onClose,
   onSave,
+  onDelete,
 }: Props) {
   const [tab, setTab] = useState<"פרטים " | "סיבובים" | "שחקנים">("פרטים ");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [form, setForm] = useState(() => buildInitial(tournament));
-  const [showFindPlayers, setShowFindPlayers] = useState(false);
 
   // Live conflict detection for rounds (non-recurring tournaments)
   const conflictRoundIds = useMemo(() => {
@@ -188,17 +190,21 @@ export default function TournamentFormModal({
                 ⚠ התנגשות חדר עם: {recurringConflicts.join(", ")}
               </span>
             )}
-            <div className="flex gap-2 mr-auto">
-              <Btn variant="ghost" onClick={onClose} disabled={saving}>
-                ביטול
-              </Btn>
-              <Btn
-                onClick={handleSave}
-                loading={saving}
-                disabled={!form.name.trim()}
-              >
-                {mode === "add" ? "צור תחרות" : "שמור שינויים"}
-              </Btn>
+            <div className="flex items-center gap-2 w-full justify-between">
+              {/* Delete — edit mode only */}
+              {mode === "edit" && onDelete && (
+                <Btn variant="danger" onClick={() => setConfirmDelete(true)} disabled={saving}>
+                  מחק תחרות
+                </Btn>
+              )}
+              <div className="flex gap-2 mr-auto">
+                <Btn variant="ghost" onClick={onClose} disabled={saving}>
+                  ביטול
+                </Btn>
+                <Btn onClick={handleSave} loading={saving} disabled={!form.name.trim()}>
+                  {mode === "add" ? "צור תחרות" : "שמור שינויים"}
+                </Btn>
+              </div>
             </div>
           </div>
         }
@@ -226,7 +232,7 @@ export default function TournamentFormModal({
         </div>
 
         {/* Tab content — fixed height + scroll so the modal never grows */}
-        <div className="h-[420px] overflow-y-auto">
+        <div className="h-105 overflow-y-auto">
         {tab === "פרטים " && (
           <TournamentBasicFields
             form={form}
@@ -261,12 +267,12 @@ export default function TournamentFormModal({
 
         {tab === "שחקנים" && (
           <TournamentPlayersPanel
+            tournamentName={form.name}
             participantIds={form.participant_ids}
             manualParticipants={form.manual_participants}
             allStudents={allStudents}
             onChangeIds={(ids) => patchForm({ participant_ids: ids })}
             onChangeManual={(list) => patchForm({ manual_participants: list })}
-            onFindSuitable={() => setShowFindPlayers(true)}
             ratingMin={form.rating_min}
             ratingMax={form.rating_max}
             ageMin={form.age_min}
@@ -276,19 +282,11 @@ export default function TournamentFormModal({
         </div>
       </Modal>
 
-      {/* Find suitable players sub-modal */}
-      {showFindPlayers && (
-        <FindSuitablePlayersModal
-          allStudents={allStudents}
-          ratingMin={form.rating_min}
-          ratingMax={form.rating_max}
-          ageMin={form.age_min}
-          ageMax={form.age_max}
-          alreadyAddedIds={form.participant_ids}
-          onAdd={(ids) =>
-            patchForm({ participant_ids: [...form.participant_ids, ...ids] })
-          }
-          onClose={() => setShowFindPlayers(false)}
+      {confirmDelete && onDelete && (
+        <ConfirmDialog
+          message={`למחוק את התחרות "${tournament?.name}"? פעולה זו אינה ניתנת לביטול.`}
+          onConfirm={() => { setConfirmDelete(false); onDelete(); }}
+          onCancel={() => setConfirmDelete(false)}
         />
       )}
     </>

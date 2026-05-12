@@ -186,7 +186,6 @@ export default function RoomsPage() {
             onAdd={openAddRoom}
             onImport={() => setImportOpen(true)}
             onExport={exportRoomsCSV}
-            maxSearchLength={settings.MAX_SEARCH_LENGTH}
           />
           <p className="text-xs text-gray-400 mb-3">{filteredRooms.length} חדרים</p>
           <Table columns={roomColumns} rows={filteredRooms} onRowClick={openEditRoom} sortable />
@@ -199,7 +198,6 @@ export default function RoomsPage() {
             maxQuantity={maxQuantity} onFilterMaxQuantity={setMaxQuantity}
             onAdd={openAddEquipment}
             onCheckAvailability={() => setAvailabilityOpen(true)}
-            maxSearchLength={settings.MAX_SEARCH_LENGTH}
           />
           <p className="text-xs text-gray-400 mb-3">{filteredEquipment.length} פריטי ציוד</p>
           <Table columns={equipmentColumns} rows={filteredEquipment} onRowClick={openEditEquipment} sortable />
