@@ -3,7 +3,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Disable Turbopack — use stable Webpack instead
+  turbopack: false,
 };
 
 export default nextConfig;
