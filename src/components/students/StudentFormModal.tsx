@@ -11,7 +11,7 @@ import Btn from "@/components/shared/Btn";
 import { CHESS_TITLES, GRADE_LABELS } from "@/lib/constants";
 import { gradeFromDob } from "@/lib/utils";
 import { LIMITS, digitsOnly } from "@/lib/validators";
-import type { Student, AppSettings } from "@/lib/types";
+import type { Student, AppSettings } from "@/types";
 
 const inp =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";

@@ -20,7 +20,7 @@ import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import { useData } from "@/context/DataContext";
 import { useCollection } from "@/firebase/hooks/useCollection";
 import { getPastSessionDates } from "@/components/attendance/attendanceHelpers";
-import type { Attendance } from "@/lib/types";
+import type { Attendance } from "@/types";
 
 // Today as YYYY-MM-DD (local time)
 function todayString(): string {

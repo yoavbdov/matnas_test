@@ -3,7 +3,7 @@ import Field from "@/components/shared/Field";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { DAYS } from "@/lib/constants";
 import { validateTimeRange } from "@/lib/validators";
-import type { Room } from "@/lib/types";
+import type { Room } from "@/types";
 
 interface Props {
   daysOfWeek: string[]; // ימים שנבחרו

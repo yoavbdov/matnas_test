@@ -14,7 +14,7 @@ import Btn from "@/components/shared/Btn";
 import { addDocument, updateDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { parseAttendanceCsv } from "./parseAttendanceCsv";
-import type { Class, Student, Enrollment, Attendance } from "@/lib/types";
+import type { Class, Student, Enrollment, Attendance } from "@/types";
 
 interface Props {
   classes: Class[];

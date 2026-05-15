@@ -12,7 +12,7 @@ import type {
   Tournament,
   ResourceAssignment,
   ScheduleSlot,
-} from "@/lib/types";
+} from "@/types";
 
 const inp =
   "w-full border border-gray-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";

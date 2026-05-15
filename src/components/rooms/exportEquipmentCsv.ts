@@ -1,5 +1,5 @@
 // ייצוא ציוד לקובץ CSV
-import type { PhysicalEquipment } from "@/lib/types";
+import type { PhysicalEquipment } from "@/types";
 
 function escapeCell(v: string | number): string {
   const s = String(v);

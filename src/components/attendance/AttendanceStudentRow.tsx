@@ -3,7 +3,7 @@
   AttendanceStudentRow — one student in the attendance sheet.
   3-state toggle: null (לא הוזן) → true (נכח) → false (לא נכח) → null
 */
-import type { Student } from "@/lib/types";
+import type { Student } from "@/types";
 
 interface Props {
   student: Student;

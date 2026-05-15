@@ -9,7 +9,7 @@ import { Trash2, Wand2 } from "lucide-react";
 import { autoFillRoundDates } from "@/lib/tournamentHelpers";
 import { validateTimeRange } from "@/lib/validators";
 import TimeSelect from "@/components/shared/TimeSelect";
-import type { TournamentRound, Room } from "@/lib/types";
+import type { TournamentRound, Room } from "@/types";
 
 const inp =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 bg-white";

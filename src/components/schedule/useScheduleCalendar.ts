@@ -11,7 +11,7 @@ import {
 } from "@/lib/crossConflictHelpers";
 import { eventOccursOnDate } from "@/lib/eventHelpers";
 import { timesOverlapLocal, toDateStr, weekOf } from "./schedulePageUtils";
-import type { Class, Tournament, Event, Enrollment, Room, Teacher } from "@/lib/types";
+import type { Class, Tournament, Event, Enrollment, Room, Teacher } from "@/types";
 import type { DayData } from "./calendarTypes";
 
 interface Params {

@@ -6,7 +6,7 @@ import { eventOccursOnDate } from "@/lib/eventHelpers";
 import ViewExistingClassDetailModal from "@/components/classes/ViewExistingClassDetailModal";
 import TournamentDetailModal from "@/components/tournaments/TournamentDetailModal";
 import EventDetailModal from "@/components/tournaments/events/EventDetailModal";
-import type { Class, Tournament, Event } from "@/lib/types";
+import type { Class, Tournament, Event } from "@/types";
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);

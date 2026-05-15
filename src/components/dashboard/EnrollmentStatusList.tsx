@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { useData } from "@/context/DataContext";
 import ViewExistingClassDetailModal from "@/components/classes/ViewExistingClassDetailModal";
-import type { Class } from "@/lib/types";
+import type { Class } from "@/types";
 
 // Color theme per enrollment ratio
 function enrollmentTheme(ratio: number) {

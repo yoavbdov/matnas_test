@@ -1,5 +1,5 @@
 // כרטיס מפגש בלוח זמנים שבועי — מציג שם חוג, שעות, מדריך וחדר
-import type { Class, Teacher, Room, ScheduleSlot } from "@/lib/types";
+import type { Class, Teacher, Room, ScheduleSlot } from "@/types";
 
 interface Props {
   classItem: Class;

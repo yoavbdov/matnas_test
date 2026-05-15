@@ -9,7 +9,7 @@ import { deleteDocument } from "@/firebase/firestore";
 import { formatPhone } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { computeTeacherStatus } from "@/lib/teacherHelpers";
-import type { Teacher, Class, Enrollment, Tournament } from "@/lib/types";
+import type { Teacher, Class, Enrollment, Tournament } from "@/types";
 
 interface Props {
   teacher: Teacher;

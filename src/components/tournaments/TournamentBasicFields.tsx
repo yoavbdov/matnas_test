@@ -3,7 +3,7 @@
 import { CLASS_COLORS } from "@/lib/constants";
 import { LIMITS } from "@/lib/validators";
 import TournamentEquipmentSelect from "./TournamentEquipmentSelect";
-import type { Tournament, Teacher, Class, PhysicalEquipment } from "@/lib/types";
+import type { Tournament, Teacher, Class, PhysicalEquipment } from "@/types";
 
 const inp =
   "border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";

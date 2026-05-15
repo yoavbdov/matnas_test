@@ -2,7 +2,7 @@
 // Keeps page.tsx free of useState calls
 
 import { useState } from "react";
-import type { Class, Tournament, Event } from "@/lib/types";
+import type { Class, Tournament, Event } from "@/types";
 import type { ContextMenuTarget } from "./ScheduleContextMenu";
 
 export function useScheduleModals() {

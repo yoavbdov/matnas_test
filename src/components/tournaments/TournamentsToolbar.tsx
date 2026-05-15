@@ -4,7 +4,7 @@ import SearchInput from "@/components/shared/SearchInput";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import { Plus, CalendarCheck } from "lucide-react";
-import type { Tournament } from "@/lib/types";
+import type { Tournament } from "@/types";
 
 const STATUS_OPTIONS: Array<Tournament["status"] | "הכל"> = [
   "הכל", "מתוכנן", "פעיל", "הסתיים", "בוטל",

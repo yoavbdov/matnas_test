@@ -1,5 +1,5 @@
 // Local types used across the calendar components
-import type { Class, Teacher, Room, ScheduleSlot, Tournament, TournamentRound, Event } from "@/lib/types";
+import type { Class, Teacher, Room, ScheduleSlot, Tournament, TournamentRound, Event } from "@/types";
 
 /** A single class event to render in the calendar grid */
 export interface CalendarEventData {

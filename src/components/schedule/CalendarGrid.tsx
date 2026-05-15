@@ -5,7 +5,7 @@ import TimeColumn from "./TimeColumn";
 import DayColumn from "./DayColumn";
 import DayHeaderRow from "./DayHeaderRow";
 import type { DayData } from "./calendarTypes";
-import type { Class, Tournament, Event, TournamentRound } from "@/lib/types";
+import type { Class, Tournament, Event, TournamentRound } from "@/types";
 
 interface Props {
   days: DayData[];

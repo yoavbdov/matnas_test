@@ -8,7 +8,7 @@
   Dates come from getPastSessionDates (newest-first) — we reverse them for the export.
   We only include sessions that appear in the attendance collection (recorded sessions).
 */
-import type { Student, Enrollment, Attendance, Class } from "@/lib/types";
+import type { Student, Enrollment, Attendance, Class } from "@/types";
 import { getPastSessionDates } from "./attendanceHelpers";
 
 // Format YYYY-MM-DD → DD.M.YYYY (Israeli convention, no leading zero on month/day)

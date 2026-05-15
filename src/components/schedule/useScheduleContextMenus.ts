@@ -2,7 +2,7 @@
 // for each entity type (class, tournament, event)
 
 import { updateDocument, deleteDocument, deleteWhere } from "@/firebase/firestore";
-import type { Class, Tournament, TournamentRound, Event as AppEvent } from "@/lib/types";
+import type { Class, Tournament, TournamentRound, Event as AppEvent } from "@/types";
 import type { ContextMenuTarget } from "./ScheduleContextMenu";
 
 // Note: this is not a React hook — it's a factory that returns plain functions.

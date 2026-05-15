@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase";
-import type { Attendance } from "@/lib/types";
+import type { Attendance } from "@/types";
 
 export function useAttendance(classId: string) {
   const [data, setData] = useState<Attendance[]>([]);

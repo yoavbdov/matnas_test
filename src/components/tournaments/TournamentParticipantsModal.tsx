@@ -5,7 +5,7 @@
 */
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
-import type { Tournament, Student } from "@/lib/types";
+import type { Tournament, Student } from "@/types";
 
 interface Props {
   tournament: Tournament;

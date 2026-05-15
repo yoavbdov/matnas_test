@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { computeStudentStatus } from "@/lib/studentHelpers";
 import { effectiveGrade, parseStatusParam } from "./studentsUtils";
-import type { Student, Enrollment, Tournament, LeagueGroupMember, LeagueGroup, AppSettings } from "@/lib/types";
+import type { Student, Enrollment, Tournament, LeagueGroupMember, LeagueGroup, AppSettings } from "@/types";
 import type { SortCol, SortDir } from "./StudentsTable";
 
 // URL param values that pre-fill the filters on mount (e.g. ?status=active&minRating=1200)

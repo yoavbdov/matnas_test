@@ -1,6 +1,6 @@
 // Build and download a CSV of the given teachers list
 import { computeTeacherStatus } from "@/lib/teacherHelpers";
-import type { Teacher, Class, Tournament } from "@/lib/types";
+import type { Teacher, Class, Tournament } from "@/types";
 
 export function exportTeachersCsv(
   teachers: Teacher[],

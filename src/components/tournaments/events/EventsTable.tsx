@@ -1,5 +1,5 @@
 // טבלת אירועים — מציגה כל האירועים עם פרטים בסיסיים
-import type { Event } from "@/lib/types";
+import type { Event } from "@/types";
 import { formatRecurringEventSummary } from "@/lib/eventHelpers";
 
 interface Props {

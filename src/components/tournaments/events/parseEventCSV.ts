@@ -1,5 +1,5 @@
 // ניתוח קובץ CSV לייבוא אירועים
-import type { Event } from "@/lib/types";
+import type { Event } from "@/types";
 
 export interface ParsedEventRow {
   lineNum: number;

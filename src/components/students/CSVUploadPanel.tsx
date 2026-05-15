@@ -10,7 +10,7 @@ import {
   TEMPLATE_HEADERS,
   TEMPLATE_EXAMPLE,
 } from "./parseStudentCSV";
-import type { AppSettings } from "@/lib/types";
+import type { AppSettings } from "@/types";
 
 interface Props {
   onClose: () => void;

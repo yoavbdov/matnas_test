@@ -8,7 +8,7 @@ import { addDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { parseClassCSV, CLASS_TEMPLATE_HEADERS, CLASS_TEMPLATE_EXAMPLE } from "./parseClassCSV";
 import { CLASS_COLORS } from "@/lib/constants";
-import type { Teacher } from "@/lib/types";
+import type { Teacher } from "@/types";
 
 interface Props {
   teachers: Teacher[];

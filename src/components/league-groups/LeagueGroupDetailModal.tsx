@@ -13,7 +13,7 @@ import type {
   LeagueGroupMember,
   Student,
   AppSettings,
-} from "@/lib/types";
+} from "@/types";
 
 interface Props {
   group: LeagueGroup;

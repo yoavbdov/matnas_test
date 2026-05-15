@@ -1,5 +1,5 @@
 // ייצוא תחרויות לקובץ CSV — שדות בסיסיים (ללא סיבובים/משתתפים)
-import type { Tournament } from "@/lib/types";
+import type { Tournament } from "@/types";
 
 function escapeCell(v: string | number): string {
   const s = String(v);

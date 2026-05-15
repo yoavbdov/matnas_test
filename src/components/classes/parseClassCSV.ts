@@ -2,7 +2,7 @@
 // שדות חובה: שם החוג, שם המדריך (לפי "שם פרטי שם משפחה"), קיבולת
 // שים לב: מפגשים (slots) וציוד (resources) לא ניתן לייבא מ-CSV — יש להוסיפם ידנית דרך הטופס
 
-import type { Teacher } from "@/lib/types";
+import type { Teacher } from "@/types";
 
 export interface ParsedClassRow {
   lineNum: number;

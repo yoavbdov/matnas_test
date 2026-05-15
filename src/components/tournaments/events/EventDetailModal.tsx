@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatRecurringEventSummary } from "@/lib/eventHelpers";
 import { DAYS } from "@/lib/constants";
-import type { Event } from "@/lib/types";
+import type { Event } from "@/types";
 
 interface Props {
   event: Event;

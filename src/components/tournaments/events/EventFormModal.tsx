@@ -13,7 +13,7 @@ import { getEventConflicts } from "@/lib/eventHelpers";
 import { LIMITS, validateTimeRange, VALIDATION_ERRORS } from "@/lib/validators";
 import EventOneTimeFields from "./EventOneTimeFields";
 import EventRecurringFields from "./EventRecurringFields";
-import type { Event, Class, Tournament, Room } from "@/lib/types";
+import type { Event, Class, Tournament, Room } from "@/types";
 
 interface Props {
   mode: "add" | "edit";

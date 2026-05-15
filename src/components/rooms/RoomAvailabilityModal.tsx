@@ -9,7 +9,7 @@ import { X, CalendarCheck } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { checkRoomAvailability } from "@/lib/roomAvailability";
-import type { Room, Class, Tournament, Event } from "@/lib/types";
+import type { Room, Class, Tournament, Event } from "@/types";
 
 interface Props {
   rooms: Room[];

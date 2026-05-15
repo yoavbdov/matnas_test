@@ -7,7 +7,7 @@ import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
 import SearchInput from "@/components/shared/SearchInput";
 import { GRADE_LABELS } from "@/lib/constants";
-import type { Class } from "@/lib/types";
+import type { Class } from "@/types";
 
 // סגנון קבוע ל-select
 const sel = "border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 bg-white";

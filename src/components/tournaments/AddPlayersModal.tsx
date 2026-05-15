@@ -13,7 +13,7 @@ import { useState, useRef, useEffect } from "react";
 import { X, AlertTriangle, UserPlus, Search } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
-import type { Student, ManualParticipant } from "@/lib/types";
+import type { Student, ManualParticipant } from "@/types";
 
 interface Props {
   allStudents: Student[];

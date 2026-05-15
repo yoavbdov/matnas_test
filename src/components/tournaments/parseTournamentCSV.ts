@@ -1,5 +1,5 @@
 // ניתוח קובץ CSV לייבוא תחרויות
-import type { Tournament } from "@/lib/types";
+import type { Tournament } from "@/types";
 
 export interface ParsedTournamentRow {
   lineNum: number;

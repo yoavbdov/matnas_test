@@ -6,7 +6,7 @@
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
 import { fmtDate } from "@/lib/utils";
-import type { TournamentRound } from "@/lib/types";
+import type { TournamentRound } from "@/types";
 
 interface Props {
   tournamentName: string;

@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
 import { validateTimeRange } from "@/lib/validators";
-import type { Tournament, Event } from "@/lib/types";
+import type { Tournament, Event } from "@/types";
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);

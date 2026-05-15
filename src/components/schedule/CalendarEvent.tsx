@@ -1,7 +1,7 @@
 // A single class event block, absolutely positioned inside a DayColumn
 import { timeToMinutes, minutesToPx } from "./calendarUtils";
 import type { CalendarEventData } from "./calendarTypes";
-import type { Class } from "@/lib/types";
+import type { Class } from "@/types";
 
 interface Props extends CalendarEventData {
   colIndex: number; // which column within a day (for overlapping events)

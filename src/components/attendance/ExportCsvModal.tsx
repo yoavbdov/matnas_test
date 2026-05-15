@@ -5,7 +5,7 @@
 */
 import { useState } from "react";
 import { exportAttendanceCsv } from "./exportAttendanceCsv";
-import type { Class, Student, Enrollment, Attendance } from "@/lib/types";
+import type { Class, Student, Enrollment, Attendance } from "@/types";
 
 interface Props {
   classes: Class[];

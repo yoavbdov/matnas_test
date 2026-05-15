@@ -3,7 +3,7 @@
 
 import { CHESS_TITLES, GRADE_LABELS } from "@/lib/constants";
 import { formatPhone } from "@/lib/utils";
-import type { AppSettings } from "@/lib/types";
+import type { AppSettings } from "@/types";
 
 export interface ParsedRow {
   lineNum: number;

@@ -1,5 +1,5 @@
 // ניתוח קובץ CSV לייבוא קבוצות ליגה
-import type { LeagueGroup, LeagueCategory, LeagueType } from "@/lib/types";
+import type { LeagueGroup, LeagueCategory, LeagueType } from "@/types";
 
 export interface ParsedLeagueGroupRow {
   lineNum: number;

@@ -12,7 +12,7 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import TournamentRoundsModal from "./TournamentRoundsModal";
 import TournamentParticipantsModal from "./TournamentParticipantsModal";
 import { isTournamentResourceOverbooked } from "@/lib/classHelpers";
-import type { Tournament, Student, Teacher, PhysicalEquipment, Class } from "@/lib/types";
+import type { Tournament, Student, Teacher, PhysicalEquipment, Class } from "@/types";
 
 interface Props {
   tournament: Tournament;

@@ -2,7 +2,7 @@
 // based on the user's active filter selection
 
 import { useState, useMemo } from "react";
-import type { Class, Tournament, Enrollment, Room, Student, Teacher } from "@/lib/types";
+import type { Class, Tournament, Enrollment, Room, Student, Teacher } from "@/types";
 import type { ActiveFilter, FilterOption } from "./ScheduleFilterBar";
 
 interface Params {

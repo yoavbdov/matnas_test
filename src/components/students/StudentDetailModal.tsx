@@ -18,7 +18,7 @@ import type {
   Tournament,
   LeagueGroup,
   LeagueGroupMember,
-} from "@/lib/types";
+} from "@/types";
 import type { StudentStatus } from "@/lib/studentHelpers";
 
 interface Props {

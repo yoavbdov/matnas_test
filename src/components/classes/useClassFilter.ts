@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import type { Class, Enrollment, Teacher } from "@/lib/types";
+import type { Class, Enrollment, Teacher } from "@/types";
 import type { SortCol, SortDir } from "./ClassesTable";
 
 // Hebrew day names — index matches getDay() (0=Sunday)

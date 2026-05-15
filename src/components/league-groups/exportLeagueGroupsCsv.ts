@@ -1,5 +1,5 @@
 // ייצוא קבוצות ליגה לקובץ CSV
-import type { LeagueGroup } from "@/lib/types";
+import type { LeagueGroup } from "@/types";
 
 function escapeCell(v: string): string {
   if (v.includes(",") || v.includes('"') || v.includes("\n")) {

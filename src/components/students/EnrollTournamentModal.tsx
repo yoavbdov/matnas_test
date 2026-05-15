@@ -8,7 +8,7 @@ import { calcAge } from "@/lib/utils";
 import { updateDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { AlertTriangle } from "lucide-react";
-import type { Student, Tournament } from "@/lib/types";
+import type { Student, Tournament } from "@/types";
 
 interface Props {
   student: Student;

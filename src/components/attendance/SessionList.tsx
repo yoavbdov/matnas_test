@@ -8,7 +8,7 @@
     - ⚠ amber if attendance is missing
   Clicking a session selects it for editing in the right panel.
 */
-import type { Attendance } from "@/lib/types";
+import type { Attendance } from "@/types";
 import { formatHebrewDate } from "./attendanceHelpers";
 
 interface Props {

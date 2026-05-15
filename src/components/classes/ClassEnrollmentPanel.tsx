@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { slotsOverlapTime } from "@/lib/classHelpers";
 import { timeToMins } from "@/lib/utils";
-import type { Student, Enrollment, Class, Tournament, ScheduleSlot } from "@/lib/types";
+import type { Student, Enrollment, Class, Tournament, ScheduleSlot } from "@/types";
 
 // Hebrew day names indexed by JS getDay() (0=Sunday)
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];

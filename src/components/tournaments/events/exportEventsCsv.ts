@@ -1,5 +1,5 @@
 // ייצוא אירועים לקובץ CSV
-import type { Event } from "@/lib/types";
+import type { Event } from "@/types";
 
 function escapeCell(v: string | number): string {
   const s = String(v);

@@ -9,7 +9,7 @@ import Btn from "@/components/shared/Btn";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
-import type { Class, Student, Enrollment } from "@/lib/types";
+import type { Class, Student, Enrollment } from "@/types";
 
 interface Props {
   classItem: Class;

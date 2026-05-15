@@ -18,7 +18,7 @@ import type {
   LeagueGroup,
   LeagueGroupMember,
   AppSettings,
-} from "@/lib/types";
+} from "@/types";
 import { DEFAULT_SETTINGS } from "@/lib/config";
 
 interface DataContextProps {

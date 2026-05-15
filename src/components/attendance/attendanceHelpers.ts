@@ -5,7 +5,7 @@
   Uses the existing slotOccursOnDate helper from scheduleHelpers.
 */
 import { slotOccursOnDate } from "@/lib/scheduleHelpers";
-import type { Class } from "@/lib/types";
+import type { Class } from "@/types";
 
 // Format a Date object as YYYY-MM-DD (local time, not UTC)
 function toDateStr(d: Date): string {

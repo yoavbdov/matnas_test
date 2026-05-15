@@ -9,7 +9,7 @@ import TimeSelect from "@/components/shared/TimeSelect";
 import { RECURRENCE_OPTIONS } from "@/lib/constants";
 import { slotsConflict } from "@/lib/classHelpers";
 import { findStructuralTournamentConflict } from "@/lib/crossConflictHelpers";
-import type { Room, ScheduleSlot, Class, Tournament } from "@/lib/types";
+import type { Room, ScheduleSlot, Class, Tournament } from "@/types";
 
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 

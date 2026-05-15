@@ -24,7 +24,7 @@ import type {
   Tournament,
   Student,
   Enrollment,
-} from "@/lib/types";
+} from "@/types";
 
 type FormData = Omit<Class, "id">;
 

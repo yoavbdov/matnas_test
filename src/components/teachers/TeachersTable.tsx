@@ -6,7 +6,7 @@ import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import Badge from "@/components/shared/Badge";
 import { formatPhone } from "@/lib/utils";
 import { computeTeacherStatus } from "@/lib/teacherHelpers";
-import type { Teacher, Class, Tournament } from "@/lib/types";
+import type { Teacher, Class, Tournament } from "@/types";
 
 type SortKey = "name" | "phone" | "activeClasses" | "status";
 type SortDir = "asc" | "desc";

@@ -5,7 +5,7 @@ import SearchInput from "@/components/shared/SearchInput";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
-import type { Teacher } from "@/lib/types";
+import type { Teacher } from "@/types";
 
 const DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 

@@ -7,7 +7,7 @@ import { useState } from "react";
 import { X, AlertTriangle, UserPlus } from "lucide-react";
 import AddPlayersModal from "./AddPlayersModal";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
-import type { Student, ManualParticipant } from "@/lib/types";
+import type { Student, ManualParticipant } from "@/types";
 
 interface Props {
   tournamentName: string;

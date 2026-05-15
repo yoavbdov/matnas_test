@@ -1,5 +1,5 @@
 // Build and download a CSV of the given rooms list
-import type { Room } from "@/lib/types";
+import type { Room } from "@/types";
 
 export function exportRoomsCsv(rooms: Room[]) {
   const headers = ["שם החדר", "קיבולת", "מספר חדר", "תכונות", "הערות"];

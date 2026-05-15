@@ -1,7 +1,7 @@
 // Single column in the league groups page.
 // Shows all groups for one category (בוגרים / נוער / נשים), sorted by league tier.
 
-import type { LeagueGroup, LeagueGroupMember, LeagueType } from "@/lib/types";
+import type { LeagueGroup, LeagueGroupMember, LeagueType } from "@/types";
 
 // Display order for each possible tier (lower index = lower tier)
 const TIER_ORDER: LeagueType[] = ["ג", "ב", "א", "מחוזית", "ארצית", "לאומית", "עילית"];

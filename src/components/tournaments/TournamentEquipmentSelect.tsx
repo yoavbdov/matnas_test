@@ -10,7 +10,7 @@ import {
   getConflictingNamesAtWindow,
   getConflictingNamesOnDate,
 } from "@/lib/classHelpers";
-import type { PhysicalEquipment, Class, Tournament, ResourceAssignment } from "@/lib/types";
+import type { PhysicalEquipment, Class, Tournament, ResourceAssignment } from "@/types";
 
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 

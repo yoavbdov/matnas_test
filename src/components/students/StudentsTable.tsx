@@ -9,7 +9,7 @@ import type {
   LeagueGroup,
   LeagueGroupMember,
   AppSettings,
-} from "@/lib/types";
+} from "@/types";
 
 export type SortCol =
   | "name"

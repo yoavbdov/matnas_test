@@ -18,7 +18,7 @@ function dayFromDate(dateStr: string): string {
   return HEBREW_DAYS[new Date(y, m - 1, d).getDay()];
 }
 import { slotsConflict } from "@/lib/classHelpers";
-import type { Room, ScheduleSlot, Class, Tournament } from "@/lib/types";
+import type { Room, ScheduleSlot, Class, Tournament } from "@/types";
 
 const inp =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";

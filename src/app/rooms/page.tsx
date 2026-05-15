@@ -15,7 +15,7 @@ import { exportRoomsCsv } from "@/components/rooms/exportRoomsCsv";
 import { exportEquipmentCsv } from "@/components/rooms/exportEquipmentCsv";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import type { Room, PhysicalEquipment, Event } from "@/lib/types";
+import type { Room, PhysicalEquipment, Event } from "@/types";
 import { useCollection } from "@/firebase/hooks/useCollection";
 import { useRoomState } from "@/components/rooms/useRoomState";
 

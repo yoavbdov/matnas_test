@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
-import type { Room, PhysicalEquipment } from "@/lib/types";
+import type { Room, PhysicalEquipment } from "@/types";
 
 type ActiveTab = "rooms" | "equipment";
 

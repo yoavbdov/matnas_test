@@ -8,7 +8,7 @@ import { calcAge } from "@/lib/utils";
 import { addDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { AlertTriangle } from "lucide-react";
-import type { Student, Class, Enrollment } from "@/lib/types";
+import type { Student, Class, Enrollment } from "@/types";
 
 interface Props {
   student: Student;

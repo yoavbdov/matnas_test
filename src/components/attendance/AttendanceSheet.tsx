@@ -16,7 +16,7 @@ import type {
   Enrollment,
   Attendance,
   AttendanceRecord,
-} from "@/lib/types";
+} from "@/types";
 
 interface Props {
   classId: string;

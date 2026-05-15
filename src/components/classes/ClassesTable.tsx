@@ -1,6 +1,6 @@
 // טבלת החוגים — כל שורה היא חוג אחד, כל כותרת עמודה ניתנת למיון
 import Badge from "@/components/shared/Badge";
-import type { Class, Teacher, Enrollment } from "@/lib/types";
+import type { Class, Teacher, Enrollment } from "@/types";
 
 export type SortCol = "name" | "teacher" | "enrolled" | "capacity" | "days" | "status";
 export type SortDir = "asc" | "desc";

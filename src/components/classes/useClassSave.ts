@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
 import { computeClassStatus } from "@/lib/classHelpers";
-import type { Class } from "@/lib/types";
+import type { Class } from "@/types";
 import type { EnrollmentChanges } from "./ClassFormModal";
 
 interface Deps {

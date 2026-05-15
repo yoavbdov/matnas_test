@@ -1,7 +1,7 @@
 // Displays the list of league groups as a sortable table.
 // Clicking a row opens the detail/members modal.
 
-import type { LeagueGroup, LeagueGroupMember } from "@/lib/types";
+import type { LeagueGroup, LeagueGroupMember } from "@/types";
 
 interface Props {
   groups: LeagueGroup[];

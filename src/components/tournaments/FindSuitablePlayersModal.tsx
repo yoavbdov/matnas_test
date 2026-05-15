@@ -12,7 +12,7 @@ import { Download, AlertTriangle } from "lucide-react";
 import SearchInput from "@/components/shared/SearchInput";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
-import type { Student } from "@/lib/types";
+import type { Student } from "@/types";
 
 interface Props {
   allStudents: Student[];

@@ -18,7 +18,7 @@ import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { exportLeagueGroupsCsv } from "@/components/league-groups/exportLeagueGroupsCsv";
-import type { LeagueGroup, LeagueCategory } from "@/lib/types";
+import type { LeagueGroup, LeagueCategory } from "@/types";
 
 // Default empty form for a new group (no category pre-selected)
 function emptyForm(): Omit<LeagueGroup, "id"> {

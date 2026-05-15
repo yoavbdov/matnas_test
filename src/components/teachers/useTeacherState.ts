@@ -5,7 +5,7 @@ import { addDocument, updateDocument } from "@/firebase/firestore";
 import { formatPhone } from "@/lib/utils";
 import { validatePhone, VALIDATION_ERRORS } from "@/lib/validators";
 import { computeTeacherStatus } from "@/lib/teacherHelpers";
-import type { Teacher, Class, Tournament, AppSettings } from "@/lib/types";
+import type { Teacher, Class, Tournament, AppSettings } from "@/types";
 
 function emptyForm(): Omit<Teacher, "id"> {
   return { first_name: "", last_name: "", certifications: [] };

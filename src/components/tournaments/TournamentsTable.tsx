@@ -2,7 +2,7 @@
 import Badge from "@/components/shared/Badge";
 import { fmtDate } from "@/lib/utils";
 import { computeTournamentStatus } from "@/lib/tournamentHelpers";
-import type { Tournament } from "@/lib/types";
+import type { Tournament } from "@/types";
 
 interface Props {
   tournaments: Tournament[];

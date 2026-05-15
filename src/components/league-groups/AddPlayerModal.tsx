@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import Modal from "@/components/shared/Modal";
 import SearchInput from "@/components/shared/SearchInput";
 import Btn from "@/components/shared/Btn";
-import type { Student, LeagueGroupMember } from "@/lib/types";
+import type { Student, LeagueGroupMember } from "@/types";
 
 interface Props {
   groupId: string;

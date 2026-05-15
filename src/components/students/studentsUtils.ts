@@ -2,7 +2,7 @@
 
 import { computeStudentStatus } from "@/lib/studentHelpers";
 import { gradeFromDob } from "@/lib/utils";
-import type { Student, Enrollment, Tournament, LeagueGroupMember } from "@/lib/types";
+import type { Student, Enrollment, Tournament, LeagueGroupMember } from "@/types";
 
 // Map URL param value (e.g. ?status=active) to the Hebrew filter label
 export function parseStatusParam(

@@ -8,7 +8,7 @@ import {
   getClassIdsWithTournamentConflicts,
   getTournamentIdsWithClassConflicts,
 } from "@/lib/crossConflictHelpers";
-import type { Class, Tournament, Event, Enrollment, Room } from "@/lib/types";
+import type { Class, Tournament, Event, Enrollment, Room } from "@/types";
 
 interface Params {
   classes: Class[];

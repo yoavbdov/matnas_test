@@ -5,7 +5,7 @@ import CalendarEvent from "./CalendarEvent";
 import TournamentCalendarEvent from "./TournamentCalendarEvent";
 import EventCalendarEvent from "./EventCalendarEvent";
 import type { CalendarEventData, TournamentEventData, EventCalendarData, DayData } from "./calendarTypes";
-import type { Class, Tournament, Event, TournamentRound } from "@/lib/types";
+import type { Class, Tournament, Event, TournamentRound } from "@/types";
 
 interface Props {
   day: DayData;

@@ -10,7 +10,7 @@ import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { checkTeacherAvailability } from "@/lib/teacherAvailability";
 import { formatPhone } from "@/lib/utils";
-import type { Teacher, Class } from "@/lib/types";
+import type { Teacher, Class } from "@/types";
 
 interface Props {
   teachers: Teacher[];

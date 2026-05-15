@@ -1,7 +1,7 @@
 // Export the visible classes list as a CSV file
 // Separated from page.tsx to keep that file lean
 
-import type { Class, Enrollment, PhysicalEquipment, Teacher } from "@/lib/types";
+import type { Class, Enrollment, PhysicalEquipment, Teacher } from "@/types";
 
 export function exportClassesCsv(
   classes: Class[],

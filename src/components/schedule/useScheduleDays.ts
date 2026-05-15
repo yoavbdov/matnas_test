@@ -6,7 +6,7 @@ import { getSlotsForDates, slotOccursOnDate } from "@/lib/scheduleHelpers";
 import { recurringTournamentOccursOnDate } from "@/lib/tournamentHelpers";
 import { eventOccursOnDate } from "@/lib/eventHelpers";
 import { timesOverlapLocal, toDateStr, weekOf } from "./schedulePageUtils";
-import type { Class, Tournament, Event, Enrollment, Room, Teacher } from "@/lib/types";
+import type { Class, Tournament, Event, Enrollment, Room, Teacher } from "@/types";
 import type { DayData } from "./calendarTypes";
 
 interface Params {

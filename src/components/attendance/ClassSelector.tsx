@@ -4,7 +4,7 @@
   Shows all active classes. Clicking one selects it.
   Shows a badge count of how many sessions are missing attendance.
 */
-import type { Class, Attendance, Enrollment } from "@/lib/types";
+import type { Class, Attendance, Enrollment } from "@/types";
 import { getPastSessionDates } from "./attendanceHelpers";
 
 interface Props {

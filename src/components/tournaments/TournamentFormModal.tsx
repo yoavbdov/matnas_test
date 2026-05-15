@@ -25,7 +25,7 @@ import type {
   PhysicalEquipment,
   ResourceAssignment,
   Event,
-} from "@/lib/types";
+} from "@/types";
 
 interface Props {
   mode: "add" | "edit";
