@@ -4,13 +4,18 @@
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LIMITS } from "@/lib/validation/validators";
 import type { LeagueGroup, LeagueCategory, LeagueType } from "@/types";
 import { DEFAULT_SETTINGS } from "@/lib/config/config";
-
-// Shared input style — matches all other form modals in the app
-const inp =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 // League type options per category, ordered lowest → highest
 const LEAGUE_TYPES: Record<LeagueCategory, LeagueType[]> = {
@@ -40,12 +45,10 @@ export default function LeagueGroupFormModal({
   onSave,
   settings,
 }: Props) {
-  // Shorthand to update a single field
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm({ ...form, [key]: value });
   }
 
-  // When category changes, reset leagueType to the first valid option for that category
   function handleCategoryChange(cat: LeagueCategory) {
     setForm({ ...form, category: cat, leagueType: LEAGUE_TYPES[cat][0] });
   }
@@ -64,80 +67,87 @@ export default function LeagueGroupFormModal({
       }
     >
       <div className="space-y-4">
-        {/* Category — בוגרים / נוער / נשים */}
+        {/* Category */}
         <Field label="קטגוריה" required>
-          <select
-            value={form.category ?? ""}
-            onChange={(e) => handleCategoryChange(e.target.value as LeagueCategory)}
-            className={inp}
+          <Select
+            value={form.category ?? "__select__"}
+            onValueChange={(v: string) => handleCategoryChange(v as LeagueCategory)}
           >
-            <option value="" disabled>בחר קטגוריה...</option>
-            <option value="בוגרים">בוגרים</option>
-            <option value="נוער">נוער</option>
-            <option value="נשים">נשים</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__select__" disabled>בחר קטגוריה...</SelectItem>
+              <SelectItem value="בוגרים">בוגרים</SelectItem>
+              <SelectItem value="נוער">נוער</SelectItem>
+              <SelectItem value="נשים">נשים</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
 
         {/* League type — depends on selected category */}
         {form.category && (
           <Field label="דרגת ליגה" required>
-            <select
+            <Select
               value={form.leagueType ?? ""}
-              onChange={(e) => set("leagueType", e.target.value as LeagueType)}
-              className={inp}
+              onValueChange={(v: string) => set("leagueType", v as LeagueType)}
             >
-              {availableTypes.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTypes.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         )}
 
-        {/* Name — required */}
+        {/* Name */}
         <Field label="שם הקבוצה" required>
-          <input
-            type="text"
+          <Input
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             maxLength={settings.MAX_STRING_LENGTH}
-            className={inp}
             placeholder="לדוגמה: קבוצה א' נוער"
           />
         </Field>
 
         {/* Description */}
         <Field label="תיאור" hint={`עד ${LIMITS.DESCRIPTION} תווים`}>
-          <input
-            type="text"
+          <Input
             value={form.description ?? ""}
             onChange={(e) => set("description", e.target.value)}
             maxLength={LIMITS.DESCRIPTION}
-            className={inp}
           />
         </Field>
 
         {/* Status */}
         <Field label="סטטוס">
-          <select
+          <Select
             value={form.status}
-            onChange={(e) => set("status", e.target.value as "פעיל" | "לא פעיל")}
-            className={inp}
+            onValueChange={(v: string) => set("status", v as "פעיל" | "לא פעיל")}
           >
-            <option value="פעיל">פעיל</option>
-            <option value="לא פעיל">לא פעיל</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="פעיל">פעיל</SelectItem>
+              <SelectItem value="לא פעיל">לא פעיל</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
 
         <hr className="border-gray-100" />
 
         {/* Notes */}
         <Field label="הערות">
-          <textarea
+          <Textarea
             value={form.notes ?? ""}
             onChange={(e) => set("notes", e.target.value)}
             maxLength={settings.MAX_NOTE_LENGTH}
             rows={3}
-            className={inp + " resize-none"}
           />
         </Field>
       </div>

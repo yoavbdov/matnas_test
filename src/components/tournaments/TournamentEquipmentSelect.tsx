@@ -4,6 +4,15 @@
 // כשאין תאריך (תחרות חוזרת ללא עיגון): מציג זמינות לפי יום השבוע
 import { Plus, X, AlertTriangle } from "lucide-react";
 import Btn from "@/components/shared/Btn";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import {
   calcUsedAtWindow,
   calcUsedOnDate,
@@ -13,8 +22,6 @@ import {
 import type { PhysicalEquipment, Class, Tournament, ResourceAssignment } from "@/types";
 
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
-const inp = "w-full border border-gray-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   assignments: ResourceAssignment[];
@@ -127,28 +134,36 @@ export default function TournamentEquipmentSelect({
             >
               {/* Equipment selector */}
               <div className="flex-1">
-                <select
-                  className={inp}
+                <Select
                   value={a.resource_id}
-                  onChange={(e) => setField(idx, { resource_id: e.target.value, quantity: 1 })}
+                  onValueChange={(v: string) => setField(idx, { resource_id: v, quantity: 1 })}
                 >
-                  {physicalEquipment.map((item) => {
-                    const itemUsed = knowsTime
-                      ? (date
-                          ? calcUsedOnDate(item.id, date, startTime!, endTime!, allClasses, allTournaments, currentTournamentId)
-                          : calcUsedAtWindow(item.id, day!, startTime!, endTime!, allClasses, undefined, allTournaments, currentTournamentId))
-                      : 0;
-                    const itemAvailable = item.quantity - itemUsed;
-                    const label = knowsTime
-                      ? `${item.name} (פנוי: ${itemAvailable})`
-                      : `${item.name} (סה״כ: ${item.quantity})`;
-                    return (
-                      <option key={item.id} value={item.id} disabled={chosen.has(item.id) && item.id !== a.resource_id}>
-                        {label}
-                      </option>
-                    );
-                  })}
-                </select>
+                  <SelectTrigger className="w-full h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {physicalEquipment.map((item) => {
+                      const itemUsed = knowsTime
+                        ? (date
+                            ? calcUsedOnDate(item.id, date, startTime!, endTime!, allClasses, allTournaments, currentTournamentId)
+                            : calcUsedAtWindow(item.id, day!, startTime!, endTime!, allClasses, undefined, allTournaments, currentTournamentId))
+                        : 0;
+                      const itemAvailable = item.quantity - itemUsed;
+                      const label = knowsTime
+                        ? `${item.name} (פנוי: ${itemAvailable})`
+                        : `${item.name} (סה״כ: ${item.quantity})`;
+                      return (
+                        <SelectItem
+                          key={item.id}
+                          value={item.id}
+                          disabled={chosen.has(item.id) && item.id !== a.resource_id}
+                        >
+                          {label}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
                 {/* Show which other events are using this resource at the same time */}
                 {shortage && conflictingNames.length > 0 && (
                   <p className="mt-0.5 text-xs text-red-500">
@@ -158,9 +173,9 @@ export default function TournamentEquipmentSelect({
               </div>
 
               {/* Quantity */}
-              <input
+              <Input
                 type="number"
-                className="border border-gray-200 rounded-md px-2 py-1 text-sm w-16 focus:outline-none focus:border-teal-400"
+                className="w-16 h-8 text-sm"
                 value={a.quantity}
                 min={1}
                 onChange={(e) => setField(idx, { quantity: Math.max(1, Number(e.target.value)) })}
@@ -179,9 +194,15 @@ export default function TournamentEquipmentSelect({
                 )
               )}
 
-              <button type="button" onClick={() => remove(idx)} className="text-gray-300 hover:text-red-400">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(idx)}
+                className="text-gray-300 hover:text-red-400 h-6 w-6 shrink-0"
+              >
                 <X size={15} />
-              </button>
+              </Button>
             </div>
           );
         })}

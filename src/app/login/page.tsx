@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function hebrewError(code: string): string {
   switch (code) {
@@ -44,9 +47,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50" dir="rtl">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm">
-        {/* Logo */}
+    <div className="min-h-screen flex items-center justify-center bg-muted" dir="rtl">
+      <div className="bg-card rounded-2xl shadow-sm border border-border p-8 w-full max-w-sm">
+        {/* לוגו */}
         <div className="flex flex-col items-center mb-8">
           <Image
             src="/chess nimbus logo.png"
@@ -56,53 +59,53 @@ export default function LoginPage() {
             className="object-contain mb-3"
             priority
           />
-          <p className="text-sm text-gray-400">התחברות למערכת</p>
+          <p className="text-sm text-muted-foreground">התחברות למערכת</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">דוא"ל</label>
-            <input
+          <div className="space-y-1">
+            <Label htmlFor="email">דוא"ל</Label>
+            <Input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               maxLength={254}
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="admin@example.com"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">סיסמה</label>
+          <div className="space-y-1">
+            <Label htmlFor="password">סיסמה</Label>
             <div className="relative">
-              <input
+              <Input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 maxLength={128}
                 required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 pl-10"
+                className="pl-16"
               />
-              <button
+              {/* כפתור הצג/הסתר סיסמה */}
+              <Button
                 type="button"
+                variant="ghost"
+                size="xs"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
               >
                 {showPassword ? "הסתר" : "הצג"}
-              </button>
+              </Button>
             </div>
           </div>
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          >
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? "מתחבר..." : "התחברות"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

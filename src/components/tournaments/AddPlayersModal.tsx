@@ -11,6 +11,9 @@
 */
 import { useState, useRef, useEffect } from "react";
 import { X, AlertTriangle, UserPlus, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import type { Student, ManualParticipant } from "@/types";
@@ -61,32 +64,14 @@ function isOutOfRange(
 // Converts a list of students to a CSV string and triggers a download
 function exportToCsv(students: Student[], filename: string) {
   const headers = [
-    "שם פרטי",
-    "שם משפחה",
-    "ת.ז.",
-    "תאריך לידה",
-    "דירוג ישראלי",
-    "דירוג FIDE",
-    "תואר",
-    "מס׳ שחמטאי ישראלי",
-    "FIDE ID",
-    "טלפון",
-    "אימייל",
-    "סטטוס",
+    "שם פרטי", "שם משפחה", "ת.ז.", "תאריך לידה",
+    "דירוג ישראלי", "דירוג FIDE", "תואר",
+    "מס׳ שחמטאי ישראלי", "FIDE ID", "טלפון", "אימייל", "סטטוס",
   ];
   const rows = students.map((s) => [
-    s.first_name,
-    s.last_name,
-    s.israeli_id ?? "",
-    s.dob,
-    s.israeli_rating ?? "",
-    s.fide_rating ?? "",
-    s.chess_title ?? "",
-    s.israeli_chess_id ?? "",
-    s.fide_id ?? "",
-    s.phone ?? "",
-    s.email ?? "",
-    s.status,
+    s.first_name, s.last_name, s.israeli_id ?? "", s.dob,
+    s.israeli_rating ?? "", s.fide_rating ?? "", s.chess_title ?? "",
+    s.israeli_chess_id ?? "", s.fide_id ?? "", s.phone ?? "", s.email ?? "", s.status,
   ]);
 
   const csv = [headers, ...rows]
@@ -246,12 +231,14 @@ export default function AddPlayersModal({
               </div>
             )}
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition-colors"
+            className="rounded-xl text-gray-400"
           >
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         {/* ── Body ── */}
@@ -262,33 +249,35 @@ export default function AddPlayersModal({
               size={16}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
-            <input
+            <Input
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="חיפוש שחקן לפי שם..."
-              className="w-full pr-9 pl-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-gray-50"
+              className="pr-9 bg-gray-50"
             />
           </div>
 
           {/* Select all / clear + export */}
           <div className="flex items-center justify-between text-sm">
             <div className="flex gap-4">
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => setSelected(new Set(available.map((s) => s.id)))}
-                className="text-teal-600 hover:underline font-medium"
+                className="text-teal-600 font-medium p-0 h-auto"
               >
                 בחר הכל ({available.length})
-              </button>
+              </Button>
               {selected.size > 0 && (
-                <button
+                <Button
                   type="button"
+                  variant="link"
                   onClick={() => setSelected(new Set())}
-                  className="text-gray-400 hover:underline"
+                  className="text-gray-400 p-0 h-auto"
                 >
                   נקה בחירה
-                </button>
+                </Button>
               )}
             </div>
             {/* Export dropdown — toggle on CsvExportBtn click */}
@@ -296,8 +285,9 @@ export default function AddPlayersModal({
               <CsvExportBtn onClick={() => setShowExportMenu((v) => !v)} />
               {showExportMenu && (
                 <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-60">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       exportToCsv(
                         allAvailable,
@@ -306,12 +296,13 @@ export default function AddPlayersModal({
                       setShowExportMenu(false);
                     }}
                     disabled={allAvailable.length === 0}
-                    className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                    className="w-full text-right px-4 py-2.5 text-sm justify-start"
                   >
                     ייצא את כל השחקנים שלא רשומים ({allAvailable.length})
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       exportToCsv(
                         suitableStudents,
@@ -320,11 +311,11 @@ export default function AddPlayersModal({
                       setShowExportMenu(false);
                     }}
                     disabled={suitableStudents.length === 0}
-                    className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                    className="w-full text-right px-4 py-2.5 text-sm justify-start"
                   >
                     ייצא רק שחקנים שעומדים בקריטריונים (
                     {suitableStudents.length})
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -339,13 +330,7 @@ export default function AddPlayersModal({
           ) : (
             <div className="grid gap-2">
               {available.map((s) => {
-                const out = isOutOfRange(
-                  s,
-                  ratingMin,
-                  ratingMax,
-                  ageMin,
-                  ageMax,
-                );
+                const out = isOutOfRange(s, ratingMin, ratingMax, ageMin, ageMax);
                 const isChecked = selected.has(s.id);
                 return (
                   <label
@@ -356,11 +341,10 @@ export default function AddPlayersModal({
                         : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={isChecked}
-                      onChange={() => toggle(s.id)}
-                      className="w-4 h-4 accent-teal-600 shrink-0"
+                      onCheckedChange={() => toggle(s.id)}
+                      className="shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -398,30 +382,31 @@ export default function AddPlayersModal({
               שחקן חיצוני (לא רשום במערכת)
             </p>
             <div className="flex gap-2">
-              <input
-                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+              <Input
+                className="flex-1"
                 placeholder="שם מלא"
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addManual()}
               />
-              <input
+              <Input
                 type="number"
-                className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                className="w-24"
                 placeholder="דירוג"
                 value={manualRating}
                 onChange={(e) => setManualRating(e.target.value)}
                 min={0}
               />
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={addManual}
                 disabled={!manualName.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium disabled:opacity-40 transition-colors"
+                className="flex items-center gap-1.5"
               >
                 <UserPlus size={15} />
                 הוסף
-              </button>
+              </Button>
             </div>
 
             {/* Manual list preview */}
@@ -437,13 +422,15 @@ export default function AddPlayersModal({
                       <span className="text-xs text-gray-400">
                         {p.rating ?? "ללא דירוג"}
                       </span>
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => removeManual(p.id)}
-                        className="text-red-400 hover:text-red-600"
+                        className="text-red-400 hover:text-red-600 h-6 w-6"
                       >
                         <X size={15} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}

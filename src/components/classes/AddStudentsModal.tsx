@@ -12,6 +12,9 @@ import { useState, useRef, useEffect } from "react";
 import { X, AlertTriangle, UserPlus, Search } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { slotsOverlapTime } from "@/lib/schedule/classHelpers";
 import { timeToMins } from "@/lib/utils/utils";
 import type { Student, Enrollment, Class, Tournament, ScheduleSlot } from "@/types";
@@ -176,9 +179,9 @@ export default function AddStudentsModal({
             <h2 className="text-xl font-bold text-gray-900">הוספת תלמידים לחוג</h2>
             <p className="text-sm text-gray-400 mt-0.5">{className}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition-colors">
+          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-xl text-gray-400">
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         {/* ── Body ── */}
@@ -187,33 +190,35 @@ export default function AddStudentsModal({
           {/* Search bar */}
           <div className="relative">
             <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
+            <Input
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="חיפוש תלמיד לפי שם..."
-              className="w-full pr-9 pl-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-gray-50"
+              className="pr-9 rounded-xl bg-gray-50"
             />
           </div>
 
           {/* Select all / clear + CSV export */}
           <div className="flex items-center justify-between text-sm">
             <div className="flex gap-4">
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => setSelected(new Set(available.map((s) => s.id)))}
-                className="text-teal-600 hover:underline font-medium"
+                className="text-teal-600 font-medium p-0 h-auto"
               >
                 בחר הכל ({available.length})
-              </button>
+              </Button>
               {selected.size > 0 && (
-                <button
+                <Button
                   type="button"
+                  variant="link"
                   onClick={() => setSelected(new Set())}
-                  className="text-gray-400 hover:underline"
+                  className="text-gray-400 p-0 h-auto"
                 >
                   נקה בחירה
-                </button>
+                </Button>
               )}
             </div>
 
@@ -222,28 +227,30 @@ export default function AddStudentsModal({
               <CsvExportBtn onClick={() => setShowExportMenu((v) => !v)} />
               {showExportMenu && (
                 <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-64">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       exportToCsv(allAvailable, `תלמידים_לא_רשומים_${className}.csv`);
                       setShowExportMenu(false);
                     }}
                     disabled={allAvailable.length === 0}
-                    className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                    className="w-full justify-end text-sm rounded-none"
                   >
                     ייצא את כל התלמידים שלא רשומים ({allAvailable.length})
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       exportToCsv(suitableStudents, `תלמידים_ללא_התנגשות_${className}.csv`);
                       setShowExportMenu(false);
                     }}
                     disabled={suitableStudents.length === 0}
-                    className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                    className="w-full justify-end text-sm rounded-none"
                   >
                     ייצא רק תלמידים ללא התנגשות בלוח זמנים ({suitableStudents.length})
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -271,11 +278,10 @@ export default function AddStudentsModal({
                         : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={isChecked}
-                      onChange={() => toggle(s.id)}
-                      className="w-4 h-4 accent-teal-600 shrink-0"
+                      onCheckedChange={() => toggle(s.id)}
+                      className="shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">

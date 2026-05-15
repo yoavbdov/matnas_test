@@ -1,9 +1,17 @@
 "use client";
 // טבלת המדריכים — כל שורה היא מדריך אחד, ניתן למיין לפי כל עמודה
-// סטטוס נגזר אוטומטית: מלמד חוג פעיל OR שופט בתחרות = פעיל
 import { useState } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import Badge from "@/components/shared/Badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { formatPhone } from "@/lib/utils/utils";
 import { computeTeacherStatus } from "@/lib/helpers/teacherHelpers";
 import type { Teacher, Class, Tournament } from "@/types";
@@ -24,50 +32,32 @@ function countActiveClasses(teacherId: string, classes: Class[]) {
 
 function sortTeachers(teachers: Teacher[], classes: Class[], tournaments: Tournament[], key: SortKey, dir: SortDir) {
   return [...teachers].sort((a, b) => {
-    const acA = countActiveClasses(a.id, classes);
-    const acB = countActiveClasses(b.id, classes);
     let valA: string | number = "";
     let valB: string | number = "";
-
-    if (key === "name") {
-      valA = `${a.first_name} ${a.last_name}`;
-      valB = `${b.first_name} ${b.last_name}`;
-    } else if (key === "phone") {
-      valA = a.phone ?? "";
-      valB = b.phone ?? "";
-    } else if (key === "activeClasses") {
-      valA = acA;
-      valB = acB;
-    } else if (key === "status") {
-      valA = computeTeacherStatus(a.id, classes, tournaments);
-      valB = computeTeacherStatus(b.id, classes, tournaments);
-    }
-
+    if (key === "name") { valA = `${a.first_name} ${a.last_name}`; valB = `${b.first_name} ${b.last_name}`; }
+    else if (key === "phone") { valA = a.phone ?? ""; valB = b.phone ?? ""; }
+    else if (key === "activeClasses") { valA = countActiveClasses(a.id, classes); valB = countActiveClasses(b.id, classes); }
+    else if (key === "status") { valA = computeTeacherStatus(a.id, classes, tournaments); valB = computeTeacherStatus(b.id, classes, tournaments); }
     if (valA < valB) return dir === "asc" ? -1 : 1;
     if (valA > valB) return dir === "asc" ? 1 : -1;
     return 0;
   });
 }
 
+// כותרת עמודה עם כפתור מיון
 function SortHeader({ label, sortKey, active, dir, onClick }: {
-  label: string;
-  sortKey: SortKey;
-  active: boolean;
-  dir: SortDir;
-  onClick: (key: SortKey) => void;
+  label: string; sortKey: SortKey; active: boolean; dir: SortDir; onClick: (key: SortKey) => void;
 }) {
   const Icon = active ? (dir === "asc" ? ChevronUp : ChevronDown) : ChevronsUpDown;
   return (
-    <th className="text-right px-4 py-3 font-medium">
-      <button
-        type="button"
-        onClick={() => onClick(sortKey)}
-        className="flex items-center gap-1 hover:text-teal-600 transition-colors"
+    <TableHead>
+      <Button type="button" variant="ghost" size="sm" onClick={() => onClick(sortKey)}
+        className="flex items-center gap-1 -mx-2 hover:text-foreground"
       >
         {label}
-        <Icon size={13} className={active ? "text-teal-500" : "text-gray-300"} />
-      </button>
-    </th>
+        <Icon size={13} className={active ? "text-primary" : "text-muted-foreground/50"} />
+      </Button>
+    </TableHead>
   );
 }
 
@@ -76,17 +66,13 @@ export default function TeachersTable({ teachers, classes, tournaments, onRowCli
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   function handleSort(key: SortKey) {
-    if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
+    if (key === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
   }
 
   if (teachers.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center text-sm text-gray-400">
+      <div className="bg-card rounded-xl border border-border shadow-sm p-10 text-center text-sm text-muted-foreground">
         אין מדריכים להצגה
       </div>
     );
@@ -95,49 +81,42 @@ export default function TeachersTable({ teachers, classes, tournaments, onRowCli
   const sorted = sortTeachers(teachers, classes, tournaments, sortKey, sortDir);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-xs">
-            <SortHeader label="שם מלא"        sortKey="name"          active={sortKey === "name"}         dir={sortDir} onClick={handleSort} />
-            <SortHeader label="טלפון"          sortKey="phone"         active={sortKey === "phone"}        dir={sortDir} onClick={handleSort} />
-            <SortHeader label="חוגים פעילים"  sortKey="activeClasses" active={sortKey === "activeClasses"} dir={sortDir} onClick={handleSort} />
-            <th className="text-right px-4 py-3 font-medium">הסמכות</th>
-            <SortHeader label="סטטוס"          sortKey="status"        active={sortKey === "status"}       dir={sortDir} onClick={handleSort} />
-          </tr>
-        </thead>
-        <tbody>
+    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <SortHeader label="שם מלא"       sortKey="name"          active={sortKey === "name"}         dir={sortDir} onClick={handleSort} />
+            <SortHeader label="טלפון"         sortKey="phone"         active={sortKey === "phone"}        dir={sortDir} onClick={handleSort} />
+            <SortHeader label="חוגים פעילים" sortKey="activeClasses" active={sortKey === "activeClasses"} dir={sortDir} onClick={handleSort} />
+            <TableHead>הסמכות</TableHead>
+            <SortHeader label="סטטוס"         sortKey="status"        active={sortKey === "status"}       dir={sortDir} onClick={handleSort} />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {sorted.map((t) => {
             const activeClasses = countActiveClasses(t.id, classes);
-            // Always compute status — never read from the stored field
             const status = computeTeacherStatus(t.id, classes, tournaments);
             return (
-              <tr
-                key={t.id}
-                onClick={() => onRowClick(t)}
-                className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50"
-              >
-                <td className="px-4 py-3 font-medium text-gray-800">{t.first_name} {t.last_name}</td>
-                <td className="px-4 py-3 text-gray-500">{t.phone ? formatPhone(t.phone) : "—"}</td>
-                <td className="px-4 py-3 text-gray-600">{activeClasses}</td>
-                <td className="px-4 py-3">
+              <TableRow key={t.id} onClick={() => onRowClick(t)} className="cursor-pointer">
+                <TableCell className="font-medium">{t.first_name} {t.last_name}</TableCell>
+                <TableCell className="text-muted-foreground">{t.phone ? formatPhone(t.phone) : "—"}</TableCell>
+                <TableCell>{activeClasses}</TableCell>
+                <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {(t.certifications ?? []).map((cert) => (
-                      <span key={cert} className="text-xs bg-teal-50 text-teal-700 rounded-full px-2 py-0.5">
-                        {cert}
-                      </span>
+                      <span key={cert} className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5">{cert}</span>
                     ))}
-                    {(t.certifications ?? []).length === 0 && <span className="text-gray-400">—</span>}
+                    {(t.certifications ?? []).length === 0 && <span className="text-muted-foreground">—</span>}
                   </div>
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell>
                   <Badge label={status} color={status === "פעיל" ? "green" : "gray"} />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

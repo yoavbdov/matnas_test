@@ -6,10 +6,11 @@ import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
+import { Input } from "@/components/ui/input";
 
+// Class for number inputs — hides spin buttons
 const numInp =
-  "w-20 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 " +
-  "[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+  "w-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
 function FilterItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -60,10 +61,10 @@ export default function ResourcesToolbar({
       {/* שורה 2: פילטר כמות */}
       <div className="flex gap-4 flex-wrap items-center">
         <FilterItem label="כמות:">
-          <input type="number" placeholder="מינ׳" value={minQuantity}
+          <Input type="number" placeholder="מינ׳" value={minQuantity}
             onChange={(e) => onFilterMinQuantity(e.target.value)} className={numInp} />
           <span className="text-gray-400 text-xs">—</span>
-          <input type="number" placeholder="מקס׳" value={maxQuantity}
+          <Input type="number" placeholder="מקס׳" value={maxQuantity}
             onChange={(e) => onFilterMaxQuantity(e.target.value)} className={numInp} />
         </FilterItem>
       </div>

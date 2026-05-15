@@ -7,6 +7,8 @@
 import { useState, useMemo } from "react";
 import { X, CalendarCheck, Search } from "lucide-react";
 import Btn from "@/components/shared/Btn";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { checkTeacherAvailability } from "@/lib/availability/teacherAvailability";
 import { formatPhone } from "@/lib/utils/utils";
@@ -92,12 +94,14 @@ export default function TeacherAvailabilityModal({
             <CalendarCheck size={20} />
             בדיקת זמינות מדריכים
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
           >
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         {/* טופס קלט */}
@@ -105,14 +109,14 @@ export default function TeacherAvailabilityModal({
           {/* שורה 1: תאריך */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">תאריך</label>
-            <input
+            <Input
               type="date"
               value={date}
               onChange={(e) => {
                 setDate(e.target.value);
                 setSearched(false);
               }}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 w-48"
+              className="w-48"
             />
           </div>
 
@@ -160,11 +164,11 @@ export default function TeacherAvailabilityModal({
                 size={14}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
               />
-              <input
+              <Input
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
                 placeholder="שם פרטי / משפחה…"
-                className="w-full border border-gray-200 rounded-lg pr-8 pl-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                className="w-full pr-8 pl-3"
               />
             </div>
           </div>

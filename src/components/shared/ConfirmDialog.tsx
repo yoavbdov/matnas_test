@@ -1,31 +1,36 @@
 "use client";
-import { useEffect } from "react";
-import Btn from "./Btn";
+// דיאלוג אישור מחיקה — עוטף shadcn AlertDialog, שומר על אותו API חיצוני
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 interface ConfirmDialogProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
-  zIndex?: number; // מאפשר העלאת z-index כשצריך להופיע מעל רכיבים אחרים
+  zIndex?: number; // שמור לתאימות לאחור — shadcn AlertDialog מנהל z-index אוטומטית
 }
 
-export default function ConfirmDialog({ message, onConfirm, onCancel, zIndex = 50 }: ConfirmDialogProps) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onCancel]);
-
+export default function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmDialogProps) {
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex }} dir="rtl">
-      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
-        <p className="text-sm text-gray-700 mb-5">{message}</p>
-        <div className="flex justify-end gap-2">
-          <Btn variant="secondary" onClick={onCancel}>ביטול</Btn>
-          <Btn variant="danger" onClick={onConfirm}>כן, מחק</Btn>
-        </div>
-      </div>
-    </div>
+    // open=true תמיד — ההורה שולט בהצגה ע"י רינדור מותנה
+    <AlertDialog open onOpenChange={(open) => { if (!open) onCancel(); }}>
+      <AlertDialogContent dir="rtl">
+        <AlertDialogDescription className="text-sm text-foreground">
+          {message}
+        </AlertDialogDescription>
+        <AlertDialogFooter className="flex justify-end gap-2">
+          <AlertDialogCancel onClick={onCancel}>ביטול</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={onConfirm}>
+            כן, מחק
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

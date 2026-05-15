@@ -1,13 +1,21 @@
 "use client";
-import { useEffect } from "react";
-import { X } from "lucide-react";
+// חלון קופץ אחיד — עוטף את shadcn Dialog, שומר על אותו API חיצוני
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type Size = "sm" | "md" | "lg" | "xl";
+
+// ממפה גודל לרוחב מקסימלי של Tailwind
 const sizeMap: Record<Size, string> = {
-  sm: "max-w-sm",
-  md: "max-w-lg",
-  lg: "max-w-2xl",
-  xl: "max-w-4xl",
+  sm: "sm:max-w-sm",
+  md: "sm:max-w-lg",
+  lg: "sm:max-w-2xl",
+  xl: "sm:max-w-4xl",
 };
 
 interface ModalProps {
@@ -19,27 +27,29 @@ interface ModalProps {
 }
 
 export default function Modal({ title, onClose, size = "md", children, footer }: ModalProps) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className={`relative bg-white rounded-2xl shadow-xl flex flex-col max-h-[90vh] w-full ${sizeMap[size]}`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-          <h2 className="text-base font-semibold text-gray-800">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer">
-            <X size={18} />
-          </button>
-        </div>
+    // open=true תמיד — ההורה שולט בהצגה ע"י רינדור מותנה של Modal
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent
+        dir="rtl"
+        className={`flex flex-col max-h-[90vh] gap-0 p-0 ${sizeMap[size]}`}
+        showCloseButton={false}
+      >
+        {/* כותרת עם כפתור סגירה */}
+        <DialogHeader className="flex-row items-center justify-between px-6 py-4 border-b border-border shrink-0">
+          <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
+        </DialogHeader>
+
+        {/* תוכן גלילה */}
         <div className="overflow-y-auto flex-1 px-6 py-5">{children}</div>
+
+        {/* פוטר אופציונלי */}
         {footer && (
-          <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2 shrink-0">{footer}</div>
+          <DialogFooter className="px-6 py-4 border-t border-border flex justify-end gap-2 shrink-0 rounded-b-xl">
+            {footer}
+          </DialogFooter>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

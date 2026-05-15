@@ -8,6 +8,7 @@ import { calcAge } from "@/lib/utils/utils";
 import { addDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { AlertTriangle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Student, Class, Enrollment } from "@/types";
 
 interface Props {
@@ -137,11 +138,10 @@ export default function EnrollModal({ student, allClasses, enrollments, onClose,
                   : "border-gray-200 cursor-pointer hover:bg-gray-50"
               }`}
             >
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={isChecked}
                 disabled={blocked}
-                onChange={() => !blocked && toggle(cls.id)}
+                onCheckedChange={() => !blocked && toggle(cls.id)}
                 className="accent-teal-600"
               />
               {/* Color dot */}

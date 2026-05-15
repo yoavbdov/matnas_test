@@ -10,6 +10,8 @@ import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { checkRoomAvailability } from "@/lib/availability/roomAvailability";
 import type { Room, Class, Tournament, Event } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   rooms: Room[];
@@ -59,16 +61,16 @@ export default function RoomAvailabilityModal({ rooms, classes, tournaments, eve
             <CalendarCheck size={20} />
             בדיקת זמינות חדרים
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 h-8 w-8"><X size={20} /></Button>
         </div>
 
         {/* טופס */}
         <div className="p-5 border-b space-y-4">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">תאריך</label>
-            <input type="date" value={date}
+            <Input type="date" value={date}
               onChange={(e) => { setDate(e.target.value); setSearched(false); }}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 w-48"
+              className="w-48"
             />
           </div>
 

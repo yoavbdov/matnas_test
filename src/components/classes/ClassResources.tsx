@@ -13,9 +13,15 @@ import type {
   ResourceAssignment,
   ScheduleSlot,
 } from "@/types";
-
-const inp =
-  "w-full border border-gray-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
   assignments: ResourceAssignment[];
@@ -122,26 +128,34 @@ export default function ClassResources({
             >
               {/* Resource selector */}
               <div className="flex-1">
-                <select
-                  className={inp}
+                <Select
                   value={a.resource_id}
-                  onChange={(e) => setField(idx, { resource_id: e.target.value })}
+                  onValueChange={(v: string) => setField(idx, { resource_id: v })}
                 >
-                  {physicalEquipment.map((r) => {
-                    const rUsed = hasSlots
-                      ? calcUsedDuringClassSlots(r.id, currentClassSlots, allClasses, currentClassId, allTournaments)
-                      : 0;
-                    const rAvailable = r.quantity - rUsed;
-                    const label = hasSlots
-                      ? `${r.name} (פנוי: ${rAvailable})`
-                      : `${r.name} (סה״כ: ${r.quantity})`;
-                    return (
-                      <option key={r.id} value={r.id} disabled={chosen.has(r.id) && r.id !== a.resource_id}>
-                        {label}
-                      </option>
-                    );
-                  })}
-                </select>
+                  <SelectTrigger className="w-full text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {physicalEquipment.map((r) => {
+                      const rUsed = hasSlots
+                        ? calcUsedDuringClassSlots(r.id, currentClassSlots, allClasses, currentClassId, allTournaments)
+                        : 0;
+                      const rAvailable = r.quantity - rUsed;
+                      const label = hasSlots
+                        ? `${r.name} (פנוי: ${rAvailable})`
+                        : `${r.name} (סה״כ: ${r.quantity})`;
+                      return (
+                        <SelectItem
+                          key={r.id}
+                          value={r.id}
+                          disabled={chosen.has(r.id) && r.id !== a.resource_id}
+                        >
+                          {label}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
                 {/* Show which other events are using this resource at the same time */}
                 {shortage && conflictingNames.length > 0 && (
                   <p className="mt-0.5 text-xs text-red-500">
@@ -151,9 +165,9 @@ export default function ClassResources({
               </div>
 
               {/* Quantity */}
-              <input
+              <Input
                 type="number"
-                className={`border border-gray-200 rounded-md px-2 py-1 text-sm w-16 focus:outline-none focus:border-teal-400`}
+                className="border border-gray-200 rounded-md px-2 py-1 text-sm w-16 focus:border-teal-400 h-auto"
                 value={a.quantity}
                 min={1}
                 onChange={(e) => setField(idx, { quantity: Math.max(1, Number(e.target.value)) })}
@@ -168,9 +182,15 @@ export default function ClassResources({
                 </span>
               )}
 
-              <button type="button" onClick={() => remove(idx)} className="text-gray-300 hover:text-red-400">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(idx)}
+                className="text-gray-300 hover:text-red-400 h-7 w-7"
+              >
                 <X size={15} />
-              </button>
+              </Button>
             </div>
           );
         })}

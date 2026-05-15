@@ -4,11 +4,11 @@ import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import TagInput from "@/components/shared/TagInput";
 import Btn from "@/components/shared/Btn";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { LIMITS, digitsOnly } from "@/lib/validation/validators";
 import type { Teacher } from "@/types";
 import { DEFAULT_SETTINGS } from "@/lib/config/config";
-
-const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   mode: "add" | "edit";
@@ -34,18 +34,17 @@ export default function TeacherFormModal({ mode, form, setForm, saving, onClose,
     >
       <div className="grid grid-cols-2 gap-4">
         <Field label="שם פרטי" required>
-          <input className={inp} value={form.first_name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("first_name", e.target.value)} />
+          <Input value={form.first_name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("first_name", e.target.value)} />
         </Field>
         <Field label="שם משפחה" required>
-          <input className={inp} value={form.last_name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("last_name", e.target.value)} />
+          <Input value={form.last_name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("last_name", e.target.value)} />
         </Field>
         <Field label="טלפון" hint="10 ספרות בלבד">
-          <input className={inp} value={form.phone ?? ""} inputMode="numeric" onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))} />
+          <Input value={form.phone ?? ""} inputMode="numeric" onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))} />
         </Field>
         <Field label="אימייל" hint={`עד ${LIMITS.EMAIL} תווים`}>
-          <input type="email" className={inp} value={form.email ?? ""} maxLength={LIMITS.EMAIL} onChange={(e) => set("email", e.target.value)} />
+          <Input type="email" value={form.email ?? ""} maxLength={LIMITS.EMAIL} onChange={(e) => set("email", e.target.value)} />
         </Field>
-        {/* סטטוס מחושב אוטומטית — אי אפשר לערוך ידנית */}
       </div>
 
       <div className="mt-4">
@@ -61,7 +60,7 @@ export default function TeacherFormModal({ mode, form, setForm, saving, onClose,
 
       <div className="mt-4">
         <Field label="הערות">
-          <textarea className={inp} rows={3} value={form.notes ?? ""} maxLength={settings.MAX_NOTE_LENGTH} onChange={(e) => set("notes", e.target.value)} />
+          <Textarea rows={3} value={form.notes ?? ""} maxLength={settings.MAX_NOTE_LENGTH} onChange={(e) => set("notes", e.target.value)} />
         </Field>
       </div>
     </Modal>

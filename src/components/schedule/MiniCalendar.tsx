@@ -2,6 +2,7 @@
 // Mini month calendar — drag across dates to select a consecutive range
 import { useState, useEffect, useMemo } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // ב-RTL grid הפריט הראשון מוצג בימין — ראשון(א) ראשון, שבת(ש) אחרון → ראשון בימין, שבת בשמאל
 const DAY_HEADERS = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
@@ -104,21 +105,21 @@ export default function MiniCalendar({ selectedDates, onSelectRange }: Props) {
   return (
     // Prevent text selection while dragging
     <div
-      className="bg-white rounded-xl border border-gray-200 p-3 w-56 flex-shrink-0 shadow-sm"
+      className="bg-white rounded-xl border border-gray-200 p-3 w-56 shrink-0 shadow-sm"
       style={{ userSelect: "none" }}
     >
       {/* Month navigation — right arrow = prev month, left arrow = next month (RTL) */}
       <div className="flex items-center justify-between mb-2">
         {/* חץ שמאל = חודש הבא */}
-        <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-100">
+        <Button variant="ghost" size="icon" onClick={nextMonth} className="h-7 w-7">
           <ChevronRight size={20} />
-        </button>
+        </Button>
         <span className="text-sm font-semibold text-gray-700">
           {monthLabel}
         </span>
-        <button onClick={prevMonth} className="p-1 rounded hover:bg-gray-100">
+        <Button variant="ghost" size="icon" onClick={prevMonth} className="h-7 w-7">
           <ChevronLeft size={20} />
-        </button>
+        </Button>
       </div>
 
       {/* Day-of-week headers */}

@@ -5,6 +5,7 @@
 */
 import { useState } from "react";
 import Modal from "@/components/shared/Modal";
+import { Button } from "@/components/ui/button";
 import Btn from "@/components/shared/Btn";
 import Badge from "@/components/shared/Badge";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -162,12 +163,13 @@ export default function ViewExistingClassDetailModal({
 
           {/* Participants — click to open full list modal */}
           <div className="pt-1">
-            <button
+            <Button
+              variant="link"
               onClick={() => setShowEnrollments(true)}
-              className="text-sm text-blue-600 hover:text-blue-800 underline underline-offset-2"
+              className="text-sm text-blue-600 hover:text-blue-800 p-0 h-auto underline-offset-2"
             >
               לרשימת המשתתפים ({activeEnrollments.length} / {classItem.capacity}) ←
-            </button>
+            </Button>
           </div>
 
         </div>

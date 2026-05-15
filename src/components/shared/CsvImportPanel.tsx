@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { Upload, Download, X, CheckCircle, AlertCircle } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import { useToast } from "@/context/ToastContext";
+import { Button } from "@/components/ui/button";
 
 // כל שורה שחזרה מהפארסר חייבת לכלול lineNum ורשימת שגיאות
 export interface ParsedRow {
@@ -77,12 +78,14 @@ export default function CsvImportPanel({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-800">{title}</h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"
+            className="text-gray-400 h-8 w-8"
           >
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">

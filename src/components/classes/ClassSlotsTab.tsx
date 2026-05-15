@@ -9,12 +9,17 @@ import TimeSelect from "@/components/shared/TimeSelect";
 import { RECURRENCE_OPTIONS } from "@/lib/config/constants";
 import { slotsConflict } from "@/lib/schedule/classHelpers";
 import { findStructuralTournamentConflict } from "@/lib/conflicts/crossConflictHelpers";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import type { Room, ScheduleSlot, Class, Tournament } from "@/types";
 
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
-const inp =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 bg-white";
 
 function todayStr(): string {
   const now = new Date();
@@ -104,14 +109,16 @@ export default function ClassSlotsTab({
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
           מפגשים שבועיים
         </p>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={addSlot}
           className="flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700 font-medium"
         >
           <Plus size={14} />
           הוסף מפגש
-        </button>
+        </Button>
       </div>
 
       {slots.length === 0 && (
@@ -153,19 +160,23 @@ export default function ClassSlotsTab({
                   <label className="text-xs font-medium text-gray-500 block mb-1">
                     חדר
                   </label>
-                  <select
-                    className={inp}
-                    value={slot.room_id}
-                    onChange={(e) =>
-                      patchSlot(idx, { room_id: e.target.value })
+                  <Select
+                    value={slot.room_id || "__none__"}
+                    onValueChange={(v: string) =>
+                      patchSlot(idx, { room_id: v === "__none__" ? "" : v })
                     }
                   >
-                    {rooms.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rooms.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* יום בשבוע */}
@@ -173,17 +184,21 @@ export default function ClassSlotsTab({
                   <label className="text-xs font-medium text-gray-500 block mb-1">
                     יום בשבוע
                   </label>
-                  <select
-                    className={inp}
+                  <Select
                     value={slot.day}
-                    onChange={(e) => patchSlot(idx, { day: e.target.value })}
+                    onValueChange={(v: string) => patchSlot(idx, { day: v })}
                   >
-                    {HEBREW_DAYS.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HEBREW_DAYS.map((d) => (
+                        <SelectItem key={d} value={d}>
+                          {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* שעות פעילות */}
@@ -193,13 +208,11 @@ export default function ClassSlotsTab({
                   </label>
                   <div className="flex items-center gap-2">
                     <TimeSelect
-                      className={inp}
                       value={slot.start_time}
                       onChange={(v) => patchSlot(idx, { start_time: v })}
                     />
                     <span className="text-gray-400 text-xs">–</span>
                     <TimeSelect
-                      className={inp}
                       value={slot.end_time}
                       onChange={(v) => patchSlot(idx, { end_time: v })}
                     />
@@ -211,30 +224,38 @@ export default function ClassSlotsTab({
                   <label className="text-xs font-medium text-gray-500 block mb-1">
                     תדירות
                   </label>
-                  <select
-                    className={inp}
+                  <Select
                     value={slot.recurrence}
-                    onChange={(e) =>
-                      patchSlot(idx, { recurrence: e.target.value })
+                    onValueChange={(v: string) =>
+                      patchSlot(idx, { recurrence: v })
                     }
                   >
-                    {RECURRENCE_OPTIONS.map((o) => (
-                      <option key={o}>{o}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RECURRENCE_OPTIONS.map((o) => (
+                        <SelectItem key={o} value={o}>
+                          {o}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               {/* Remove button */}
               <div className="flex justify-end">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => removeSlot(idx)}
                   className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600"
                 >
                   <Trash2 size={13} />
                   הסר מפגש
-                </button>
+                </Button>
               </div>
             </div>
           );

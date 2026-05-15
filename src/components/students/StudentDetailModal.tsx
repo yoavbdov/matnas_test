@@ -4,6 +4,7 @@ import { useState } from "react";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
 import Badge from "@/components/shared/Badge";
+import { Button } from "@/components/ui/button";
 import EnrollModal from "./EnrollModal";
 import EnrollTournamentModal from "./EnrollTournamentModal";
 import { calcAge, gradeFromDob, fmtDate, formatPhone } from "@/lib/utils/utils";
@@ -161,17 +162,18 @@ export default function StudentDetailModal({
         {/* Tabs */}
         <div className="flex gap-4 border-b border-gray-100 mb-4 -mt-1">
           {(["details", "classes", "tournaments", "league"] as Tab[]).map((t) => (
-            <button
+            <Button
               key={t}
+              variant="ghost"
               onClick={() => setTab(t)}
-              className={`pb-2.5 text-sm font-medium border-b-2 transition-colors ${
+              className={`pb-2.5 text-sm font-medium border-b-2 rounded-none h-auto px-0 transition-colors ${
                 tab === t
                   ? "border-teal-500 text-teal-700"
                   : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
             >
               {tabLabels[t]}
-            </button>
+            </Button>
           ))}
         </div>
 

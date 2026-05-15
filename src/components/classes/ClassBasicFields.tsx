@@ -4,10 +4,16 @@ import { CLASS_COLORS } from "@/lib/config/constants";
 import { LIMITS } from "@/lib/validation/validators";
 import type { Class, Teacher } from "@/types";
 import { DEFAULT_SETTINGS } from "@/lib/config/config";
-
-// קלאס אחיד לשדות קלט
-const inp =
-  "border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type FormData = Omit<Class, "id">;
 
@@ -44,8 +50,8 @@ export default function ClassBasicFields({
     <div className="space-y-1" dir="rtl">
       {/* שם החוג */}
       <Row label="שם חוג">
-        <input
-          className={`${inp} w-full`}
+        <Input
+          className="w-full"
           value={form.name}
           maxLength={settings.MAX_STRING_LENGTH}
           onChange={(e) => onChange("name", e.target.value)}
@@ -54,26 +60,30 @@ export default function ClassBasicFields({
 
       {/* מדריך */}
       <Row label="מדריך">
-        <select
-          className={`${inp} w-full`}
+        <Select
           value={form.teacher_id}
-          onChange={(e) => onChange("teacher_id", e.target.value)}
+          onValueChange={(v: string) => onChange("teacher_id", v)}
         >
-          {teachers
-            .filter((t) => t.status === "פעיל")
-            .map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.first_name} {t.last_name}
-              </option>
-            ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {teachers
+              .filter((t) => t.status === "פעיל")
+              .map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.first_name} {t.last_name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       </Row>
 
       {/* קיבולת מקסימלית */}
       <Row label="קיבולת מקסימלית">
-        <input
+        <Input
           type="number"
-          className={`${inp} w-24`}
+          className="w-24"
           value={form.capacity}
           min={1}
           max={settings.MAX_ROOM_CAPACITY}
@@ -85,8 +95,8 @@ export default function ClassBasicFields({
 
       {/* תיאור */}
       <Row label="תיאור">
-        <textarea
-          className={`${inp} w-full resize-none`}
+        <Textarea
+          className="w-full resize-none"
           rows={2}
           value={form.description ?? ""}
           maxLength={LIMITS.DESCRIPTION}
@@ -98,9 +108,9 @@ export default function ClassBasicFields({
       {/* טווח מד כושר — min – max בשורה אחת */}
       <Row label="טווח מד כושר">
         <div className="flex items-center gap-2">
-          <input
+          <Input
             type="number"
-            className={`${inp} w-20`}
+            className="w-20"
             value={form.rating_min ?? ""}
             min={0}
             max={settings.MAX_INT_INPUT}
@@ -113,9 +123,9 @@ export default function ClassBasicFields({
             }
           />
           <span className="text-gray-400 text-sm">–</span>
-          <input
+          <Input
             type="number"
-            className={`${inp} w-20`}
+            className="w-20"
             value={form.rating_max ?? ""}
             min={0}
             max={settings.MAX_INT_INPUT}
@@ -133,9 +143,9 @@ export default function ClassBasicFields({
       {/* טווח גילאים — min – max בשורה אחת */}
       <Row label="טווח גילאים">
         <div className="flex items-center gap-2">
-          <input
+          <Input
             type="number"
-            className={`${inp} w-20`}
+            className="w-20"
             value={form.age_min ?? ""}
             min={0}
             max={settings.MAX_AGE}
@@ -148,9 +158,9 @@ export default function ClassBasicFields({
             }
           />
           <span className="text-gray-400 text-sm">–</span>
-          <input
+          <Input
             type="number"
-            className={`${inp} w-20`}
+            className="w-20"
             value={form.age_max ?? ""}
             min={0}
             max={settings.MAX_AGE}
@@ -169,11 +179,13 @@ export default function ClassBasicFields({
       <Row label="צבע זיהוי">
         <div className="flex gap-2">
           {CLASS_COLORS.map((c) => (
-            <button
+            <Button
               key={c}
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => onChange("color", c)}
-              className={`w-6 h-6 rounded-full border-2 transition-transform ${
+              className={`w-6 h-6 rounded-full border-2 transition-transform p-0 ${
                 form.color === c
                   ? "border-gray-700 scale-110"
                   : "border-transparent"

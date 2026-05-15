@@ -5,6 +5,7 @@
 */
 "use client";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
 import Badge from "@/components/shared/Badge";
@@ -133,12 +134,13 @@ export default function TournamentDetailModal({
               {rounds.length === 0 ? (
                 <p className="text-sm text-gray-400">אין סיבובים מוגדרים</p>
               ) : (
-                <button
+                <Button
+                  variant="link"
                   onClick={() => setShowRounds(true)}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline underline-offset-2"
+                  className="text-sm text-blue-600 hover:text-blue-800 underline underline-offset-2 p-0 h-auto"
                 >
                   {rounds.length} סיבובים מתוכננים — לחץ כאן לפרטים ←
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -173,12 +175,13 @@ export default function TournamentDetailModal({
 
           {/* Participants — click to open full list modal */}
           <div className="pt-1">
-            <button
+            <Button
+              variant="link"
               onClick={() => setShowParticipants(true)}
-              className="text-sm text-blue-600 hover:text-blue-800 underline underline-offset-2"
+              className="text-sm text-blue-600 hover:text-blue-800 underline underline-offset-2 p-0 h-auto"
             >
               כמות משתתפים: {totalParticipants} — לחץ כאן לרשימה ←
-            </button>
+            </Button>
           </div>
 
         </div>

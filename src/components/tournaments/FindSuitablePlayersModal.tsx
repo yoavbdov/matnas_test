@@ -9,6 +9,8 @@
 "use client";
 import { useState } from "react";
 import { Download, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import SearchInput from "@/components/shared/SearchInput";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
@@ -191,16 +193,17 @@ export default function FindSuitablePlayersModal({
             מציג שחקנים פעילים {rangeDisplay}
           </span>
           {/* Export ALL suitable (not just search-filtered) to Excel */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => exportToExcel(suitableAll, rangeLabel)}
             disabled={suitableAll.length === 0}
-            className="flex items-center gap-1.5 text-sm text-green-700 hover:text-green-800 font-medium disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 text-sm text-green-700 hover:text-green-800 font-medium"
             title="ייצא את כל השחקנים המתאימים לאקסל"
           >
             <Download size={14} />
             ייצא לאקסל ({suitableAll.length})
-          </button>
+          </Button>
         </div>
 
         {/* Search */}
@@ -214,20 +217,22 @@ export default function FindSuitablePlayersModal({
         {/* Select all / clear */}
         {suitable.length > 0 && (
           <div className="flex gap-3 text-sm">
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={selectAll}
-              className="text-teal-600 hover:underline"
+              className="text-teal-600 p-0 h-auto"
             >
               בחר הכל ({suitable.length})
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={clearAll}
-              className="text-gray-400 hover:underline"
+              className="text-gray-400 p-0 h-auto"
             >
               נקה בחירה
-            </button>
+            </Button>
           </div>
         )}
 
@@ -249,11 +254,9 @@ export default function FindSuitablePlayersModal({
                   className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={selected.has(s.id)}
-                      onChange={() => toggle(s.id)}
-                      className="accent-teal-600"
+                      onCheckedChange={() => toggle(s.id)}
                     />
                     <span className="text-sm font-medium">
                       {s.first_name} {s.last_name}

@@ -6,6 +6,7 @@ import Modal from "@/components/shared/Modal";
 import SearchInput from "@/components/shared/SearchInput";
 import Btn from "@/components/shared/Btn";
 import type { Student, LeagueGroupMember } from "@/types";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   groupId: string;
@@ -92,12 +93,13 @@ export default function AddPlayerModal({
               // Student already belongs to another group — show disabled
               const takenByOther = inOtherGroup.has(s.id);
               return (
-                <button
+                <Button
                   key={s.id}
+                  variant="outline"
                   onClick={() => !takenByOther && setSelected(s.id)}
                   disabled={takenByOther}
                   title={takenByOther ? "שחקן זה כבר שייך לקבוצת ליגה אחרת" : undefined}
-                  className={`w-full text-right px-3 py-2 rounded-lg text-sm transition-colors border ${
+                  className={`w-full justify-start text-right px-3 py-2 h-auto text-sm transition-colors border ${
                     takenByOther
                       ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
                       : selected === s.id
@@ -115,7 +117,7 @@ export default function AddPlayerModal({
                   {takenByOther && (
                     <span className="mr-2 text-xs text-gray-400">שייך לקבוצה אחרת</span>
                   )}
-                </button>
+                </Button>
               );
             })
           )}

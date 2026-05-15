@@ -6,6 +6,15 @@ import Field from "@/components/shared/Field";
 import ClockTimePicker from "@/components/shared/ClockTimePicker";
 import { calcResourceUsageOnDateTime } from "@/lib/schedule/classHelpers";
 import type { PhysicalEquipment, Class, Tournament } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 interface Props {
   physicalEquipment: PhysicalEquipment[];
@@ -106,8 +115,6 @@ export default function AvailabilityCheckerModal({ physicalEquipment, classes, t
     [equipment, tournaments, date, startTime, endTime]
   );
 
-  const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400";
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
@@ -116,9 +123,9 @@ export default function AvailabilityCheckerModal({ physicalEquipment, classes, t
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-800">בדיקת זמינות ציוד</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 h-8 w-8">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
@@ -128,16 +135,21 @@ export default function AvailabilityCheckerModal({ physicalEquipment, classes, t
             <>
               {/* Equipment selector */}
               <Field label="ציוד לבדיקה">
-                <select className={inp} value={equipmentId} onChange={(e) => setEquipmentId(e.target.value)}>
-                  {physicalEquipment.map((e) => (
-                    <option key={e.id} value={e.id}>{e.name} — {e.quantity} יחידות</option>
-                  ))}
-                </select>
+                <Select value={equipmentId} onValueChange={setEquipmentId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {physicalEquipment.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>{e.name} — {e.quantity} יחידות</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
 
               {/* Date selector */}
               <Field label="תאריך">
-                <input type="date" className={inp} value={date} onChange={(e) => setDate(e.target.value)} />
+                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
               </Field>
 
               {/* Time range */}
@@ -200,7 +212,7 @@ export default function AvailabilityCheckerModal({ physicalEquipment, classes, t
         </div>
 
         <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
-          <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">סגור</button>
+          <Button variant="ghost" onClick={onClose} className="text-sm text-gray-500">סגור</Button>
         </div>
       </div>
     </div>

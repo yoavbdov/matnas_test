@@ -13,6 +13,7 @@ import EventImportPanel from "@/components/tournaments/events/EventImportPanel";
 import TabBtn from "@/components/tournaments/TabBtn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
+import { Button } from "@/components/ui/button";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { exportTournamentsCsv } from "@/components/tournaments/exportTournamentsCsv";
@@ -54,13 +55,13 @@ export default function TournamentsPage() {
       {s.activeTab === "events" && (
         <>
           <div className="flex items-center gap-2 mb-4" dir="rtl">
-            <button
+            <Button
               type="button"
               onClick={() => s.setShowAddEvent(true)}
-              className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700"
+              className="bg-teal-600 text-white text-sm font-medium hover:bg-teal-700"
             >
               + אירוע חדש
-            </button>
+            </Button>
             <div className="flex-1" />
             <CsvImportBtn onClick={() => s.setShowEventImport(true)} />
             <CsvExportBtn onClick={() => exportEventsCsv(events)} />

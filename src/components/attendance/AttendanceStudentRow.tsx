@@ -4,6 +4,8 @@
   3-state toggle: null (לא הוזן) → true (נכח) → false (לא נכח) → null
 */
 import type { Student } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   student: Student;
@@ -47,13 +49,13 @@ export default function AttendanceStudentRow({
       className={`flex items-center gap-4 px-4 py-3 rounded-xl border transition-colors ${style.row}`}
     >
       {/* Toggle button — cycles null → true → false → null */}
-      <button
+      <Button
         type="button"
         onClick={onToggle}
-        className={`w-28 shrink-0 py-2 rounded-lg text-sm font-bold transition-colors ${style.btn}`}
+        className={`w-28 shrink-0 py-2 text-sm font-bold ${style.btn}`}
       >
         {style.label}
-      </button>
+      </Button>
 
       {/* Student name + optional rating */}
       <div className="w-44 shrink-0">
@@ -63,13 +65,13 @@ export default function AttendanceStudentRow({
       </div>
 
       {/* Note input */}
-      <input
+      <Input
         type="text"
         placeholder="הערה"
         value={note}
         onChange={(e) => onNoteChange(e.target.value)}
         maxLength={120}
-        className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-teal-400"
+        className="flex-1 text-sm border-gray-200 bg-white focus:border-teal-400"
       />
     </div>
   );

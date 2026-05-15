@@ -4,9 +4,16 @@ import { CLASS_COLORS } from "@/lib/config/constants";
 import { LIMITS } from "@/lib/validation/validators";
 import TournamentEquipmentSelect from "./TournamentEquipmentSelect";
 import type { Tournament, Teacher, Class, PhysicalEquipment } from "@/types";
-
-const inp =
-  "border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 // The subset of Tournament used in the form (no id, rounds, participants)
 export type TournamentFormData = Omit<
@@ -56,8 +63,8 @@ export default function TournamentBasicFields({
 
       {/* שם התחרות */}
       <Row label="שם תחרות">
-        <input
-          className={`${inp} w-full`}
+        <Input
+          className="w-full h-8 text-sm"
           value={form.name}
           maxLength={LIMITS.NAME}
           onChange={(e) => onChange({ name: e.target.value })}
@@ -66,26 +73,30 @@ export default function TournamentBasicFields({
 
       {/* שופט */}
       <Row label="שופט">
-        <select
-          className={`${inp} w-full`}
-          value={form.judge_id ?? ""}
-          onChange={(e) => onChange({ judge_id: e.target.value || undefined })}
+        <Select
+          value={form.judge_id ?? "__none__"}
+          onValueChange={(v: string) => onChange({ judge_id: v === "__none__" ? undefined : v })}
         >
-          <option value="">— ללא שופט —</option>
-          {allTeachers
-            .filter((t) => t.status === "פעיל")
-            .map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.first_name} {t.last_name}
-              </option>
-            ))}
-        </select>
+          <SelectTrigger className="w-full h-8 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">— ללא שופט —</SelectItem>
+            {allTeachers
+              .filter((t) => t.status === "פעיל")
+              .map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.first_name} {t.last_name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       </Row>
 
       {/* תיאור */}
       <Row label="תיאור">
-        <textarea
-          className={`${inp} w-full resize-none`}
+        <Textarea
+          className="w-full resize-none text-sm"
           rows={2}
           value={form.description ?? ""}
           maxLength={LIMITS.DESCRIPTION}
@@ -97,18 +108,18 @@ export default function TournamentBasicFields({
       {/* טווח מד כושר — min – max בשורה אחת */}
       <Row label="טווח מד כושר">
         <div className="flex items-center gap-2">
-          <input
+          <Input
             type="number"
-            className={`${inp} w-20`}
+            className="w-20 h-8 text-sm"
             value={form.rating_min ?? ""}
             min={0}
             placeholder="מינ׳"
             onChange={(e) => onChange({ rating_min: e.target.value ? Number(e.target.value) : undefined })}
           />
           <span className="text-gray-400 text-sm">–</span>
-          <input
+          <Input
             type="number"
-            className={`${inp} w-20`}
+            className="w-20 h-8 text-sm"
             value={form.rating_max ?? ""}
             min={0}
             placeholder="מקס׳"
@@ -120,18 +131,18 @@ export default function TournamentBasicFields({
       {/* טווח גילאים — min – max בשורה אחת */}
       <Row label="טווח גילאים">
         <div className="flex items-center gap-2">
-          <input
+          <Input
             type="number"
-            className={`${inp} w-20`}
+            className="w-20 h-8 text-sm"
             value={form.age_min ?? ""}
             min={0}
             placeholder="מינ׳"
             onChange={(e) => onChange({ age_min: e.target.value ? Number(e.target.value) : undefined })}
           />
           <span className="text-gray-400 text-sm">–</span>
-          <input
+          <Input
             type="number"
-            className={`${inp} w-20`}
+            className="w-20 h-8 text-sm"
             value={form.age_max ?? ""}
             min={0}
             placeholder="מקס׳"
@@ -177,11 +188,13 @@ export default function TournamentBasicFields({
       <Row label="צבע זיהוי">
         <div className="flex gap-2 flex-wrap">
           {CLASS_COLORS.map((c) => (
-            <button
+            <Button
               key={c}
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => onChange({ color: c })}
-              className={`w-6 h-6 rounded-full border-2 transition-all ${
+              className={`w-6 h-6 rounded-full border-2 transition-all p-0 ${
                 form.color === c ? "border-gray-800 scale-110" : "border-transparent"
               }`}
               style={{ background: c }}

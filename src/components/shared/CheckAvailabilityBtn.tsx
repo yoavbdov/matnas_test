@@ -1,6 +1,7 @@
 "use client";
 // כפתור "בדוק זמינות" אחיד — משמש בטולבר מדריכים וטולבר ציוד
 import { CalendarCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   onClick: () => void;
@@ -9,15 +10,14 @@ interface Props {
 
 export default function CheckAvailabilityBtn({ onClick, className = "" }: Props) {
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium
-        border border-gray-300 bg-white text-gray-600 hover:border-teal-400 hover:text-teal-600
-        transition-colors cursor-pointer ${className}`}
+      className={`gap-1.5 text-xs font-medium text-gray-600 hover:border-teal-400 hover:text-teal-600 ${className}`}
     >
       <CalendarCheck size={13} />
       בדוק זמינות
-    </button>
+    </Button>
   );
 }

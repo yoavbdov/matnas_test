@@ -1,7 +1,7 @@
 "use client";
-// כפתור העלאת CSV אחיד — אפור עם אייקון Upload
-// משמש בכל המודולים: תלמידים, מדריכים, חוגים, חדרים
+// כפתור ייבוא CSV — ירוק עם אייקון Upload, עוטף shadcn Button
 import { Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   onClick: () => void;
@@ -10,14 +10,14 @@ interface Props {
 
 export default function CsvImportBtn({ onClick, className = "" }: Props) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium
-        bg-green-600 hover:bg-green-700 text-white transition-colors cursor-pointer ${className}`}
+      size="sm"
+      className={`bg-green-600 hover:bg-green-700 text-white ${className}`}
     >
       <Upload size={13} />
       העלאת מידע דרך CSV
-    </button>
+    </Button>
   );
 }

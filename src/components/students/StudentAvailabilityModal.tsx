@@ -7,6 +7,8 @@
 import { useState, useMemo } from "react";
 import { X, CalendarCheck, Search } from "lucide-react";
 import Btn from "@/components/shared/Btn";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { checkStudentAvailability } from "@/lib/availability/studentAvailability";
 import type { Student, Class, Tournament, Enrollment } from "@/types";
@@ -70,16 +72,16 @@ export default function StudentAvailabilityModal({ students, enrollments, classe
             <CalendarCheck size={20} />
             בדיקת זמינות שחקנים
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></Button>
         </div>
 
         {/* טופס */}
         <div className="p-5 border-b space-y-4">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">תאריך</label>
-            <input type="date" value={date}
+            <Input type="date" value={date}
               onChange={(e) => { setDate(e.target.value); setSearched(false); }}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 w-48"
+              className="w-48"
             />
           </div>
 
@@ -102,9 +104,9 @@ export default function StudentAvailabilityModal({ students, enrollments, classe
             </label>
             <div className="relative max-w-xs">
               <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input value={nameFilter} onChange={(e) => setNameFilter(e.target.value)}
+              <Input value={nameFilter} onChange={(e) => setNameFilter(e.target.value)}
                 placeholder="שם פרטי / משפחה…"
-                className="w-full border border-gray-200 rounded-lg pr-8 pl-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                className="w-full pr-8 pl-3"
               />
             </div>
           </div>

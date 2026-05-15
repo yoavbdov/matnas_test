@@ -2,6 +2,7 @@
 // Shows all groups for one category (בוגרים / נוער / נשים), sorted by league tier.
 
 import type { LeagueGroup, LeagueGroupMember, LeagueType } from "@/types";
+import { Button } from "@/components/ui/button";
 
 // Display order for each possible tier (lower index = lower tier)
 const TIER_ORDER: LeagueType[] = ["ג", "ב", "א", "מחוזית", "ארצית", "לאומית", "עילית"];
@@ -62,9 +63,10 @@ interface CardProps {
 
 function GroupCard({ group, playerCount, onClick }: CardProps) {
   return (
-    <button
+    <Button
       onClick={onClick}
-      className="w-full text-center bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-teal-500 rounded-lg px-4 py-3 transition-colors cursor-pointer"
+      variant="outline"
+      className="w-full h-auto flex-col text-center bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-teal-500 rounded-lg px-4 py-3 transition-colors cursor-pointer"
     >
       {/* Name + status badge */}
       <div className="flex items-center justify-center gap-2 mb-1">
@@ -90,6 +92,6 @@ function GroupCard({ group, playerCount, onClick }: CardProps) {
       {group.description && (
         <p className="text-xs text-gray-400 mt-1 truncate">{group.description}</p>
       )}
-    </button>
+    </Button>
   );
 }

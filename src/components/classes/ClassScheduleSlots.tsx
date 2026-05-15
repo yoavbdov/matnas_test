@@ -19,9 +19,15 @@ function dayFromDate(dateStr: string): string {
 }
 import { slotsConflict } from "@/lib/schedule/classHelpers";
 import type { Room, ScheduleSlot, Class, Tournament } from "@/types";
-
-const inp =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
   slots: ScheduleSlot[];
@@ -115,9 +121,9 @@ export default function ClassScheduleSlots({
               <div className="grid grid-cols-3 gap-3">
                 {/* Start date — the day-of-week is derived automatically from this date */}
                 <Field label="תאריך התחלה">
-                  <input
+                  <Input
                     type="date"
-                    className={inp}
+                    className="w-full text-sm"
                     value={slot.start_date}
                     onChange={(e) => {
                       // Auto-derive Hebrew day name so conflict detection stays accurate
@@ -130,49 +136,55 @@ export default function ClassScheduleSlots({
                 </Field>
                 <Field label="שעת התחלה">
                   <TimeSelect
-                    className={inp}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400"
                     value={slot.start_time}
                     onChange={(v) => onChange(idx, { start_time: v })}
                   />
                 </Field>
                 <Field label="שעת סיום">
                   <TimeSelect
-                    className={inp}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400"
                     value={slot.end_time}
                     onChange={(v) => onChange(idx, { end_time: v })}
                   />
                 </Field>
                 <Field label="חדר">
-                  <select
-                    className={inp}
+                  <Select
                     value={slot.room_id}
-                    onChange={(e) => onChange(idx, { room_id: e.target.value })}
+                    onValueChange={(v: string) => onChange(idx, { room_id: v })}
                   >
-                    {rooms.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rooms.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
                 <Field label="תדירות">
-                  <select
-                    className={inp}
+                  <Select
                     value={slot.recurrence}
-                    onChange={(e) =>
-                      onChange(idx, { recurrence: e.target.value })
-                    }
+                    onValueChange={(v: string) => onChange(idx, { recurrence: v })}
                   >
-                    {RECURRENCE_OPTIONS.map((o) => (
-                      <option key={o}>{o}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RECURRENCE_OPTIONS.map((o) => (
+                        <SelectItem key={o} value={o}>{o}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
                 {slot.recurrence === "חד פעמי" && (
                   <Field label="תאריך המפגש">
-                    <input
+                    <Input
                       type="date"
-                      className={inp}
+                      className="w-full text-sm"
                       value={slot.once_date ?? ""}
                       onChange={(e) =>
                         onChange(idx, { once_date: e.target.value })
@@ -182,9 +194,9 @@ export default function ClassScheduleSlots({
                 )}
                 {/* End date — the last session date. After this date, the class ends automatically */}
                 <Field label="תאריך סיום">
-                  <input
+                  <Input
                     type="date"
-                    className={inp}
+                    className="w-full text-sm"
                     value={slot.end_date_override ?? ""}
                     onChange={(e) =>
                       onChange(idx, {
@@ -197,14 +209,16 @@ export default function ClassScheduleSlots({
               </div>
 
               <div className="flex justify-end mt-2">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => onRemove(idx)}
-                  className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1"
+                  className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1 h-auto py-1"
                 >
                   <Trash2 size={13} />
                   הסר מפגש
-                </button>
+                </Button>
               </div>
             </div>
           );

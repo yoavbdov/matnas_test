@@ -6,6 +6,8 @@
 */
 import { useState } from "react";
 import Modal from "@/components/shared/Modal";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import Btn from "@/components/shared/Btn";
 import ClassBasicFields from "./ClassBasicFields";
 import ClassResources from "./ClassResources";
@@ -130,18 +132,19 @@ export default function ClassFormModal({
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-gray-200 mb-5" dir="rtl">
         {tabs.map((t) => (
-          <button
+          <Button
             key={t}
             type="button"
+            variant="ghost"
             onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors h-auto ${
               tab === t
                 ? "border-b-2 border-teal-600 text-teal-700"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
             {t}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -176,8 +179,8 @@ export default function ClassFormModal({
             {/* Notes */}
             <div>
               <label className="text-xs font-medium text-gray-600">הערות</label>
-              <textarea
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400 resize-none"
+              <Textarea
+                className="mt-1 resize-none"
                 rows={3}
                 value={form.notes ?? ""}
                 maxLength={LIMITS.NOTES}

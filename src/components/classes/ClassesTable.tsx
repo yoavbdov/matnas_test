@@ -1,5 +1,13 @@
 // טבלת החוגים — כל שורה היא חוג אחד, כל כותרת עמודה ניתנת למיון
 import Badge from "@/components/shared/Badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Class, Teacher, Enrollment } from "@/types";
 
 export type SortCol = "name" | "teacher" | "enrolled" | "capacity" | "days" | "status";
@@ -17,58 +25,51 @@ interface Props {
 
 // כותרת עמודה עם חץ מיון
 function SortTh({ label, col, active, dir, onSort }: {
-  label: string;
-  col: SortCol;
-  active: boolean;
-  dir: SortDir;
-  onSort: (col: SortCol) => void;
+  label: string; col: SortCol; active: boolean; dir: SortDir; onSort: (col: SortCol) => void;
 }) {
   return (
-    <th
-      className="text-right px-4 py-3 font-medium cursor-pointer select-none hover:text-teal-600 transition-colors"
-      onClick={() => onSort(col)}
-    >
+    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => onSort(col)}>
       <span className="inline-flex items-center gap-1">
         {label}
-        <span className="text-gray-400">{active ? (dir === "asc" ? "↑" : "↓") : "↕"}</span>
+        <span className="text-muted-foreground">{active ? (dir === "asc" ? "↑" : "↓") : "↕"}</span>
       </span>
-    </th>
+    </TableHead>
   );
 }
 
 function enrollColor(ratio: number) {
   if (ratio >= 1) return "text-red-600 font-semibold";
   if (ratio >= 0.8) return "text-orange-500 font-medium";
-  return "text-teal-600";
+  return "text-primary";
 }
 
 export default function ClassesTable({ classes, teachers, enrollments, onRowClick, sortCol, sortDir, onSort }: Props) {
   if (classes.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center text-sm text-gray-400">
+      <div className="bg-card rounded-xl border border-border shadow-sm p-10 text-center text-sm text-muted-foreground">
         אין חוגים להצגה
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-xs">
-            {/* עמודת נקודת צבע — לא ניתנת למיון */}
-            <th className="px-4 py-3 w-4" />
+    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50 text-xs">
+            {/* עמודת נקודת צבע */}
+            <TableHead className="w-4" />
             <SortTh label="שם החוג"  col="name"     active={sortCol === "name"}     dir={sortDir} onSort={onSort} />
             <SortTh label="מדריך"    col="teacher"  active={sortCol === "teacher"}  dir={sortDir} onSort={onSort} />
-            <th className="text-right px-4 py-3 font-medium">גילאים</th>
-            <th className="text-right px-4 py-3 font-medium">דירוגים</th>
+            <TableHead>גילאים</TableHead>
+            <TableHead>דירוגים</TableHead>
             <SortTh label="רשומים"   col="enrolled" active={sortCol === "enrolled"} dir={sortDir} onSort={onSort} />
             <SortTh label="קיבולת"   col="capacity" active={sortCol === "capacity"} dir={sortDir} onSort={onSort} />
             <SortTh label="ימים"     col="days"     active={sortCol === "days"}     dir={sortDir} onSort={onSort} />
             <SortTh label="סטטוס"    col="status"   active={sortCol === "status"}   dir={sortDir} onSort={onSort} />
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {classes.map((cls) => {
             const teacher = teachers.find((t) => t.id === cls.teacher_id);
             const enrolled = enrollments.filter((e) => e.class_id === cls.id && e.status === "פעיל").length;
@@ -76,43 +77,39 @@ export default function ClassesTable({ classes, teachers, enrollments, onRowClic
             const days = [...new Set((cls.slots ?? []).map((s) => s.day))].join(", ");
 
             return (
-              <tr
-                key={cls.id}
-                onClick={() => onRowClick(cls)}
-                className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50"
-              >
-                <td className="px-4 py-3">
+              <TableRow key={cls.id} onClick={() => onRowClick(cls)} className="cursor-pointer">
+                <TableCell>
                   <span className="inline-block w-3 h-3 rounded-full" style={{ background: cls.color ?? "#ccc" }} />
-                </td>
-                <td className="px-4 py-3 font-medium text-gray-800">{cls.name}</td>
-                <td className="px-4 py-3 text-gray-500">
+                </TableCell>
+                <TableCell className="font-medium">{cls.name}</TableCell>
+                <TableCell className="text-muted-foreground">
                   {teacher ? `${teacher.first_name} ${teacher.last_name}` : "—"}
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">
+                </TableCell>
+                <TableCell className="text-muted-foreground text-xs">
                   {cls.age_min !== undefined && cls.age_max !== undefined ? `${cls.age_min}–${cls.age_max}` : "—"}
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">
+                </TableCell>
+                <TableCell className="text-muted-foreground text-xs">
                   {cls.rating_min !== undefined && cls.rating_max !== undefined ? `${cls.rating_min}–${cls.rating_max}` : "—"}
-                </td>
-                <td className={`px-4 py-3 ${enrollColor(ratio)}`}>{enrolled}</td>
-                <td className="px-4 py-3 text-gray-500">{cls.capacity}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{days || "—"}</td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className={enrollColor(ratio)}>{enrolled}</TableCell>
+                <TableCell className="text-muted-foreground">{cls.capacity}</TableCell>
+                <TableCell className="text-muted-foreground text-xs">{days || "—"}</TableCell>
+                <TableCell>
                   <Badge
                     label={cls.status}
                     color={
                       cls.status === "פעיל" ? "green" :
                       cls.status === "מתוכנן" ? "blue" :
                       cls.status === "הסתיים" ? "gray" :
-                      "red" /* בוטל */
+                      "red"
                     }
                   />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

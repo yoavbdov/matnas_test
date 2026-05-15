@@ -6,6 +6,14 @@
 import { useState } from "react";
 import { exportAttendanceCsv } from "./exportAttendanceCsv";
 import type { Class, Student, Enrollment, Attendance } from "@/types";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
   classes: Class[];
@@ -50,34 +58,36 @@ export default function ExportCsvModal({
         </h2>
 
         <label className="block text-sm text-gray-600 mb-1">בחר חוג</label>
-        <select
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 mb-5"
-          value={selectedClassId}
-          onChange={(e) => setSelectedClassId(e.target.value)}
-        >
-          {classes.map((cls) => (
-            <option key={cls.id} value={cls.id}>
-              {cls.name}
-            </option>
-          ))}
-        </select>
+        <Select value={selectedClassId} onValueChange={(v: string) => setSelectedClassId(v)}>
+          <SelectTrigger className="w-full mb-5">
+            <SelectValue placeholder="— בחר חוג —" />
+          </SelectTrigger>
+          <SelectContent>
+            {classes.map((cls) => (
+              <SelectItem key={cls.id} value={cls.id}>
+                {cls.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <div className="flex gap-3 justify-end">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+            className="text-gray-600"
           >
             ביטול
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleExport}
             disabled={!selectedClassId}
-            className="px-5 py-2 rounded-lg bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 disabled:opacity-40 transition-colors"
+            className="bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-40"
           >
             ייצא CSV
-          </button>
+          </Button>
         </div>
       </div>
     </div>

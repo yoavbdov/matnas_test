@@ -5,10 +5,16 @@ import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { DAYS, RECURRENCE_OPTIONS } from "@/lib/config/constants";
 import { validateTimeRange } from "@/lib/validation/validators";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import type { Room, ScheduleSlot } from "@/types";
-
-const inp =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   slots: ScheduleSlot[];
@@ -53,26 +59,30 @@ export default function SlotEditor({
             >
               <div className="grid grid-cols-3 gap-3">
                 <Field label="יום">
-                  <select
-                    className={inp}
+                  <Select
                     value={slot.day}
-                    onChange={(e) => onChange(idx, { day: e.target.value })}
+                    onValueChange={(v: string) => onChange(idx, { day: v })}
                   >
-                    {DAYS.map((d) => (
-                      <option key={d}>{d}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DAYS.map((d) => (
+                        <SelectItem key={d} value={d}>
+                          {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
                 <Field label="שעת התחלה">
                   <TimeSelect
-                    className={inp}
                     value={slot.start_time}
                     onChange={(v) => onChange(idx, { start_time: v })}
                   />
                 </Field>
                 <Field label="שעת סיום">
                   <TimeSelect
-                    className={inp}
                     value={slot.end_time}
                     onChange={(v) => onChange(idx, { end_time: v })}
                   />
@@ -84,35 +94,46 @@ export default function SlotEditor({
                   </p>
                 )}
                 <Field label="חדר">
-                  <select
-                    className={inp}
-                    value={slot.room_id}
-                    onChange={(e) => onChange(idx, { room_id: e.target.value })}
-                  >
-                    {rooms.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="תדירות">
-                  <select
-                    className={inp}
-                    value={slot.recurrence}
-                    onChange={(e) =>
-                      onChange(idx, { recurrence: e.target.value })
+                  <Select
+                    value={slot.room_id || "__none__"}
+                    onValueChange={(v: string) =>
+                      onChange(idx, { room_id: v === "__none__" ? "" : v })
                     }
                   >
-                    {RECURRENCE_OPTIONS.map((o) => (
-                      <option key={o}>{o}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rooms.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="תדירות">
+                  <Select
+                    value={slot.recurrence}
+                    onValueChange={(v: string) =>
+                      onChange(idx, { recurrence: v })
+                    }
+                  >
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RECURRENCE_OPTIONS.map((o) => (
+                        <SelectItem key={o} value={o}>
+                          {o}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
                 <Field label="תאריך התחלה">
-                  <input
+                  <Input
                     type="date"
-                    className={inp}
                     value={slot.start_date}
                     onChange={(e) =>
                       onChange(idx, { start_date: e.target.value })
@@ -121,9 +142,8 @@ export default function SlotEditor({
                 </Field>
                 {slot.recurrence === "חד פעמי" && (
                   <Field label="תאריך המפגש">
-                    <input
+                    <Input
                       type="date"
-                      className={inp}
                       value={slot.once_date ?? ""}
                       onChange={(e) =>
                         onChange(idx, { once_date: e.target.value })
@@ -132,9 +152,8 @@ export default function SlotEditor({
                   </Field>
                 )}
                 <Field label="תאריך סיום (אופציונלי)">
-                  <input
+                  <Input
                     type="date"
-                    className={inp}
                     value={slot.end_date_override ?? ""}
                     onChange={(e) =>
                       onChange(idx, {
@@ -145,14 +164,16 @@ export default function SlotEditor({
                 </Field>
               </div>
               <div className="flex justify-end mt-2">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => onRemove(idx)}
                   className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1"
                 >
                   <Trash2 size={13} />
                   הסר מפגש
-                </button>
+                </Button>
               </div>
             </div>
           );

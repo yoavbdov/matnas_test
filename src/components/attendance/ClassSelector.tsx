@@ -6,6 +6,7 @@
 */
 import type { Class, Attendance, Enrollment } from "@/types";
 import { getPastSessionDates } from "./attendanceHelpers";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   classes: Class[];
@@ -53,14 +54,15 @@ export default function ClassSelector({ classes, allAttendance, enrollments, sel
           const isSelected = cls.id === selectedClassId;
 
           return (
-            <button
+            <Button
               key={cls.id}
               type="button"
+              variant="ghost"
               onClick={() => onSelect(cls.id)}
-              className={`w-full text-right px-3 py-2.5 rounded-lg text-sm flex items-center gap-2 transition-colors ${
+              className={`w-full justify-start text-right px-3 py-2.5 h-auto text-sm gap-2 ${
                 isSelected
-                  ? "bg-teal-500 text-white"
-                  : "hover:bg-gray-100 text-gray-700"
+                  ? "bg-teal-500 text-white hover:bg-teal-600 hover:text-white"
+                  : "text-gray-700"
               }`}
             >
               {/* Class color dot */}
@@ -80,7 +82,7 @@ export default function ClassSelector({ classes, allAttendance, enrollments, sel
                   {missing}
                 </span>
               )}
-            </button>
+            </Button>
           );
         })}
       </div>

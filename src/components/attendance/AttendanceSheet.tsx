@@ -11,6 +11,7 @@ import AttendanceStudentRow from "./AttendanceStudentRow";
 import { formatHebrewDate } from "./attendanceHelpers";
 import { addDocument, updateDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
+import { Button } from "@/components/ui/button";
 import type {
   Student,
   Enrollment,
@@ -167,20 +168,24 @@ export default function AttendanceSheet({
           </span>
 
           {/* Bulk mark buttons */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => markAll(true)}
-            className="text-xs px-3 py-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 font-medium"
+            className="text-xs bg-green-100 text-green-700 hover:bg-green-200"
           >
             כולם נכחו
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => markAll(false)}
-            className="text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 font-medium"
+            className="text-xs bg-red-100 text-red-600 hover:bg-red-200"
           >
             כולם נעדרו
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -200,14 +205,14 @@ export default function AttendanceSheet({
 
       {/* Save button — pinned to bottom */}
       <div className="mt-4 flex justify-end border-t border-gray-100 pt-4">
-        <button
+        <Button
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-8 py-2.5 rounded-xl bg-teal-500 text-white font-semibold hover:bg-teal-600 disabled:opacity-50 transition-colors"
+          className="px-8 py-2.5 bg-teal-500 text-white font-semibold hover:bg-teal-600 disabled:opacity-50"
         >
           {saving ? "מעדכן..." : "שמור"}
-        </button>
+        </Button>
       </div>
     </div>
   );

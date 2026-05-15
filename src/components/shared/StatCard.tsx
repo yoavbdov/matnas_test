@@ -1,5 +1,7 @@
 "use client";
+// כרטיס סטטיסטיקה — עוטף shadcn Card עם אייקון וערך
 import type { LucideIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -18,23 +20,21 @@ const colorMap = {
 };
 
 export default function StatCard({ icon: Icon, value, label, sub, onClick, color = "teal" }: StatCardProps) {
-  const iconClass = colorMap[color];
-
   return (
-    <div
+    <Card
       onClick={onClick}
-      className={`bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 ${
-        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
-      }`}
+      className={`${onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
     >
-      <div className={`p-3 rounded-lg ${iconClass}`}>
-        <Icon size={22} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
-        <div className="text-sm text-gray-500">{label}</div>
-        {sub && <div className="text-xs text-gray-400 mt-0.5">{sub}</div>}
-      </div>
-    </div>
+      <CardContent className="flex items-center gap-4 p-5">
+        <div className={`p-3 rounded-lg ${colorMap[color]}`}>
+          <Icon size={22} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-2xl font-bold text-foreground">{value}</div>
+          <div className="text-sm text-muted-foreground">{label}</div>
+          {sub && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -8,9 +8,20 @@ import { useState } from "react";
 import { slotsOverlapTime } from "@/lib/schedule/classHelpers";
 import { timeToMins } from "@/lib/utils/utils";
 import type { Student, Enrollment, Class, Tournament, ScheduleSlot } from "@/types";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Hebrew day names indexed by JS getDay() (0=Sunday)
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
+// sentinel for the "no student selected" state
+const SENTINEL_NONE = "__none__";
 
 interface Props {
   students: Student[];
@@ -170,13 +181,15 @@ export default function ClassEnrollmentPanel({
               {row.warning && (
                 <span className="text-xs text-amber-600">⚠ {row.warning}</span>
               )}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={row.onRemove}
-                className="text-xs text-red-400 hover:text-red-600 px-2 py-0.5 rounded"
+                className="text-xs text-red-400 hover:text-red-600 px-2 py-0.5 h-auto"
               >
                 הסר
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -188,27 +201,31 @@ export default function ClassEnrollmentPanel({
 
       {/* Add student row */}
       <div className="flex gap-2">
-        <select
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-          value={selectedStudentId}
-          onChange={(e) => setSelectedStudentId(e.target.value)}
+        <Select
+          value={selectedStudentId || SENTINEL_NONE}
+          onValueChange={(v: string) => setSelectedStudentId(v === SENTINEL_NONE ? "" : v)}
         >
-          <option value="">בחר תלמיד להוספה...</option>
-          {availableStudents.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.first_name} {s.last_name}
-              {s.israeli_rating ? ` (${s.israeli_rating})` : ""}
-            </option>
-          ))}
-        </select>
-        <button
+          <SelectTrigger className="flex-1">
+            <SelectValue placeholder="בחר תלמיד להוספה..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={SENTINEL_NONE}>בחר תלמיד להוספה...</SelectItem>
+            {availableStudents.map((s) => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.first_name} {s.last_name}
+                {s.israeli_rating ? ` (${s.israeli_rating})` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
           type="button"
           onClick={handleAdd}
           disabled={!selectedStudentId}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           הוסף
-        </button>
+        </Button>
       </div>
     </div>
   );

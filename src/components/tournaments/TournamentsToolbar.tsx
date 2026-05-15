@@ -3,6 +3,14 @@ import Btn from "@/components/shared/Btn";
 import SearchInput from "@/components/shared/SearchInput";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Plus, CalendarCheck } from "lucide-react";
 import type { Tournament } from "@/types";
 
@@ -35,29 +43,34 @@ export default function TournamentsToolbar({ search, onSearch, statusFilter, onS
       />
 
       {/* Status filter */}
-      <select
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+      <Select
         value={statusFilter}
-        onChange={(e) => onStatusFilter(e.target.value as Tournament["status"] | "הכל")}
+        onValueChange={(v: string) => onStatusFilter(v as Tournament["status"] | "הכל")}
       >
-        {STATUS_OPTIONS.map((s) => (
-          <option key={s} value={s}>{s}</option>
-        ))}
-      </select>
+        <SelectTrigger className="w-36 h-9 text-sm">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((s) => (
+            <SelectItem key={s} value={s}>{s}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {/* כפתור "היום" — מסנן תחרויות שמתקיימות היום */}
-      <button
+      <Button
+        variant="outline"
         onClick={onToggleToday}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-colors cursor-pointer ${
+        title="תחרויות שמתקיימות היום"
+        className={`flex items-center gap-1.5 px-3 py-1.5 h-9 rounded-lg border text-sm transition-colors cursor-pointer ${
           todayActive
-            ? "bg-teal-500 text-white border-teal-500"
+            ? "bg-teal-500 text-white border-teal-500 hover:bg-teal-600"
             : "bg-white text-gray-600 border-gray-200 hover:border-teal-300"
         }`}
-        title="תחרויות שמתקיימות היום"
       >
         <CalendarCheck size={14} />
         היום
-      </button>
+      </Button>
 
       {/* Spacer */}
       <div className="flex-1" />

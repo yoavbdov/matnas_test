@@ -16,6 +16,7 @@ import {
   ClipboardCheck,
   LogOut,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/dashboard", label: "לוח בקרה", icon: LayoutDashboard },
@@ -70,13 +71,14 @@ export default function Sidebar() {
       </nav>
 
       <div className="px-3 py-4 border-t border-gray-700">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => signOut(auth)}
-          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors cursor-pointer"
+          className="w-full justify-start gap-3 text-gray-300 hover:bg-gray-800 hover:text-white"
         >
           <LogOut size={18} />
           התנתקות
-        </button>
+        </Button>
       </div>
     </aside>
   );

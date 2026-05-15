@@ -1,6 +1,7 @@
 "use client";
 // תצוגת פרטי אירוע (קריאה בלבד) — עם כפתורי עריכה ומחיקה
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { formatRecurringEventSummary } from "@/lib/conflicts/eventHelpers";
 import { DAYS } from "@/lib/config/constants";
 import type { Event } from "@/types";
@@ -107,48 +108,52 @@ export default function EventDetailModal({
               האם למחוק את האירוע "{event.name}"?
             </p>
             <div className="flex gap-2">
-              <button
+              <Button
                 type="button"
                 onClick={onDelete}
-                className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-medium hover:bg-red-700"
+                size="sm"
+                className="bg-red-600 text-white hover:bg-red-700 text-xs"
               >
                 כן, מחק
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => setConfirmingDelete(false)}
-                className="px-3 py-1.5 rounded-lg border border-red-300 text-red-700 text-xs hover:bg-red-100"
+                className="border-red-300 text-red-700 hover:bg-red-100 text-xs"
               >
                 ביטול
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {/* כפתורים */}
         <div className="flex gap-3 justify-between">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setConfirmingDelete(true)}
-            className="px-4 py-2 rounded-lg text-sm text-red-600 border border-red-200 hover:bg-red-50"
+            className="text-red-600 border-red-200 hover:bg-red-50"
           >
             מחק
-          </button>
+          </Button>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
             >
               סגור
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={onEdit}
-              className="px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700"
+              className="bg-teal-600 text-white hover:bg-teal-700"
             >
               ערוך
-            </button>
+            </Button>
           </div>
         </div>
       </div>

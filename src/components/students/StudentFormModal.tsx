@@ -11,11 +11,17 @@ import Btn from "@/components/shared/Btn";
 import { CHESS_TITLES, GRADE_LABELS } from "@/lib/config/constants";
 import { gradeFromDob } from "@/lib/utils/utils";
 import { LIMITS, digitsOnly } from "@/lib/validation/validators";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import type { Student } from "@/types";
 import { DEFAULT_SETTINGS } from "@/lib/config/config";
-
-const inp =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   mode: "add" | "edit";
@@ -64,16 +70,14 @@ export default function StudentFormModal({
       {/* ── Basic details ── */}
       <div className="grid grid-cols-2 gap-4">
         <Field label="שם פרטי" required>
-          <input
-            className={inp}
+          <Input
             value={form.first_name}
             maxLength={settings.MAX_STRING_LENGTH}
             onChange={(e) => set("first_name", e.target.value)}
           />
         </Field>
         <Field label="שם משפחה" required>
-          <input
-            className={inp}
+          <Input
             value={form.last_name}
             maxLength={settings.MAX_STRING_LENGTH}
             onChange={(e) => set("last_name", e.target.value)}
@@ -85,9 +89,8 @@ export default function StudentFormModal({
           required
           hint={gradeLabel || undefined}
         >
-          <input
+          <Input
             type="date"
-            className={inp}
             value={form.dob}
             onChange={(e) => set("dob", e.target.value)}
           />
@@ -97,20 +100,27 @@ export default function StudentFormModal({
 
         {/* Manual grade override — leave empty to auto-compute from DOB */}
         <Field label="כיתה (ידני)" hint={gradeLabel ? `חישוב אוטומטי: ${gradeLabel}` : "מחושב אוטומטית מתאריך לידה"}>
-          <select
-            className={inp}
-            value={form.grade_override ?? ""}
-            onChange={(e) => set("grade_override", e.target.value || undefined)}
+          <Select
+            value={form.grade_override ?? "__auto__"}
+            onValueChange={(v: string) =>
+              set("grade_override", v === "__auto__" ? undefined : v)
+            }
           >
-            <option value="">— אוטומטי —</option>
-            {GRADE_LABELS.map((g) => <option key={g} value={g}>{g}</option>)}
-          </select>
+            <SelectTrigger className="w-full text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__auto__">— אוטומטי —</SelectItem>
+              {GRADE_LABELS.map((g) => (
+                <SelectItem key={g} value={g}>{g}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
 
         {/* ת"ז — ספרות בלבד, עד 9 */}
         <Field label="תעודת זהות" hint={`עד ${LIMITS.ISRAELI_ID} ספרות בלבד`}>
-          <input
-            className={inp}
+          <Input
             value={form.israeli_id ?? ""}
             inputMode="numeric"
             onChange={(e) => set("israeli_id", digitsOnly(e.target.value, LIMITS.ISRAELI_ID))}
@@ -119,8 +129,7 @@ export default function StudentFormModal({
 
         {/* טלפון — ספרות בלבד, בדיוק 10 */}
         <Field label="טלפון" hint="10 ספרות בלבד">
-          <input
-            className={inp}
+          <Input
             value={form.phone ?? ""}
             inputMode="numeric"
             onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))}
@@ -128,17 +137,15 @@ export default function StudentFormModal({
         </Field>
 
         <Field label="אימייל" hint={`עד ${LIMITS.EMAIL} תווים`}>
-          <input
+          <Input
             type="email"
-            className={inp}
             value={form.email ?? ""}
             maxLength={LIMITS.EMAIL}
             onChange={(e) => set("email", e.target.value)}
           />
         </Field>
         <Field label="כתובת" hint={`עד ${LIMITS.ADDRESS} תווים`}>
-          <input
-            className={inp}
+          <Input
             value={form.address ?? ""}
             maxLength={LIMITS.ADDRESS}
             onChange={(e) => set("address", e.target.value)}
@@ -155,8 +162,7 @@ export default function StudentFormModal({
       <div className="grid grid-cols-2 gap-4">
         {/* מספר שחקן — ספרות בלבד, עד 6 */}
         <Field label="מספר שחקן ישראלי" hint={`עד ${LIMITS.ISRAELI_CHESS_ID} ספרות`}>
-          <input
-            className={inp}
+          <Input
             value={form.israeli_chess_id ?? ""}
             inputMode="numeric"
             onChange={(e) => set("israeli_chess_id", digitsOnly(e.target.value, LIMITS.ISRAELI_CHESS_ID))}
@@ -165,17 +171,15 @@ export default function StudentFormModal({
 
         {/* FIDE ID — ספרות בלבד, עד 9 */}
         <Field label="FIDE ID" hint={`עד ${LIMITS.FIDE_ID} ספרות`}>
-          <input
-            className={inp}
+          <Input
             value={form.fide_id ?? ""}
             inputMode="numeric"
             onChange={(e) => set("fide_id", digitsOnly(e.target.value, LIMITS.FIDE_ID))}
           />
         </Field>
         <Field label="דירוג ישראלי" hint="מתעדכן אוטומטית מהסינכרון">
-          <input
+          <Input
             type="number"
-            className={inp}
             value={form.israeli_rating ?? ""}
             min={0}
             max={settings.MAX_INT_INPUT}
@@ -185,9 +189,8 @@ export default function StudentFormModal({
           />
         </Field>
         <Field label="דירוג FIDE" hint="מתעדכן אוטומטית מהסינכרון">
-          <input
+          <Input
             type="number"
-            className={inp}
             value={form.fide_rating ?? ""}
             min={0}
             max={settings.MAX_INT_INPUT}
@@ -197,16 +200,22 @@ export default function StudentFormModal({
           />
         </Field>
         <Field label="תואר שחמטאי">
-          <select
-            className={inp}
-            value={form.chess_title ?? ""}
-            onChange={(e) => set("chess_title", e.target.value)}
+          <Select
+            value={form.chess_title ?? "__none__"}
+            onValueChange={(v: string) =>
+              set("chess_title", v === "__none__" ? "" : v)
+            }
           >
-            <option value="">ללא תואר</option>
-            {CHESS_TITLES.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">ללא תואר</SelectItem>
+              {CHESS_TITLES.map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
       </div>
 
@@ -214,8 +223,7 @@ export default function StudentFormModal({
 
       {/* ── Notes ── */}
       <Field label="הערות">
-        <textarea
-          className={inp}
+        <Textarea
           rows={3}
           value={form.notes ?? ""}
           maxLength={settings.MAX_NOTE_LENGTH}

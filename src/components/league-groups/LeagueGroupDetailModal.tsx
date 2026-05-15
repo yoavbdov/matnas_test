@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
+import { Button } from "@/components/ui/button";
 import AddPlayerModal from "./AddPlayerModal";
 import { addDocument, deleteDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
@@ -137,13 +138,15 @@ export default function LeagueGroupDetailModal({
                           </span>
                         )}
                       </span>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleRemovePlayer(m.id)}
                         disabled={saving}
-                        className="text-xs text-red-400 hover:text-red-600 disabled:opacity-50"
+                        className="text-xs text-red-400 hover:text-red-600 h-auto px-2 py-1"
                       >
                         הסר
-                      </button>
+                      </Button>
                     </li>
                   );
                 })}

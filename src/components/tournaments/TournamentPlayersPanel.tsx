@@ -5,6 +5,7 @@
 */
 import { useState } from "react";
 import { X, AlertTriangle, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import AddPlayersModal from "./AddPlayersModal";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import type { Student, ManualParticipant } from "@/types";
@@ -129,14 +130,14 @@ export default function TournamentPlayersPanel({
               onClick={() => exportParticipantsToCSV(addedStudents, manualParticipants, tournamentName)}
             />
           )}
-          <button
+          <Button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-medium transition-colors shadow-sm"
+            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white"
           >
             <UserPlus size={15} />
             להוספת שחקנים לחץ כאן
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -165,13 +166,15 @@ export default function TournamentPlayersPanel({
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-400">{s.israeli_rating ?? "—"}</span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => onChangeIds(participantIds.filter((x) => x !== s.id))}
-                      className="text-red-400 hover:text-red-600"
+                      className="text-red-400 hover:text-red-600 h-6 w-6"
                     >
                       <X size={15} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               );
@@ -193,13 +196,15 @@ export default function TournamentPlayersPanel({
                 <span className="font-medium text-gray-800">{p.name}</span>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-400">{p.rating ?? "—"}</span>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => onChangeManual(manualParticipants.filter((x) => x.id !== p.id))}
-                    className="text-red-400 hover:text-red-600"
+                    className="text-red-400 hover:text-red-600 h-6 w-6"
                   >
                     <X size={15} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}

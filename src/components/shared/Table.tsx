@@ -1,6 +1,15 @@
 "use client";
+// טבלת נתונים גנרית עם מיון — עוטף shadcn Table
 import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Table as ShadcnTable,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export interface Column<T> {
   key: keyof T | string;
@@ -39,49 +48,53 @@ export default function Table<T extends { id: string }>({
       })
     : rows;
 
+  if (sorted.length === 0) {
+    return (
+      <div className="bg-card rounded-xl border border-border shadow-sm p-10 text-center text-sm text-muted-foreground">
+        אין נתונים להצגה
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-      {sorted.length === 0 ? (
-        <div className="p-10 text-center text-sm text-gray-400">אין נתונים להצגה</div>
-      ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-xs">
-              {columns.map((col) => (
-                <th
-                  key={String(col.key)}
-                  className={`text-right px-4 py-3 font-medium select-none ${sortable ? "cursor-pointer hover:text-gray-700" : ""}`}
-                  onClick={() => handleSort(String(col.key))}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {col.label}
-                    {sortable && sortKey === String(col.key) && (
-                      sortAsc ? <ChevronUp size={12} /> : <ChevronDown size={12} />
-                    )}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((row) => (
-              <tr
-                key={row.id}
-                onClick={() => onRowClick?.(row)}
-                className={`border-b border-gray-50 last:border-0 ${onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
+    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+      <ShadcnTable>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            {columns.map((col) => (
+              <TableHead
+                key={String(col.key)}
+                className={`text-right ${sortable ? "cursor-pointer select-none hover:text-foreground" : ""}`}
+                onClick={() => handleSort(String(col.key))}
               >
-                {columns.map((col) => (
-                  <td key={String(col.key)} className="px-4 py-3 text-gray-700">
-                    {col.render
-                      ? col.render(row)
-                      : String((row as Record<string, unknown>)[String(col.key)] ?? "—")}
-                  </td>
-                ))}
-              </tr>
+                <span className="inline-flex items-center gap-1">
+                  {col.label}
+                  {sortable && sortKey === String(col.key) && (
+                    sortAsc ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                  )}
+                </span>
+              </TableHead>
             ))}
-          </tbody>
-        </table>
-      )}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sorted.map((row) => (
+            <TableRow
+              key={row.id}
+              onClick={() => onRowClick?.(row)}
+              className={onRowClick ? "cursor-pointer" : ""}
+            >
+              {columns.map((col) => (
+                <TableCell key={String(col.key)}>
+                  {col.render
+                    ? col.render(row)
+                    : String((row as Record<string, unknown>)[String(col.key)] ?? "—")}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </ShadcnTable>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { usePickerContext } from "@mui/x-date-pickers/hooks";
 import dayjs, { Dayjs } from "dayjs";
 import { Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   value: string;
@@ -278,23 +279,17 @@ export default function ClockTimePicker({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      {/* Trigger button */}
-      <button
+      {/* כפתור פתיחה — shadcn Button עם אייקון שעון */}
+      <Button
         type="button"
+        variant="outline"
         onClick={() => setOpen(true)}
         dir="ltr"
-        className={[
-          "flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2",
-          "text-sm bg-white hover:border-teal-400 focus:outline-none",
-          "focus:border-teal-400 transition-colors cursor-pointer",
-          className,
-        ].join(" ")}
+        className={`gap-2 font-mono ${className}`}
       >
-        <Clock size={14} className="text-teal-500 shrink-0" />
-        <span className="font-mono font-medium text-gray-700 tracking-wide">
-          {value}
-        </span>
-      </button>
+        <Clock size={14} className="text-muted-foreground shrink-0" />
+        {value}
+      </Button>
 
       <MobileTimePicker
         open={open}

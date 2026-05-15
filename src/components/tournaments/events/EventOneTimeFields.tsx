@@ -3,6 +3,14 @@ import Field from "@/components/shared/Field";
 import TimeSelect from "@/components/shared/TimeSelect";
 import { validateTimeRange } from "@/lib/validation/validators";
 import type { Room } from "@/types";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 interface Props {
   date: string;
@@ -31,9 +39,9 @@ export default function EventOneTimeFields({
     <div className="space-y-4" dir="rtl">
       {/* תאריך */}
       <Field label="תאריך האירוע" required>
-        <input
+        <Input
           type="date"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="w-full h-9 text-sm"
           value={date}
           onChange={(e) => onChange({ date: e.target.value })}
         />
@@ -60,17 +68,22 @@ export default function EventOneTimeFields({
 
       {/* חדר */}
       <Field label="חדר" required>
-        <select
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          value={room}
-          onChange={(e) => onChange({ room: e.target.value })}
+        <Select
+          value={room || "__none__"}
+          onValueChange={(v: string) => onChange({ room: v === "__none__" ? "" : v })}
         >
-          {rooms.map((r) => (
-            <option key={r.id} value={r.name}>
-              {r.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full h-9 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">— ללא חדר —</SelectItem>
+            {rooms.map((r) => (
+              <SelectItem key={r.id} value={r.name}>
+                {r.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
     </div>
   );

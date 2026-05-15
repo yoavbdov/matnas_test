@@ -1,3 +1,6 @@
+// עוטף שדה טופס עם תווית shadcn Label, רמז אופציונלי וחיוב
+import { Label } from "@/components/ui/label";
+
 interface FieldProps {
   label: string;
   hint?: string;
@@ -8,12 +11,12 @@ interface FieldProps {
 export default function Field({ label, hint, required, children }: FieldProps) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-gray-600">
+      <Label className="text-xs font-medium text-muted-foreground">
         {label}
-        {required && <span className="text-red-500 mr-0.5">*</span>}
-      </label>
+        {required && <span className="text-destructive mr-0.5">*</span>}
+      </Label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }

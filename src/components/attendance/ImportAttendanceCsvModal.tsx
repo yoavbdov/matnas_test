@@ -15,6 +15,14 @@ import { addDocument, updateDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { parseAttendanceCsv } from "./parseAttendanceCsv";
 import type { Class, Student, Enrollment, Attendance } from "@/types";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
   classes: Class[];
@@ -23,6 +31,9 @@ interface Props {
   allAttendance: Attendance[];
   onClose: () => void;
 }
+
+// sentinel for the "no class selected" state
+const SENTINEL_NONE = "__none__";
 
 export default function ImportAttendanceCsvModal({ classes, students, enrollments, allAttendance, onClose }: Props) {
   const { showToast } = useToast();
@@ -96,21 +107,29 @@ export default function ImportAttendanceCsvModal({ classes, students, enrollment
 
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-800">ייבוא נוכחות מ-CSV</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={18} /></button>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 h-8 w-8">
+            <X size={18} />
+          </Button>
         </div>
 
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
           {/* בחר חוג */}
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">שלב 1 — בחר חוג</p>
-            <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
+            <Select
+              value={selectedClassId || SENTINEL_NONE}
+              onValueChange={(v: string) => setSelectedClassId(v === SENTINEL_NONE ? "" : v)}
             >
-              <option value="">— בחר חוג —</option>
-              {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="— בחר חוג —" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SENTINEL_NONE}>— בחר חוג —</SelectItem>
+                {classes.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* העלה קובץ */}

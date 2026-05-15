@@ -10,6 +10,7 @@
 */
 import type { Attendance } from "@/types";
 import { formatHebrewDate } from "./attendanceHelpers";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   dates: string[]; // past session dates, newest first (YYYY-MM-DD)
@@ -59,14 +60,15 @@ export default function SessionList({ dates, attendanceByDate, enrolledCount, se
           const isSelected = date === selectedDate;
 
           return (
-            <button
+            <Button
               key={date}
               type="button"
+              variant="ghost"
               onClick={() => onSelect(date)}
-              className={`w-full text-right px-3 py-2.5 rounded-lg text-sm flex items-center gap-2 transition-colors ${
+              className={`w-full justify-start text-right px-3 py-2.5 h-auto text-sm gap-2 ${
                 isSelected
-                  ? "bg-teal-500 text-white"
-                  : "hover:bg-gray-100 text-gray-700"
+                  ? "bg-teal-500 text-white hover:bg-teal-600 hover:text-white"
+                  : "text-gray-700"
               }`}
             >
               {/* Status icon: ✓ = fully recorded, ⚠ = missing or partial */}
@@ -88,7 +90,7 @@ export default function SessionList({ dates, attendanceByDate, enrolledCount, se
                   </span>
                 );
               })()}
-            </button>
+            </Button>
           );
         })}
       </div>

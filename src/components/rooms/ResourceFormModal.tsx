@@ -3,10 +3,10 @@
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { PhysicalEquipment } from "@/types";
 import { DEFAULT_SETTINGS } from "@/lib/config/config";
-
-const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   mode: "add" | "edit";
@@ -15,7 +15,7 @@ interface Props {
   saving: boolean;
   onClose: () => void;
   onSave: () => void;
-  onDelete?: () => void; // זמין רק במצב עריכה
+  onDelete?: () => void;
   settings: typeof DEFAULT_SETTINGS;
 }
 
@@ -42,14 +42,14 @@ export default function ResourceFormModal({ mode, form, setForm, saving, onClose
     >
       <div className="space-y-4">
         <Field label="שם" required>
-          <input className={inp} value={form.name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("name", e.target.value)} />
+          <Input value={form.name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("name", e.target.value)} />
         </Field>
         <Field label="כמות זמינה">
-          <input type="number" className={inp} value={form.quantity} min={0} max={settings.MAX_INT_INPUT}
+          <Input type="number" value={form.quantity} min={0} max={settings.MAX_INT_INPUT}
             onChange={(e) => set("quantity", Math.max(0, Number(e.target.value)))} />
         </Field>
         <Field label="הערות">
-          <textarea className={inp} rows={2} value={form.notes ?? ""} maxLength={settings.MAX_NOTE_LENGTH}
+          <Textarea rows={2} value={form.notes ?? ""} maxLength={settings.MAX_NOTE_LENGTH}
             onChange={(e) => set("notes", e.target.value)} />
         </Field>
       </div>

@@ -1,6 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { LIMITS } from "@/lib/validation/validators";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // ---- Types ----
 
@@ -76,13 +78,13 @@ function FilterDropdown({
     >
       {/* Search input */}
       <div className="p-2 border-b border-gray-100">
-        <input
+        <Input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value.slice(0, LIMITS.SEARCH))}
           maxLength={LIMITS.SEARCH}
           placeholder="חיפוש..."
-          className="w-full text-sm px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-right"
+          className="w-full text-sm text-right"
           dir="rtl"
         />
       </div>
@@ -148,16 +150,18 @@ export default function ScheduleFilterBar({
   return (
     <div className="flex items-center gap-2 mb-4 flex-wrap" dir="rtl">
       {/* "ללא פילטר" clear button */}
-      <button
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => { onFilterChange(null); setOpenCategory(null); }}
-        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+        className={`text-xs px-3 py-1.5 h-auto rounded-full border transition-colors ${
           activeFilter === null
-            ? "bg-gray-700 text-white border-gray-700"
+            ? "bg-gray-700 text-white border-gray-700 hover:bg-gray-600 hover:text-white"
             : "bg-white text-gray-500 border-gray-300 hover:border-gray-500"
         }`}
       >
         ללא פילטר
-      </button>
+      </Button>
 
       {/* Category filter buttons */}
       {CATEGORIES.map(({ key, label }) => {
@@ -166,11 +170,13 @@ export default function ScheduleFilterBar({
 
         return (
           <div key={key} className="relative">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => handleCategoryClick(key)}
-              className={`text-xs px-3 py-1.5 rounded-full border transition-colors flex items-center gap-1 ${
+              className={`text-xs px-3 py-1.5 h-auto rounded-full border transition-colors gap-1 ${
                 isActive
-                  ? "bg-blue-600 text-white border-blue-600"
+                  ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white"
                   : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
               }`}
             >
@@ -178,17 +184,18 @@ export default function ScheduleFilterBar({
               {isActive ? activeFilter!.option.label : label}
               {/* Arrow indicator */}
               <span className={`text-[10px] transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
-            </button>
+            </Button>
 
             {/* Clear X when a filter is active for this category */}
             {isActive && (
-              <button
+              <Button
+                variant="ghost"
                 onClick={(e) => { e.stopPropagation(); onFilterChange(null); }}
-                className="absolute -top-1.5 -left-1.5 bg-gray-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-red-500"
+                className="absolute -top-1.5 -left-1.5 bg-gray-500 text-white rounded-full w-4 h-4 p-0 flex items-center justify-center text-[10px] hover:bg-red-500 min-w-0"
                 title="נקה פילטר"
               >
                 ✕
-              </button>
+              </Button>
             )}
 
             {/* Dropdown */}

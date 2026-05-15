@@ -6,15 +6,20 @@ import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import type { Teacher } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
-// סגנון קבוע ל-select
-const sel =
-  "border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 bg-white";
-// סגנון לאינפוט מספר
-const numInp =
-  "w-20 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+// sentinel for "all teachers" in teacher filter
+const SENTINEL_ALL = "__all__";
 
 // עוטף לכל פילטר: תווית + שדה לצידו
 function FilterItem({
@@ -114,51 +119,57 @@ export default function ClassesToolbar({
       {/* שורה 2: פילטרים עם תוויות */}
       <div className="flex gap-4 flex-wrap items-center">
         <FilterItem label="סטטוס:">
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) =>
-              onFilterStatus(e.target.value as typeof statusFilter)
-            }
-            className={sel}
+            onValueChange={(v: string) => onFilterStatus(v as typeof statusFilter)}
           >
-            <option value="הכל">הכל</option>
-            <option value="מתוכנן">מתוכנן</option>
-            <option value="פעיל">פעיל</option>
-            <option value="הסתיים">הסתיים</option>
-            <option value="בוטל">בוטל</option>
-          </select>
+            <SelectTrigger className="w-28 text-sm h-8 px-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="הכל">הכל</SelectItem>
+              <SelectItem value="מתוכנן">מתוכנן</SelectItem>
+              <SelectItem value="פעיל">פעיל</SelectItem>
+              <SelectItem value="הסתיים">הסתיים</SelectItem>
+              <SelectItem value="בוטל">בוטל</SelectItem>
+            </SelectContent>
+          </Select>
         </FilterItem>
 
         <FilterItem label="מדריך:">
-          <select
-            value={teacherFilter}
-            onChange={(e) => onFilterTeacher(e.target.value)}
-            className={sel}
+          <Select
+            value={teacherFilter || SENTINEL_ALL}
+            onValueChange={(v: string) => onFilterTeacher(v === SENTINEL_ALL ? "" : v)}
           >
-            <option value="">הכל</option>
-            {teachers.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.first_name} {t.last_name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-32 text-sm h-8 px-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={SENTINEL_ALL}>הכל</SelectItem>
+              {teachers.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.first_name} {t.last_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FilterItem>
 
         <FilterItem label="משתתפים:">
-          <input
+          <Input
             type="number"
             placeholder="מינ׳"
             value={participantsMin}
             onChange={(e) => onFilterParticipantsMin(e.target.value)}
-            className={numInp}
+            className="w-20 h-8 text-sm px-2 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <span className="text-gray-400 text-xs">—</span>
-          <input
+          <Input
             type="number"
             placeholder="מקס׳"
             value={participantsMax}
             onChange={(e) => onFilterParticipantsMax(e.target.value)}
-            className={numInp}
+            className="w-20 h-8 text-sm px-2 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
         </FilterItem>
 
@@ -166,34 +177,38 @@ export default function ClassesToolbar({
         <FilterItem label="ימים:">
           <div className="flex gap-1">
             {DAYS.map((day) => (
-              <button
+              <Button
                 key={day}
+                variant="outline"
+                size="sm"
                 onClick={() => onToggleDay(day)}
-                className={`px-2 py-1 rounded-md text-xs border transition-colors cursor-pointer ${
+                className={`px-2 py-1 h-auto text-xs transition-colors cursor-pointer ${
                   dayFilter.includes(day)
-                    ? "bg-teal-500 text-white border-teal-500"
+                    ? "bg-teal-500 text-white border-teal-500 hover:bg-teal-600 hover:text-white"
                     : "bg-white text-gray-600 border-gray-200 hover:border-teal-300"
                 }`}
               >
                 {day}
-              </button>
+              </Button>
             ))}
           </div>
         </FilterItem>
 
         {/* כפתור חוגים היום — toggle */}
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onToggleToday}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-colors cursor-pointer ${
+          title="חוגים פעילים שמתקיימים היום"
+          className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
             todayActive
-              ? "bg-teal-500 text-white border-teal-500"
+              ? "bg-teal-500 text-white border-teal-500 hover:bg-teal-600 hover:text-white"
               : "bg-white text-gray-600 border-gray-200 hover:border-teal-300"
           }`}
-          title="חוגים פעילים שמתקיימים היום"
         >
           <CalendarCheck size={14} />
           היום
-        </button>
+        </Button>
       </div>
     </div>
   );

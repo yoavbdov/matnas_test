@@ -8,6 +8,7 @@ import { calcAge } from "@/lib/utils/utils";
 import { updateDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { AlertTriangle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Student, Tournament } from "@/types";
 
 interface Props {
@@ -127,11 +128,10 @@ export default function EnrollTournamentModal({ student, allTournaments, onClose
                   : "border-gray-200 cursor-pointer hover:bg-gray-50"
               }`}
             >
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={isChecked}
                 disabled={blocked}
-                onChange={() => !blocked && toggle(t.id)}
+                onCheckedChange={() => !blocked && toggle(t.id)}
                 className="accent-teal-600"
               />
               {/* Color dot */}

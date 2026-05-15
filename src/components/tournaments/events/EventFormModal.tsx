@@ -7,6 +7,9 @@
 */
 
 import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import Field from "@/components/shared/Field";
 import { CLASS_COLORS } from "@/lib/config/constants";
 import { getEventConflicts } from "@/lib/conflicts/eventHelpers";
@@ -155,8 +158,7 @@ export default function EventFormModal({
         {/* שם האירוע */}
         <div className="space-y-4 mb-5">
           <Field label="שם האירוע" required>
-            <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            <Input
               value={form.name}
               maxLength={LIMITS.NAME}
               onChange={(e) => patch({ name: e.target.value })}
@@ -165,13 +167,13 @@ export default function EventFormModal({
           </Field>
 
           <Field label="תיאור" hint={`עד ${LIMITS.DESCRIPTION} תווים`}>
-            <textarea
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none"
+            <Textarea
               rows={2}
               value={form.description}
               maxLength={LIMITS.DESCRIPTION}
               onChange={(e) => patch({ description: e.target.value })}
               placeholder="תיאור קצר (אופציונלי)"
+              className="resize-none"
             />
           </Field>
         </div>
@@ -183,18 +185,19 @@ export default function EventFormModal({
           </p>
           <div className="flex gap-3">
             {(["חד פעמי", "חוזר"] as const).map((type) => (
-              <button
+              <Button
                 key={type}
                 type="button"
+                variant="outline"
                 onClick={() => patch({ recurrence_type: type })}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
+                className={`flex-1 py-2.5 text-sm font-medium border-2 transition-all ${
                   form.recurrence_type === type
-                    ? "bg-teal-600 text-white border-teal-600"
+                    ? "bg-teal-600 text-white border-teal-600 hover:bg-teal-700"
                     : "bg-white text-gray-600 border-gray-200 hover:border-teal-300"
                 }`}
               >
                 {type === "חד פעמי" ? "🗓 חד-פעמי" : "🔁 אירוע קבוע"}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -246,12 +249,12 @@ export default function EventFormModal({
         {form.recurrence_type && (
           <div className="mt-4 space-y-4">
             <Field label="הערות" hint={`עד ${LIMITS.NOTES} תווים`}>
-              <textarea
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none"
+              <Textarea
                 rows={2}
                 value={form.notes}
                 maxLength={LIMITS.NOTES}
                 onChange={(e) => patch({ notes: e.target.value })}
+                className="resize-none"
               />
             </Field>
 
@@ -292,21 +295,21 @@ export default function EventFormModal({
 
         {/* כפתורים */}
         <div className="flex gap-3 justify-end mt-6">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
           >
             ביטול
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleSave}
             disabled={saving || !form.name.trim() || !form.recurrence_type}
-            className="px-5 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
+            className="bg-teal-600 text-white hover:bg-teal-700"
           >
             {saving ? "שומר..." : mode === "add" ? "צור אירוע" : "שמור שינויים"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

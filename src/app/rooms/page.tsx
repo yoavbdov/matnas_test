@@ -2,6 +2,7 @@
 // Rooms & Equipment page — all state lives in useRoomState.
 import PageShell from "@/components/shared/PageShell";
 import Table, { Column } from "@/components/shared/Table";
+import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import RoomFormModal from "@/components/rooms/RoomFormModal";
 import ResourceFormModal from "@/components/rooms/ResourceFormModal";
@@ -48,15 +49,16 @@ export default function RoomsPage() {
       {/* Tab bar */}
       <div className="flex gap-6 border-b border-gray-200 mb-5">
         {(["rooms", "equipment"] as ActiveTab[]).map((t) => (
-          <button
+          <Button
             key={t}
+            variant="ghost"
             onClick={() => { s.setTab(t); window.location.hash = t === "equipment" ? "equipment" : ""; }}
-            className={`pb-2.5 text-sm font-medium border-b-2 transition-colors ${
+            className={`pb-2.5 h-auto rounded-none text-sm font-medium border-b-2 border-x-0 border-t-0 transition-colors px-0 ${
               s.tab === t ? "border-teal-500 text-teal-700" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
             {t === "rooms" ? `חדרים (${rooms.length})` : `ציוד (${physicalEquipment.length})`}
-          </button>
+          </Button>
         ))}
       </div>
 

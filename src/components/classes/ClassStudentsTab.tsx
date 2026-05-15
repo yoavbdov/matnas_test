@@ -6,6 +6,7 @@
 */
 import { useState } from "react";
 import { X, UserPlus, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import AddStudentsModal from "./AddStudentsModal";
 import { slotsOverlapTime } from "@/lib/schedule/classHelpers";
@@ -145,14 +146,14 @@ export default function ClassStudentsTab({
             <CsvExportBtn onClick={() => exportToCSV(enrolledStudents, className)} />
           )}
           {/* Opens the rich search + multi-select modal */}
-          <button
+          <Button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-medium transition-colors shadow-sm"
+            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-medium shadow-sm"
           >
             <UserPlus size={15} />
             להוספת תלמידים לחץ כאן
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -185,13 +186,15 @@ export default function ClassStudentsTab({
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-400">{student?.israeli_rating ?? "—"}</span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => onRemoveEnrollment(enr.id)}
-                      className="text-red-400 hover:text-red-600"
+                      className="text-red-400 hover:text-red-600 h-auto w-auto p-1"
                     >
                       <X size={15} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               );
@@ -230,13 +233,15 @@ export default function ClassStudentsTab({
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-400">{student?.israeli_rating ?? "—"}</span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => onUndoAdd(sid)}
-                      className="text-red-400 hover:text-red-600"
+                      className="text-red-400 hover:text-red-600 h-auto w-auto p-1"
                     >
                       <X size={15} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               );

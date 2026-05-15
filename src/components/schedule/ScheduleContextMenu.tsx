@@ -3,6 +3,7 @@
 // מציג שתי אפשרויות מחיקה: מפגש נוכחי בלבד, או את כל האירועים.
 import { useEffect, useRef, useState } from "react";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
+import { Button } from "@/components/ui/button";
 
 export interface ContextMenuTarget {
   x: number; // מיקום X של העכבר
@@ -111,25 +112,27 @@ export default function ScheduleContextMenu({ target, onClose }: Props) {
         </div>
 
         {/* אפשרות 1: מחק מפגש נוכחי */}
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setPendingAction("single")}
-          className="w-full text-right px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2"
+          className="w-full justify-start text-right px-4 py-2.5 h-auto text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors"
         >
           <span className="text-base">🗓</span>
           <span>מחק מפגש נוכחי</span>
-        </button>
+        </Button>
 
         {/* מחיצה */}
         <div className="border-t border-gray-100" />
 
         {/* אפשרות 2: מחק את כל האירועים */}
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setPendingAction("all")}
-          className="w-full text-right px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-medium transition-colors flex items-center gap-2"
+          className="w-full justify-start text-right px-4 py-2.5 h-auto text-sm text-red-600 hover:bg-red-50 font-medium transition-colors"
         >
           <span className="text-base">🗑</span>
           <span>{target.isRecurring ? "מחק את כל האירועים" : "מחק אירוע"}</span>
-        </button>
+        </Button>
       </div>
 
       {/* דיאלוג אישור — z-index גבוה מהתפריט (9999) */}

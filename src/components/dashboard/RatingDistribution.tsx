@@ -4,6 +4,8 @@
 import { useState } from "react";
 import { Pencil, Check, X } from "lucide-react";
 import { RatingBucketConfig } from "@/firebase/hooks/useRatingThresholds";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Bucket {
   label: string;
@@ -59,13 +61,15 @@ export default function RatingDistribution({
           {withRating} שחקנים עם דירוג ישראלי · {withoutRating} ללא דירוג
         </p>
         {!editing && (
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={openEditor}
             title="ערוך טווחי דירוג"
-            className="p-1.5 rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="h-8 w-8 text-gray-400 hover:text-gray-600"
           >
             <Pencil size={14} />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -103,18 +107,21 @@ export default function RatingDistribution({
 
           {/* Save / cancel */}
           <div className="flex gap-2 mt-4">
-            <button
+            <Button
               onClick={handleSave}
-              className="flex items-center gap-1 bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 py-1.5 rounded-md transition-colors"
+              size="sm"
+              className="gap-1 bg-teal-600 hover:bg-teal-700 text-white text-xs"
             >
               <Check size={13} /> שמור
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setEditing(false)}
-              className="flex items-center gap-1 bg-white hover:bg-gray-50 text-gray-600 text-xs px-3 py-1.5 rounded-md border transition-colors"
+              className="gap-1 text-gray-600 text-xs"
             >
               <X size={13} /> ביטול
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -137,33 +144,33 @@ function BucketEditCard({ config, count, onChange }: BucketEditCardProps) {
       <p className="text-lg font-bold text-gray-700 text-center">{count}</p>
 
       {/* Label */}
-      <input
+      <Input
         type="text"
         value={config.label}
         onChange={(e) => onChange("label", e.target.value)}
         placeholder="שם הטווח"
-        className="w-full border rounded px-2 py-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-teal-400"
+        className="w-full text-xs text-center h-7"
       />
 
       {/* Min / Max */}
       <div className="flex gap-1 items-center text-xs text-gray-500">
         <span>מ:</span>
-        <input
+        <Input
           type="number"
           value={config.min ?? ""}
           onChange={(e) => onChange("min", e.target.value)}
           placeholder="ללא"
-          className="w-full border rounded px-1 py-1 text-center text-xs focus:outline-none focus:ring-1 focus:ring-teal-400"
+          className="w-full text-center text-xs h-7"
         />
       </div>
       <div className="flex gap-1 items-center text-xs text-gray-500">
         <span>עד:</span>
-        <input
+        <Input
           type="number"
           value={config.max ?? ""}
           onChange={(e) => onChange("max", e.target.value)}
           placeholder="ללא"
-          className="w-full border rounded px-1 py-1 text-center text-xs focus:outline-none focus:ring-1 focus:ring-teal-400"
+          className="w-full text-center text-xs h-7"
         />
       </div>
     </div>

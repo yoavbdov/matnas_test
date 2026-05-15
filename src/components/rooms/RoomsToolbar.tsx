@@ -6,11 +6,14 @@ import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
-
-const sel = "border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 bg-white";
-const numInp =
-  "w-20 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 " +
-  "[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 // עוטף תווית + שדה לצד שמאל
 function FilterItem({ label, children }: { label: string; children: React.ReactNode }) {
@@ -67,19 +70,39 @@ export default function RoomsToolbar({
       <div className="flex gap-4 flex-wrap items-center">
         {/* פילטר לפי תכונה */}
         <FilterItem label="תכונה:">
-          <select value={featureFilter} onChange={(e) => onFilterFeature(e.target.value)} className={sel}>
-            <option value="">הכל</option>
-            {allFeatures.map((f) => <option key={f} value={f}>{f}</option>)}
-          </select>
+          <Select
+            value={featureFilter || "__all__"}
+            onValueChange={(v: string) => onFilterFeature(v === "__all__" ? "" : v)}
+          >
+            <SelectTrigger className="text-sm h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">הכל</SelectItem>
+              {allFeatures.map((f) => (
+                <SelectItem key={f} value={f}>{f}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FilterItem>
 
         {/* פילטר לפי קיבולת — טווח מינ׳ עד מקס׳ */}
         <FilterItem label="קיבולת:">
-          <input type="number" placeholder="מינ׳" value={minCapacity}
-            onChange={(e) => onFilterMinCapacity(e.target.value)} className={numInp} />
+          <Input
+            type="number"
+            placeholder="מינ׳"
+            value={minCapacity}
+            onChange={(e) => onFilterMinCapacity(e.target.value)}
+            className="w-20 h-8 text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
           <span className="text-gray-400 text-xs">—</span>
-          <input type="number" placeholder="מקס׳" value={maxCapacity}
-            onChange={(e) => onFilterMaxCapacity(e.target.value)} className={numInp} />
+          <Input
+            type="number"
+            placeholder="מקס׳"
+            value={maxCapacity}
+            onChange={(e) => onFilterMaxCapacity(e.target.value)}
+            className="w-20 h-8 text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
         </FilterItem>
       </div>
     </div>

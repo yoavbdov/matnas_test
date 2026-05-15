@@ -7,12 +7,15 @@ import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
 import SearchInput from "@/components/shared/SearchInput";
 import { GRADE_LABELS } from "@/lib/config/constants";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import type { Class } from "@/types";
-
-// סגנון קבוע ל-select
-const sel = "border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 bg-white";
-// סגנון לאינפוט טקסט/מספר (ללא חצים)
-const numInp = "w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-teal-400 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
 // עוטף לכל פילטר: תווית + שדה לצידו
 function FilterItem({ label, children }: { label: string; children: React.ReactNode }) {
@@ -76,46 +79,92 @@ export default function StudentsToolbar({
       {/* שורה 2: פילטרים עם תוויות */}
       <div className="flex gap-4 flex-wrap items-center">
         <FilterItem label="סטטוס:">
-          <select value={statusFilter} onChange={(e) => onFilterStatus(e.target.value as typeof statusFilter)} className={sel}>
-            <option value="הכל">הכל</option>
-            <option value="פעיל">פעיל</option>
-            <option value="ליגה בלבד">ליגה בלבד</option>
-            <option value="לא פעיל">לא פעיל</option>
-          </select>
+          <Select
+            value={statusFilter}
+            onValueChange={(v: string) => onFilterStatus(v as typeof statusFilter)}
+          >
+            <SelectTrigger className="text-sm h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="הכל">הכל</SelectItem>
+              <SelectItem value="פעיל">פעיל</SelectItem>
+              <SelectItem value="ליגה בלבד">ליגה בלבד</SelectItem>
+              <SelectItem value="לא פעיל">לא פעיל</SelectItem>
+            </SelectContent>
+          </Select>
         </FilterItem>
 
         <FilterItem label="חוג:">
-          <select value={classFilter} onChange={(e) => onFilterClass(e.target.value)} className={sel}>
-            <option value="">הכל</option>
-            {classes.filter((c) => c.status === "פעיל").map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+          <Select
+            value={classFilter || "__all__"}
+            onValueChange={(v: string) => onFilterClass(v === "__all__" ? "" : v)}
+          >
+            <SelectTrigger className="text-sm h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">הכל</SelectItem>
+              {classes.filter((c) => c.status === "פעיל").map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FilterItem>
 
         <FilterItem label="כיתה:">
-          <select value={gradeFilter} onChange={(e) => onFilterGrade(e.target.value)} className={sel}>
-            <option value="">הכל</option>
-            {GRADE_LABELS.map((g) => <option key={g} value={g}>{g}</option>)}
-          </select>
+          <Select
+            value={gradeFilter || "__all__"}
+            onValueChange={(v: string) => onFilterGrade(v === "__all__" ? "" : v)}
+          >
+            <SelectTrigger className="text-sm h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">הכל</SelectItem>
+              {GRADE_LABELS.map((g) => (
+                <SelectItem key={g} value={g}>{g}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FilterItem>
 
         {/* דירוג ישראלי: מינ׳ — מקס׳ (ללא חצי ספינר) */}
         <FilterItem label="דירוג ישראלי:">
-          <input type="number" placeholder="מינ׳" value={minRating}
-            onChange={(e) => onFilterMinRating(e.target.value)} className={numInp} />
+          <Input
+            type="number"
+            placeholder="מינ׳"
+            value={minRating}
+            onChange={(e) => onFilterMinRating(e.target.value)}
+            className="w-24 h-8 text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
           <span className="text-gray-400 text-xs">—</span>
-          <input type="number" placeholder="מקס׳" value={maxRating}
-            onChange={(e) => onFilterMaxRating(e.target.value)} className={numInp} />
+          <Input
+            type="number"
+            placeholder="מקס׳"
+            value={maxRating}
+            onChange={(e) => onFilterMaxRating(e.target.value)}
+            className="w-24 h-8 text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
         </FilterItem>
 
         {/* דירוג FIDE: מינ׳ — מקס׳ */}
         <FilterItem label="דירוג FIDE:">
-          <input type="number" placeholder="מינ׳" value={minFideRating}
-            onChange={(e) => onFilterMinFideRating(e.target.value)} className={numInp} />
+          <Input
+            type="number"
+            placeholder="מינ׳"
+            value={minFideRating}
+            onChange={(e) => onFilterMinFideRating(e.target.value)}
+            className="w-24 h-8 text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
           <span className="text-gray-400 text-xs">—</span>
-          <input type="number" placeholder="מקס׳" value={maxFideRating}
-            onChange={(e) => onFilterMaxFideRating(e.target.value)} className={numInp} />
+          <Input
+            type="number"
+            placeholder="מקס׳"
+            value={maxFideRating}
+            onChange={(e) => onFilterMaxFideRating(e.target.value)}
+            className="w-24 h-8 text-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
         </FilterItem>
       </div>
     </div>

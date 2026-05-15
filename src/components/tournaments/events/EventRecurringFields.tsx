@@ -4,6 +4,16 @@ import TimeSelect from "@/components/shared/TimeSelect";
 import { DAYS } from "@/lib/config/constants";
 import { validateTimeRange } from "@/lib/validation/validators";
 import type { Room } from "@/types";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 interface Props {
   daysOfWeek: string[]; // ימים שנבחרו
@@ -51,27 +61,28 @@ export default function EventRecurringFields({
       <Field label="ימי המפגש בשבוע" required>
         <div className="flex flex-wrap gap-2 mt-1">
           {DAYS.map((day) => (
-            <button
+            <Button
               key={day}
               type="button"
+              variant="outline"
               onClick={() => toggleDay(day)}
-              className={`px-3 py-1 rounded-full text-sm border transition-colors ${
+              className={`px-3 py-1 h-8 rounded-full text-sm border transition-colors ${
                 daysOfWeek.includes(day)
-                  ? "bg-teal-600 text-white border-teal-600"
+                  ? "bg-teal-600 text-white border-teal-600 hover:bg-teal-700"
                   : "bg-white text-gray-700 border-gray-300 hover:border-teal-400"
               }`}
             >
               {day}
-            </button>
+            </Button>
           ))}
         </div>
       </Field>
 
       {/* תאריך התחלה */}
       <Field label="תאריך התחלה" required>
-        <input
+        <Input
           type="date"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="w-full h-9 text-sm"
           value={startDate}
           onChange={(e) => onChange({ startDate: e.target.value })}
         />
@@ -80,11 +91,10 @@ export default function EventRecurringFields({
       {/* תמידי + תאריך סיום */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={isPermanent}
-            onChange={(e) => onChange({ isPermanent: e.target.checked })}
-            className="w-4 h-4 accent-teal-600"
+            onCheckedChange={(checked) => onChange({ isPermanent: !!checked })}
+            className="w-4 h-4"
           />
           <span className="text-sm font-medium text-gray-700">
             אירוע תמידי (ללא תאריך סיום)
@@ -92,12 +102,10 @@ export default function EventRecurringFields({
         </label>
 
         <Field label="תאריך סיום">
-          <input
+          <Input
             type="date"
-            className={`w-full border rounded-lg px-3 py-2 text-sm transition-opacity ${
-              isPermanent
-                ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50"
-                : "border-gray-300"
+            className={`w-full h-9 text-sm transition-opacity ${
+              isPermanent ? "opacity-50 cursor-not-allowed" : ""
             }`}
             value={endDate}
             disabled={isPermanent}
@@ -132,17 +140,22 @@ export default function EventRecurringFields({
 
       {/* חדר */}
       <Field label="חדר" required>
-        <select
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          value={room}
-          onChange={(e) => onChange({ room: e.target.value })}
+        <Select
+          value={room || "__none__"}
+          onValueChange={(v: string) => onChange({ room: v === "__none__" ? "" : v })}
         >
-          {rooms.map((r) => (
-            <option key={r.id} value={r.name}>
-              {r.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full h-9 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">— ללא חדר —</SelectItem>
+            {rooms.map((r) => (
+              <SelectItem key={r.id} value={r.name}>
+                {r.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
     </div>
   );
