@@ -6,7 +6,7 @@ import Btn from "@/components/shared/Btn";
 import Badge from "@/components/shared/Badge";
 import EnrollModal from "./EnrollModal";
 import EnrollTournamentModal from "./EnrollTournamentModal";
-import { calcAge, gradeFromDob, fmtDate, formatPhone } from "@/lib/utils";
+import { calcAge, gradeFromDob, fmtDate, formatPhone } from "@/lib/utils/utils";
 import { deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -18,8 +18,8 @@ import type {
   LeagueGroup,
   LeagueGroupMember,
 } from "@/types";
-import { DEFAULT_SETTINGS } from "@/lib/config";
-import type { StudentStatus } from "@/lib/studentHelpers";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
+import type { StudentStatus } from "@/lib/helpers/studentHelpers";
 
 interface Props {
   student: Student;

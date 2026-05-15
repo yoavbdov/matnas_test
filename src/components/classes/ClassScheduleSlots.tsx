@@ -4,8 +4,8 @@ import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
-import { RECURRENCE_OPTIONS } from "@/lib/constants";
-import { findStructuralTournamentConflict } from "@/lib/crossConflictHelpers";
+import { RECURRENCE_OPTIONS } from "@/lib/config/constants";
+import { findStructuralTournamentConflict } from "@/lib/conflicts/crossConflictHelpers";
 
 // Hebrew day names by JS getDay() index (0=Sunday)
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
@@ -17,7 +17,7 @@ function dayFromDate(dateStr: string): string {
   const [y, m, d] = dateStr.split("-").map(Number);
   return HEBREW_DAYS[new Date(y, m - 1, d).getDay()];
 }
-import { slotsConflict } from "@/lib/classHelpers";
+import { slotsConflict } from "@/lib/schedule/classHelpers";
 import type { Room, ScheduleSlot, Class, Tournament } from "@/types";
 
 const inp =

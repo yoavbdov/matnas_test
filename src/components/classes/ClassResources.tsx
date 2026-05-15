@@ -5,7 +5,7 @@ import Btn from "@/components/shared/Btn";
 import {
   calcUsedDuringClassSlots,
   getConflictingNamesDuringClassSlots,
-} from "@/lib/classHelpers";
+} from "@/lib/schedule/classHelpers";
 import type {
   PhysicalEquipment,
   Class,

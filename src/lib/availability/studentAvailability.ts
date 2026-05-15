@@ -7,8 +7,8 @@
     - They are registered in a tournament with a round (or recurring date) that overlaps the window
 */
 
-import { timeToMins } from "./utils";
-import { slotOccursOnDate } from "./scheduleHelpers";
+import { timeToMins } from "@/lib/utils/utils";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
 import type { Student, Class, Tournament, Enrollment } from "@/types";
 
 export interface StudentConflict {

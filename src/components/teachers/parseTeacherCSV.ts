@@ -1,6 +1,6 @@
 // פונקציית ניתוח קובץ CSV לייבוא מדריכים
 // שדות חובה: שם פרטי, שם משפחה
-import { formatPhone } from "@/lib/utils";
+import { formatPhone } from "@/lib/utils/utils";
 
 export interface ParsedTeacherRow {
   lineNum: number;

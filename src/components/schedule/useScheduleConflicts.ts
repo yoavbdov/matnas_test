@@ -2,12 +2,12 @@
 // Returns sets of conflicting IDs so the calendar can highlight them
 
 import { useMemo } from "react";
-import { getConflictingClassIds, getClassIdsConflictingWithEvents } from "@/lib/classHelpers";
-import { getConflictingRoundIds, recurringTournamentOccursOnDate } from "@/lib/tournamentHelpers";
+import { getConflictingClassIds, getClassIdsConflictingWithEvents } from "@/lib/schedule/classHelpers";
+import { getConflictingRoundIds, recurringTournamentOccursOnDate } from "@/lib/conflicts/tournamentHelpers";
 import {
   getClassIdsWithTournamentConflicts,
   getTournamentIdsWithClassConflicts,
-} from "@/lib/crossConflictHelpers";
+} from "@/lib/conflicts/crossConflictHelpers";
 import type { Class, Tournament, Event, Enrollment, Room } from "@/types";
 
 interface Params {

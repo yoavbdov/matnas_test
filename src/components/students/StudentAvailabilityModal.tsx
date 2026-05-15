@@ -8,7 +8,7 @@ import { useState, useMemo } from "react";
 import { X, CalendarCheck, Search } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
-import { checkStudentAvailability } from "@/lib/studentAvailability";
+import { checkStudentAvailability } from "@/lib/availability/studentAvailability";
 import type { Student, Class, Tournament, Enrollment } from "@/types";
 
 interface Props {

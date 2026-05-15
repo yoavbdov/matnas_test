@@ -1,6 +1,6 @@
 /*
-  Unit tests for lib/validators.ts
-  Run with: npx ts-node lib/validators.test.ts
+  Unit tests for lib/validation/validators.ts
+  Run with: npx ts-node lib/validation/validators.test.ts
 */
 import assert from "node:assert/strict";
 import { validateTimeRange, validatePhone, digitsOnly, formatPhoneDisplay, VALIDATION_ERRORS, LIMITS } from "./validators";

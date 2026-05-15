@@ -1,7 +1,7 @@
 // שדה חיפוש אחיד עם אייקון זכוכית מגדלת והגבלת תווים
 // משמש בכל סרגלי הכלים ובחלונות קופצים בפרויקט
 import { Search } from "lucide-react";
-import { LIMITS } from "@/lib/validators";
+import { LIMITS } from "@/lib/validation/validators";
 
 interface Props {
   value: string;

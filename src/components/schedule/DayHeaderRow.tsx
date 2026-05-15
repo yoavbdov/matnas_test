@@ -1,5 +1,5 @@
 // Sticky header row above the calendar grid — shows day name + date number
-import { DAYS } from "@/lib/constants";
+import { DAYS } from "@/lib/config/constants";
 import type { DayData } from "./calendarTypes";
 
 interface Props {

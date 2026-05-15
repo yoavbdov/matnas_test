@@ -3,10 +3,10 @@
   Handles conflict detection for events against classes, tournaments, and other events.
 */
 
-import { timeToMins } from "./utils";
-import { slotOccursOnDate } from "./scheduleHelpers";
+import { timeToMins } from "@/lib/utils/utils";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
 import { recurringTournamentOccursOnDate } from "./tournamentHelpers";
-import { DAYS } from "./constants";
+import { DAYS } from "@/lib/config/constants";
 import type { Event, Class, Tournament, Room } from "@/types";
 
 // Maps Hebrew day names to JS Date.getDay() (0=Sunday)

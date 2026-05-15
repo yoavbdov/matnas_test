@@ -7,8 +7,8 @@
     2. Overlaps with the requested time range
 */
 
-import { timeToMins } from "./utils";
-import { slotOccursOnDate } from "./scheduleHelpers";
+import { timeToMins } from "@/lib/utils/utils";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
 import type { Teacher, Class } from "@/types";
 
 export interface TeacherAvailabilityResult {

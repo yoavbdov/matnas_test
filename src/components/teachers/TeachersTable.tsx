@@ -4,8 +4,8 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import Badge from "@/components/shared/Badge";
-import { formatPhone } from "@/lib/utils";
-import { computeTeacherStatus } from "@/lib/teacherHelpers";
+import { formatPhone } from "@/lib/utils/utils";
+import { computeTeacherStatus } from "@/lib/helpers/teacherHelpers";
 import type { Teacher, Class, Tournament } from "@/types";
 
 type SortKey = "name" | "phone" | "activeClasses" | "status";

@@ -10,7 +10,7 @@ import {
   TEMPLATE_HEADERS,
   TEMPLATE_EXAMPLE,
 } from "./parseStudentCSV";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 
 interface Props {
   onClose: () => void;

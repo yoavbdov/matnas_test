@@ -1,8 +1,8 @@
 "use client";
 import { useState, useMemo } from "react";
 import { useData } from "@/context/DataContext";
-import { slotOccursOnDate } from "@/lib/scheduleHelpers";
-import { eventOccursOnDate } from "@/lib/eventHelpers";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
+import { eventOccursOnDate } from "@/lib/conflicts/eventHelpers";
 import ViewExistingClassDetailModal from "@/components/classes/ViewExistingClassDetailModal";
 import TournamentDetailModal from "@/components/tournaments/TournamentDetailModal";
 import EventDetailModal from "@/components/tournaments/events/EventDetailModal";

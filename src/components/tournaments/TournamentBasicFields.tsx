@@ -1,7 +1,7 @@
 // שדות בסיסיים של תחרות: שם, שופט, תיאור, טווחי גיל/דירוג, ציוד, צבע
 // כל שורה קומפקטית — טווחים מוצגים כ-min–max בשורה אחת
-import { CLASS_COLORS } from "@/lib/constants";
-import { LIMITS } from "@/lib/validators";
+import { CLASS_COLORS } from "@/lib/config/constants";
+import { LIMITS } from "@/lib/validation/validators";
 import TournamentEquipmentSelect from "./TournamentEquipmentSelect";
 import type { Tournament, Teacher, Class, PhysicalEquipment } from "@/types";
 

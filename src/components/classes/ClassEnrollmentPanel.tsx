@@ -5,8 +5,8 @@
   Warns if a student is already in another class or tournament at the same time.
 */
 import { useState } from "react";
-import { slotsOverlapTime } from "@/lib/classHelpers";
-import { timeToMins } from "@/lib/utils";
+import { slotsOverlapTime } from "@/lib/schedule/classHelpers";
+import { timeToMins } from "@/lib/utils/utils";
 import type { Student, Enrollment, Class, Tournament, ScheduleSlot } from "@/types";
 
 // Hebrew day names indexed by JS getDay() (0=Sunday)

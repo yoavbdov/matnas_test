@@ -3,8 +3,8 @@
   Used by the classes page and the schedule page.
 */
 
-import { timeToMins } from "./utils";
-import { eventOccursOnDate } from "./eventHelpers";
+import { timeToMins } from "@/lib/utils/utils";
+import { eventOccursOnDate } from "@/lib/conflicts/eventHelpers";
 import type { ScheduleSlot, Class, PhysicalEquipment, Tournament, ResourceAssignment, Event, Room } from "@/types";
 
 // Hebrew day names indexed by JS getDay() (0=Sunday)

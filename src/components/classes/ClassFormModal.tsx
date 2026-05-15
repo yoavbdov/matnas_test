@@ -11,9 +11,9 @@ import ClassBasicFields from "./ClassBasicFields";
 import ClassResources from "./ClassResources";
 import ClassSlotsTab from "./ClassSlotsTab";
 import ClassStudentsTab from "./ClassStudentsTab";
-import { CLASS_COLORS } from "@/lib/constants";
-import { LIMITS } from "@/lib/validators";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { CLASS_COLORS } from "@/lib/config/constants";
+import { LIMITS } from "@/lib/validation/validators";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 import type {
   Class,
   Teacher,

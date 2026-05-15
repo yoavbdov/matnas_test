@@ -8,9 +8,9 @@
 
 import { useState, useMemo } from "react";
 import Field from "@/components/shared/Field";
-import { CLASS_COLORS } from "@/lib/constants";
-import { getEventConflicts } from "@/lib/eventHelpers";
-import { LIMITS, validateTimeRange, VALIDATION_ERRORS } from "@/lib/validators";
+import { CLASS_COLORS } from "@/lib/config/constants";
+import { getEventConflicts } from "@/lib/conflicts/eventHelpers";
+import { LIMITS, validateTimeRange, VALIDATION_ERRORS } from "@/lib/validation/validators";
 import EventOneTimeFields from "./EventOneTimeFields";
 import EventRecurringFields from "./EventRecurringFields";
 import type { Event, Class, Tournament, Room } from "@/types";

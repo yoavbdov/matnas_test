@@ -1,7 +1,7 @@
 // טבלת השחקנים — מציגה את כל השחקנים המסוננים עם מיון לפי עמודה
 import Badge from "@/components/shared/Badge";
-import { calcAge, gradeFromDob, formatPhone } from "@/lib/utils";
-import { computeStudentStatus } from "@/lib/studentHelpers";
+import { calcAge, gradeFromDob, formatPhone } from "@/lib/utils/utils";
+import { computeStudentStatus } from "@/lib/helpers/studentHelpers";
 import type {
   Student,
   Enrollment,
@@ -9,7 +9,7 @@ import type {
   LeagueGroup,
   LeagueGroupMember,
 } from "@/types";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 
 export type SortCol =
   | "name"

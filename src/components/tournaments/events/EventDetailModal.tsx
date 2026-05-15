@@ -1,8 +1,8 @@
 "use client";
 // תצוגת פרטי אירוע (קריאה בלבד) — עם כפתורי עריכה ומחיקה
 import { useState } from "react";
-import { formatRecurringEventSummary } from "@/lib/eventHelpers";
-import { DAYS } from "@/lib/constants";
+import { formatRecurringEventSummary } from "@/lib/conflicts/eventHelpers";
+import { DAYS } from "@/lib/config/constants";
 import type { Event } from "@/types";
 
 interface Props {

@@ -1,7 +1,7 @@
 // Sortable table showing all tournaments with key stats
 import Badge from "@/components/shared/Badge";
-import { fmtDate } from "@/lib/utils";
-import { computeTournamentStatus } from "@/lib/tournamentHelpers";
+import { fmtDate } from "@/lib/utils/utils";
+import { computeTournamentStatus } from "@/lib/conflicts/tournamentHelpers";
 import type { Tournament } from "@/types";
 
 interface Props {

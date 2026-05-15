@@ -2,9 +2,9 @@
 // Each DayData holds class events, tournament events, and general events for that day
 
 import { useState, useMemo } from "react";
-import { getSlotsForDates, slotOccursOnDate } from "@/lib/scheduleHelpers";
-import { recurringTournamentOccursOnDate } from "@/lib/tournamentHelpers";
-import { eventOccursOnDate } from "@/lib/eventHelpers";
+import { getSlotsForDates, slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
+import { recurringTournamentOccursOnDate } from "@/lib/conflicts/tournamentHelpers";
+import { eventOccursOnDate } from "@/lib/conflicts/eventHelpers";
 import { timesOverlapLocal, toDateStr, weekOf } from "./schedulePageUtils";
 import type { Class, Tournament, Event, Enrollment, Room, Teacher } from "@/types";
 import type { DayData } from "./calendarTypes";

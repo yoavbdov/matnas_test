@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { LIMITS } from "@/lib/validators";
+import { LIMITS } from "@/lib/validation/validators";
 
 // ---- Types ----
 

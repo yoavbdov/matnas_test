@@ -7,7 +7,7 @@ import CsvImportPanel from "@/components/shared/CsvImportPanel";
 import { addDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { parseClassCSV, CLASS_TEMPLATE_HEADERS, CLASS_TEMPLATE_EXAMPLE } from "./parseClassCSV";
-import { CLASS_COLORS } from "@/lib/constants";
+import { CLASS_COLORS } from "@/lib/config/constants";
 import type { Teacher } from "@/types";
 
 interface Props {

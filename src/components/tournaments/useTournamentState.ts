@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
-import { validateTimeRange } from "@/lib/validators";
+import { validateTimeRange } from "@/lib/validation/validators";
 import type { Tournament, Event } from "@/types";
 
 function todayStr() {

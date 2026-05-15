@@ -8,8 +8,8 @@
     - An event (one-time or recurring) in that room (name match) on that date + time
 */
 
-import { timeToMins } from "./utils";
-import { slotOccursOnDate } from "./scheduleHelpers";
+import { timeToMins } from "@/lib/utils/utils";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
 import type { Room, Class, Tournament, Event } from "@/types";
 
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];

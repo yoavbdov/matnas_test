@@ -11,7 +11,7 @@ import CSVUploadPanel from "@/components/students/CSVUploadPanel";
 import StudentAvailabilityModal from "@/components/students/StudentAvailabilityModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { computeStudentStatus } from "@/lib/studentHelpers";
+import { computeStudentStatus } from "@/lib/helpers/studentHelpers";
 import { exportStudentsCsv } from "@/components/students/studentsUtils";
 import { useStudentFilter } from "@/components/students/useStudentFilter";
 import { useStudentSave } from "@/components/students/useStudentSave";

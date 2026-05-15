@@ -18,7 +18,7 @@ import type {
   LeagueGroup,
   LeagueGroupMember,
 } from "@/types";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 
 interface DataContextProps {
   students: Student[];

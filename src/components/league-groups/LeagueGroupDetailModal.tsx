@@ -13,7 +13,7 @@ import type {
   LeagueGroupMember,
   Student,
 } from "@/types";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 
 interface Props {
   group: LeagueGroup;

@@ -2,14 +2,14 @@
 // These three concerns share state (selectedDates) so they live together.
 
 import { useState, useMemo } from "react";
-import { getSlotsForDates, slotOccursOnDate } from "@/lib/scheduleHelpers";
-import { getConflictingClassIds, getClassIdsConflictingWithEvents } from "@/lib/classHelpers";
-import { getConflictingRoundIds, recurringTournamentOccursOnDate } from "@/lib/tournamentHelpers";
+import { getSlotsForDates, slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
+import { getConflictingClassIds, getClassIdsConflictingWithEvents } from "@/lib/schedule/classHelpers";
+import { getConflictingRoundIds, recurringTournamentOccursOnDate } from "@/lib/conflicts/tournamentHelpers";
 import {
   getClassIdsWithTournamentConflicts,
   getTournamentIdsWithClassConflicts,
-} from "@/lib/crossConflictHelpers";
-import { eventOccursOnDate } from "@/lib/eventHelpers";
+} from "@/lib/conflicts/crossConflictHelpers";
+import { eventOccursOnDate } from "@/lib/conflicts/eventHelpers";
 import { timesOverlapLocal, toDateStr, weekOf } from "./schedulePageUtils";
 import type { Class, Tournament, Event, Enrollment, Room, Teacher } from "@/types";
 import type { DayData } from "./calendarTypes";

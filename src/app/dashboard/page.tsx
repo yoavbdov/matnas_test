@@ -8,7 +8,7 @@ import TodaySessionsTable from "@/components/dashboard/TodaySessionsTable";
 import EnrollmentStatusList from "@/components/dashboard/EnrollmentStatusList";
 import RatingDistribution from "@/components/dashboard/RatingDistribution";
 import { useData } from "@/context/DataContext";
-import { slotOccursOnDate } from "@/lib/scheduleHelpers";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
 import { useRatingThresholds } from "@/firebase/hooks/useRatingThresholds";
 import type { RatingBucketConfig } from "@/firebase/hooks/useRatingThresholds";
 

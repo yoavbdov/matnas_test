@@ -1,9 +1,9 @@
 // שדות בסיסיים של חוג: שם, מדריך, קיבולת, תיאור, טווחי גיל/דירוג
 // כל שורה קומפקטית — טווחים מוצגים כ-min–max בשורה אחת
-import { CLASS_COLORS } from "@/lib/constants";
-import { LIMITS } from "@/lib/validators";
+import { CLASS_COLORS } from "@/lib/config/constants";
+import { LIMITS } from "@/lib/validation/validators";
 import type { Class, Teacher } from "@/types";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 
 // קלאס אחיד לשדות קלט
 const inp =

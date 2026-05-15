@@ -3,8 +3,8 @@
 
 import { useState } from "react";
 import { addDocument, updateDocument } from "@/firebase/firestore";
-import { formatPhone } from "@/lib/utils";
-import { validatePhone, VALIDATION_ERRORS } from "@/lib/validators";
+import { formatPhone } from "@/lib/utils/utils";
+import { validatePhone, VALIDATION_ERRORS } from "@/lib/validation/validators";
 import type { Student } from "@/types";
 
 function emptyForm(): Omit<Student, "id"> {

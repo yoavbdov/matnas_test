@@ -4,7 +4,7 @@
   Returns all dates (YYYY-MM-DD) on which a class had a session, up to and including today.
   Uses the existing slotOccursOnDate helper from scheduleHelpers.
 */
-import { slotOccursOnDate } from "@/lib/scheduleHelpers";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
 import type { Class } from "@/types";
 
 // Format a Date object as YYYY-MM-DD (local time, not UTC)

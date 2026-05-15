@@ -6,7 +6,7 @@ import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import CheckAvailabilityBtn from "@/components/shared/CheckAvailabilityBtn";
 import SearchInput from "@/components/shared/SearchInput";
-import { GRADE_LABELS } from "@/lib/constants";
+import { GRADE_LABELS } from "@/lib/config/constants";
 import type { Class } from "@/types";
 
 // סגנון קבוע ל-select

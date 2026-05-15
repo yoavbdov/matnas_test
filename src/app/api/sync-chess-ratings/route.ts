@@ -13,7 +13,7 @@
 */
 
 import { NextResponse } from "next/server";
-import { scrapeIsraeliRatings, fetchFideRatings, syncRatingsToFirestore } from "@/lib/chessSync";
+import { scrapeIsraeliRatings, fetchFideRatings, syncRatingsToFirestore } from "@/lib/chess/chessSync";
 
 export async function POST(request: Request) {
   // Validate the secret token so only our cron job can trigger this

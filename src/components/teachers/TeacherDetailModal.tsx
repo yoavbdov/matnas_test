@@ -6,9 +6,9 @@ import Btn from "@/components/shared/Btn";
 import Badge from "@/components/shared/Badge";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { deleteDocument } from "@/firebase/firestore";
-import { formatPhone } from "@/lib/utils";
+import { formatPhone } from "@/lib/utils/utils";
 import { useToast } from "@/context/ToastContext";
-import { computeTeacherStatus } from "@/lib/teacherHelpers";
+import { computeTeacherStatus } from "@/lib/helpers/teacherHelpers";
 import type { Teacher, Class, Enrollment, Tournament } from "@/types";
 
 interface Props {

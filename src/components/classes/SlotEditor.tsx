@@ -3,8 +3,8 @@ import { Plus, Trash2 } from "lucide-react";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
-import { DAYS, RECURRENCE_OPTIONS } from "@/lib/constants";
-import { validateTimeRange } from "@/lib/validators";
+import { DAYS, RECURRENCE_OPTIONS } from "@/lib/config/constants";
+import { validateTimeRange } from "@/lib/validation/validators";
 import type { Room, ScheduleSlot } from "@/types";
 
 const inp =

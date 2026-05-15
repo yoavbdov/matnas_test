@@ -1,7 +1,7 @@
 // שדות לאירוע חד-פעמי: תאריך, שעות, וחדר
 import Field from "@/components/shared/Field";
 import TimeSelect from "@/components/shared/TimeSelect";
-import { validateTimeRange } from "@/lib/validators";
+import { validateTimeRange } from "@/lib/validation/validators";
 import type { Room } from "@/types";
 
 interface Props {

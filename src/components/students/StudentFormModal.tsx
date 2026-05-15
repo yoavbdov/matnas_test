@@ -8,11 +8,11 @@
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
-import { CHESS_TITLES, GRADE_LABELS } from "@/lib/constants";
-import { gradeFromDob } from "@/lib/utils";
-import { LIMITS, digitsOnly } from "@/lib/validators";
+import { CHESS_TITLES, GRADE_LABELS } from "@/lib/config/constants";
+import { gradeFromDob } from "@/lib/utils/utils";
+import { LIMITS, digitsOnly } from "@/lib/validation/validators";
 import type { Student } from "@/types";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 
 const inp =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";

@@ -4,9 +4,9 @@
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
-import { LIMITS } from "@/lib/validators";
+import { LIMITS } from "@/lib/validation/validators";
 import type { LeagueGroup, LeagueCategory, LeagueType } from "@/types";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 
 // Shared input style — matches all other form modals in the app
 const inp =

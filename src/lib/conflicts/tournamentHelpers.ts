@@ -3,8 +3,8 @@
   Handles conflict detection between tournament rounds, classes, and other tournaments.
 */
 
-import { timeToMins } from "./utils";
-import { slotOccursOnDate } from "./scheduleHelpers";
+import { timeToMins } from "@/lib/utils/utils";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
 import { eventOccursOnDate } from "./eventHelpers";
 import type { Tournament, TournamentRound, Class, Event } from "@/types";
 

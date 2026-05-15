@@ -1,4 +1,4 @@
-import { DAYS } from "./constants";
+import { DAYS } from "@/lib/config/constants";
 import type { Class, ScheduleSlot } from "@/types";
 
 function parseDate(dateStr: string): Date {

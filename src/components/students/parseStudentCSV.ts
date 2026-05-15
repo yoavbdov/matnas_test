@@ -1,9 +1,9 @@
 // פונקציית ניתוח קובץ CSV לייבוא שחקנים
 // כל שדה שניתן למלא ידנית בטופס השחקן נתמך כאן
 
-import { CHESS_TITLES, GRADE_LABELS } from "@/lib/constants";
-import { formatPhone } from "@/lib/utils";
-import { DEFAULT_SETTINGS } from "@/lib/config";
+import { CHESS_TITLES, GRADE_LABELS } from "@/lib/config/constants";
+import { formatPhone } from "@/lib/utils/utils";
+import { DEFAULT_SETTINGS } from "@/lib/config/config";
 
 export interface ParsedRow {
   lineNum: number;

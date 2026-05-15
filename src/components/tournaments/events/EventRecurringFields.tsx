@@ -1,8 +1,8 @@
 // שדות לאירוע חוזר: ימים בשבוע, תאריך התחלה, תאריך סיום / תמידי, שעות, חדר
 import Field from "@/components/shared/Field";
 import TimeSelect from "@/components/shared/TimeSelect";
-import { DAYS } from "@/lib/constants";
-import { validateTimeRange } from "@/lib/validators";
+import { DAYS } from "@/lib/config/constants";
+import { validateTimeRange } from "@/lib/validation/validators";
 import type { Room } from "@/types";
 
 interface Props {

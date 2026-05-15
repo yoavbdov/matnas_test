@@ -11,7 +11,7 @@ import Badge from "@/components/shared/Badge";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import TournamentRoundsModal from "./TournamentRoundsModal";
 import TournamentParticipantsModal from "./TournamentParticipantsModal";
-import { isTournamentResourceOverbooked } from "@/lib/classHelpers";
+import { isTournamentResourceOverbooked } from "@/lib/schedule/classHelpers";
 import type { Tournament, Student, Teacher, PhysicalEquipment, Class } from "@/types";
 
 interface Props {

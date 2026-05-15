@@ -11,7 +11,7 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import ClassEnrollmentsModal from "./ClassEnrollmentsModal";
 import { deleteDocument, deleteWhere } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
-import { getConflictingClassIds, isClassResourceOverbooked } from "@/lib/classHelpers";
+import { getConflictingClassIds, isClassResourceOverbooked } from "@/lib/schedule/classHelpers";
 import type { Class, Teacher, Room, PhysicalEquipment, Student, Enrollment, Tournament } from "@/types";
 
 interface Props {

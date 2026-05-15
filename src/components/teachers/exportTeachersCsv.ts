@@ -1,5 +1,5 @@
 // Build and download a CSV of the given teachers list
-import { computeTeacherStatus } from "@/lib/teacherHelpers";
+import { computeTeacherStatus } from "@/lib/helpers/teacherHelpers";
 import type { Teacher, Class, Tournament } from "@/types";
 
 export function exportTeachersCsv(

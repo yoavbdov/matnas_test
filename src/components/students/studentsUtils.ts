@@ -1,7 +1,7 @@
 // Utility functions for the Students page — kept here so page.tsx stays lean
 
-import { computeStudentStatus } from "@/lib/studentHelpers";
-import { gradeFromDob } from "@/lib/utils";
+import { computeStudentStatus } from "@/lib/helpers/studentHelpers";
+import { gradeFromDob } from "@/lib/utils/utils";
 import type { Student, Enrollment, Tournament, LeagueGroupMember } from "@/types";
 
 // Map URL param value (e.g. ?status=active) to the Hebrew filter label

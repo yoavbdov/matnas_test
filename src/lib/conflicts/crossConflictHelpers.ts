@@ -7,8 +7,8 @@
   2. Form warning (structural, day-of-week based) — detectStructuralSlotTournamentConflicts
 */
 
-import { timeToMins } from "./utils";
-import { slotOccursOnDate } from "./scheduleHelpers";
+import { timeToMins } from "@/lib/utils/utils";
+import { slotOccursOnDate } from "@/lib/schedule/scheduleHelpers";
 import { recurringTournamentOccursOnDate } from "./tournamentHelpers";
 import type { Class, Tournament, Room, ScheduleSlot, Enrollment, ResourceAssignment } from "@/types";
 

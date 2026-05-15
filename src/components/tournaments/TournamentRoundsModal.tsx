@@ -5,7 +5,7 @@
 */
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
-import { fmtDate } from "@/lib/utils";
+import { fmtDate } from "@/lib/utils/utils";
 import type { TournamentRound } from "@/types";
 
 interface Props {

@@ -6,8 +6,8 @@
 "use client";
 import { useState } from "react";
 import { Trash2, Wand2 } from "lucide-react";
-import { autoFillRoundDates } from "@/lib/tournamentHelpers";
-import { validateTimeRange } from "@/lib/validators";
+import { autoFillRoundDates } from "@/lib/conflicts/tournamentHelpers";
+import { validateTimeRange } from "@/lib/validation/validators";
 import TimeSelect from "@/components/shared/TimeSelect";
 import type { TournamentRound, Room } from "@/types";
 

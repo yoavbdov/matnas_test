@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Modal from "@/components/shared/Modal";
 import Btn from "@/components/shared/Btn";
-import { calcAge } from "@/lib/utils";
+import { calcAge } from "@/lib/utils/utils";
 import { updateDocument } from "@/firebase/firestore";
 import { useToast } from "@/context/ToastContext";
 import { AlertTriangle } from "lucide-react";

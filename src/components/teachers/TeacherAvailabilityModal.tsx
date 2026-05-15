@@ -8,8 +8,8 @@ import { useState, useMemo } from "react";
 import { X, CalendarCheck, Search } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import TimeSelect from "@/components/shared/TimeSelect";
-import { checkTeacherAvailability } from "@/lib/teacherAvailability";
-import { formatPhone } from "@/lib/utils";
+import { checkTeacherAvailability } from "@/lib/availability/teacherAvailability";
+import { formatPhone } from "@/lib/utils/utils";
 import type { Teacher, Class } from "@/types";
 
 interface Props {

@@ -12,8 +12,8 @@ import { useState, useRef, useEffect } from "react";
 import { X, AlertTriangle, UserPlus, Search } from "lucide-react";
 import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
-import { slotsOverlapTime } from "@/lib/classHelpers";
-import { timeToMins } from "@/lib/utils";
+import { slotsOverlapTime } from "@/lib/schedule/classHelpers";
+import { timeToMins } from "@/lib/utils/utils";
 import type { Student, Enrollment, Class, Tournament, ScheduleSlot } from "@/types";
 
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];

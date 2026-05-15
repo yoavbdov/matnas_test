@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { X, CheckCircle, AlertCircle } from "lucide-react";
 import Field from "@/components/shared/Field";
 import ClockTimePicker from "@/components/shared/ClockTimePicker";
-import { calcResourceUsageOnDateTime } from "@/lib/classHelpers";
+import { calcResourceUsageOnDateTime } from "@/lib/schedule/classHelpers";
 import type { PhysicalEquipment, Class, Tournament } from "@/types";
 
 interface Props {

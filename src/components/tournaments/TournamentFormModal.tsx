@@ -13,7 +13,7 @@ import TournamentBasicFields, {
 } from "./TournamentBasicFields";
 import TournamentRoundsEditor from "./TournamentRoundsEditor";
 import TournamentPlayersPanel from "./TournamentPlayersPanel";
-import { getConflictingRoundIds, computeTournamentStatus, getRecurringTournamentConflicts } from "@/lib/tournamentHelpers";
+import { getConflictingRoundIds, computeTournamentStatus, getRecurringTournamentConflicts } from "@/lib/conflicts/tournamentHelpers";
 import type {
   Tournament,
   TournamentRound,
