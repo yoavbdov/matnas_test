@@ -1,16 +1,16 @@
 "use client";
 // Classes page — all state lives in useClassFilter and useClassSave.
 import PageShell from "@/components/shared/PageShell";
-import ClassesToolbar from "./ClassesToolbar";
-import ClassesTable from "./ClassesTable";
-import ClassFormModal from "./ClassFormModal";
-import ViewExistingClassDetailModal from "./ViewExistingClassDetailModal";
-import ClassUploadPanel from "./ClassUploadPanel";
+import ClassesToolbar from "@/components/classes/ClassesToolbar";
+import ClassesTable from "@/components/classes/ClassesTable";
+import ClassFormModal from "@/components/classes/ClassFormModal";
+import ViewExistingClassDetailModal from "@/components/classes/ViewExistingClassDetailModal";
+import ClassUploadPanel from "@/components/classes/ClassUploadPanel";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { exportClassesCsv } from "./exportClassesCsv";
-import { useClassFilter } from "./useClassFilter";
-import { useClassSave } from "./useClassSave";
+import { exportClassesCsv } from "@/components/classes/exportClassesCsv";
+import { useClassFilter } from "@/components/classes/useClassFilter";
+import { useClassSave } from "@/components/classes/useClassSave";
 
 export default function ClassesPage() {
   const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings, tournaments } = useData();

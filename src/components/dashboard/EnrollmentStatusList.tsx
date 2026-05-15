@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { useData } from "@/context/DataContext";
-import ViewExistingClassDetailModal from "@/app/classes/ViewExistingClassDetailModal";
+import ViewExistingClassDetailModal from "@/components/classes/ViewExistingClassDetailModal";
 import type { Class } from "@/lib/types";
 
 // Color theme per enrollment ratio

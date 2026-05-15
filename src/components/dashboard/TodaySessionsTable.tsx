@@ -3,9 +3,9 @@ import { useState, useMemo } from "react";
 import { useData } from "@/context/DataContext";
 import { slotOccursOnDate } from "@/lib/scheduleHelpers";
 import { eventOccursOnDate } from "@/lib/eventHelpers";
-import ViewExistingClassDetailModal from "@/app/classes/ViewExistingClassDetailModal";
-import TournamentDetailModal from "@/app/tournaments/TournamentDetailModal";
-import EventDetailModal from "@/app/tournaments/events/EventDetailModal";
+import ViewExistingClassDetailModal from "@/components/classes/ViewExistingClassDetailModal";
+import TournamentDetailModal from "@/components/tournaments/TournamentDetailModal";
+import EventDetailModal from "@/components/tournaments/events/EventDetailModal";
 import type { Class, Tournament, Event } from "@/lib/types";
 
 function today(): string {

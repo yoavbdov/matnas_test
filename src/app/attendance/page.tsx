@@ -10,16 +10,16 @@
 */
 import { useState, useMemo } from "react";
 import PageShell from "@/components/shared/PageShell";
-import ClassSelector from "./ClassSelector";
-import SessionList from "./SessionList";
-import AttendanceSheet from "./AttendanceSheet";
-import ExportCsvModal from "./ExportCsvModal";
-import ImportAttendanceCsvModal from "./ImportAttendanceCsvModal";
+import ClassSelector from "@/components/attendance/ClassSelector";
+import SessionList from "@/components/attendance/SessionList";
+import AttendanceSheet from "@/components/attendance/AttendanceSheet";
+import ExportCsvModal from "@/components/attendance/ExportCsvModal";
+import ImportAttendanceCsvModal from "@/components/attendance/ImportAttendanceCsvModal";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import { useData } from "@/context/DataContext";
 import { useCollection } from "@/firebase/hooks/useCollection";
-import { getPastSessionDates } from "./attendanceHelpers";
+import { getPastSessionDates } from "@/components/attendance/attendanceHelpers";
 import type { Attendance } from "@/lib/types";
 
 // Today as YYYY-MM-DD (local time)

@@ -1,239 +1,221 @@
 "use client";
+/*
+  ClassFormModal — create or edit a class.
+  Tabs: פרטים / מפגשים / תלמידים
+  Mirrors the structure of TournamentFormModal for visual consistency.
+*/
+import { useState } from "react";
 import Modal from "@/components/shared/Modal";
-import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
-import SlotEditor from "./SlotEditor";
+import ClassBasicFields from "./ClassBasicFields";
+import ClassResources from "./ClassResources";
+import ClassSlotsTab from "./ClassSlotsTab";
+import ClassStudentsTab from "./ClassStudentsTab";
 import { CLASS_COLORS } from "@/lib/constants";
+import { LIMITS } from "@/lib/validators";
 import type {
   Class,
   Teacher,
   Room,
+  PhysicalEquipment,
   ScheduleSlot,
   AppSettings,
+  ResourceAssignment,
+  Tournament,
+  Student,
+  Enrollment,
 } from "@/lib/types";
 
-const inp =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
+type FormData = Omit<Class, "id">;
+
+// Enrollment changes to apply on save
+export interface EnrollmentChanges {
+  toAdd: string[];    // student IDs to enroll
+  toRemove: string[]; // enrollment document IDs to delete
+}
 
 interface Props {
   mode: "add" | "edit";
-  form: Omit<Class, "id">;
-  setForm: React.Dispatch<React.SetStateAction<Omit<Class, "id">>>;
-  saving: boolean;
-  onClose: () => void;
-  onSave: () => void;
+  classItem: Class | null;
   teachers: Teacher[];
   rooms: Room[];
+  physicalEquipment: PhysicalEquipment[];
+  students: Student[];
+  enrollments: Enrollment[];
+  allClasses: Class[];
+  allTournaments: Tournament[];
   settings: Required<AppSettings>;
+  saving: boolean;
+  onClose: () => void;
+  onSave: (form: FormData, enrollmentChanges: EnrollmentChanges) => void;
+}
+
+function emptyForm(): FormData {
+  return {
+    name: "",
+    description: "",
+    teacher_id: "",
+    capacity: 10,
+    status: "מתוכנן",
+    color: CLASS_COLORS[0],
+    slots: [],
+    resource_assignments: [],
+  };
 }
 
 export default function ClassFormModal({
   mode,
-  form,
-  setForm,
+  classItem,
+  teachers,
+  rooms,
+  physicalEquipment,
+  students,
+  enrollments,
+  allClasses,
+  allTournaments,
+  settings,
   saving,
   onClose,
   onSave,
-  teachers,
-  rooms,
-  settings,
 }: Props) {
-  function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
+  const [tab, setTab] = useState<"פרטים" | "מפגשים" | "תלמידים">("פרטים");
+  const [form, setForm] = useState<FormData>(() =>
+    classItem
+      ? {
+          ...classItem,
+          slots: [...(classItem.slots ?? [])],
+          resource_assignments: [...(classItem.resource_assignments ?? [])],
+        }
+      : emptyForm()
+  );
+
+  // Pending enrollment changes — applied on save
+  const [pendingAdd, setPendingAdd] = useState<string[]>([]);
+  const [pendingRemove, setPendingRemove] = useState<string[]>([]);
+
+  function set<K extends keyof FormData>(k: K, v: FormData[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  function handleSlotChange(idx: number, patch: Partial<ScheduleSlot>) {
-    setForm((f) => {
-      const slots = [...(f.slots ?? [])];
-      slots[idx] = { ...slots[idx], ...patch };
-      return { ...f, slots };
-    });
+  function setSlots(slots: ScheduleSlot[]) {
+    setForm((f) => ({ ...f, slots }));
   }
 
-  function addSlot() {
-    setForm((f) => ({
-      ...f,
-      slots: [
-        ...(f.slots ?? []),
-        {
-          id: crypto.randomUUID(),
-          day: "ראשון",
-          start_time: "16:00",
-          end_time: "17:00",
-          room_id: "",
-          recurrence: "שבועי",
-          start_date: new Date().toISOString().slice(0, 10),
-        },
-      ],
-    }));
+  function setAssignments(next: ResourceAssignment[]) {
+    setForm((f) => ({ ...f, resource_assignments: next }));
   }
 
-  function removeSlot(idx: number) {
-    setForm((f) => ({
-      ...f,
-      slots: (f.slots ?? []).filter((_, i) => i !== idx),
-    }));
+  function handleSave() {
+    onSave(form, { toAdd: pendingAdd, toRemove: pendingRemove });
   }
+
+  const tabs = ["פרטים", "מפגשים", "תלמידים"] as const;
 
   return (
     <Modal
-      title={mode === "add" ? "הוספת חוג" : "עריכת חוג"}
+      title={mode === "add" ? "הוספת חוג" : `עריכת חוג — ${classItem?.name}`}
       onClose={onClose}
-      size="xl"
+      size="lg"
       footer={
-        <>
-          <Btn variant="secondary" onClick={onClose}>
-            ביטול
-          </Btn>
-          <Btn onClick={onSave} loading={saving}>
-            שמור
-          </Btn>
-        </>
+        <div className="flex items-center justify-between w-full gap-3" dir="rtl">
+          <div className="flex gap-2 mr-auto">
+            <Btn variant="ghost" onClick={onClose} disabled={saving}>ביטול</Btn>
+            <Btn onClick={handleSave} loading={saving} disabled={!form.name.trim()}>
+              {mode === "add" ? "צור חוג" : "שמור שינויים"}
+            </Btn>
+          </div>
+        </div>
       }
     >
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="שם החוג" required>
-          <input
-            className={inp}
-            value={form.name}
-            maxLength={settings.MAX_STRING_LENGTH}
-            onChange={(e) => set("name", e.target.value)}
-          />
-        </Field>
-        <Field label="מדריך" required>
-          <select
-            className={inp}
-            value={form.teacher_id}
-            onChange={(e) => set("teacher_id", e.target.value)}
+      {/* Tab bar */}
+      <div className="flex gap-1 border-b border-gray-200 mb-5" dir="rtl">
+        {tabs.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+              tab === t
+                ? "border-b-2 border-teal-600 text-teal-700"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
           >
-            {teachers
-              .filter((t) => t.status === "פעיל")
-              .map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.first_name} {t.last_name}
-                </option>
-              ))}
-          </select>
-        </Field>
-        <Field label="קיבולת">
-          <input
-            type="number"
-            className={inp}
-            value={form.capacity}
-            min={1}
-            max={settings.MAX_ROOM_CAPACITY}
-            onChange={(e) =>
-              set("capacity", Math.max(1, Number(e.target.value)))
-            }
-          />
-        </Field>
-        <Field label="סטטוס">
-          <select
-            className={inp}
-            value={form.status}
-            onChange={(e) => set("status", e.target.value as Class["status"])}
-          >
-            <option>פעיל</option>
-            <option>לא פעיל</option>
-          </select>
-        </Field>
-        <Field label="גיל מינימלי">
-          <input
-            type="number"
-            className={inp}
-            value={form.age_min ?? ""}
-            min={0}
-            max={settings.MAX_AGE}
-            onChange={(e) =>
-              set(
-                "age_min",
-                e.target.value ? Number(e.target.value) : undefined,
-              )
-            }
-          />
-        </Field>
-        <Field label="גיל מקסימלי">
-          <input
-            type="number"
-            className={inp}
-            value={form.age_max ?? ""}
-            min={0}
-            max={settings.MAX_AGE}
-            onChange={(e) =>
-              set(
-                "age_max",
-                e.target.value ? Number(e.target.value) : undefined,
-              )
-            }
-          />
-        </Field>
-        <Field label="דירוג מינימלי">
-          <input
-            type="number"
-            className={inp}
-            value={form.rating_min ?? ""}
-            min={0}
-            max={settings.MAX_INT_INPUT}
-            onChange={(e) =>
-              set(
-                "rating_min",
-                e.target.value ? Number(e.target.value) : undefined,
-              )
-            }
-          />
-        </Field>
-        <Field label="דירוג מקסימלי">
-          <input
-            type="number"
-            className={inp}
-            value={form.rating_max ?? ""}
-            min={0}
-            max={settings.MAX_INT_INPUT}
-            onChange={(e) =>
-              set(
-                "rating_max",
-                e.target.value ? Number(e.target.value) : undefined,
-              )
-            }
-          />
-        </Field>
+            {t}
+          </button>
+        ))}
       </div>
 
-      <div className="mt-4">
-        <Field label="צבע">
-          <div className="flex gap-2 mt-1">
-            {CLASS_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => set("color", c)}
-                className={`w-7 h-7 rounded-full border-2 transition-transform ${form.color === c ? "border-gray-700 scale-110" : "border-transparent"}`}
-                style={{ background: c }}
+      {/* Tab content */}
+      <div className="h-105 overflow-y-auto">
+
+        {tab === "פרטים" && (
+          <div className="space-y-5" dir="rtl">
+            {/* Name, instructor, description, ratings, age, capacity, color */}
+            <ClassBasicFields
+              form={form}
+              teachers={teachers}
+              settings={settings}
+              onChange={set}
+            />
+
+            <hr className="border-gray-100" />
+
+            {/* Equipment */}
+            <ClassResources
+              assignments={form.resource_assignments ?? []}
+              physicalEquipment={physicalEquipment}
+              allClasses={allClasses}
+              allTournaments={allTournaments}
+              currentClassId={classItem?.id}
+              currentClassSlots={form.slots ?? []}
+              onChange={setAssignments}
+            />
+
+            <hr className="border-gray-100" />
+
+            {/* Notes */}
+            <div>
+              <label className="text-xs font-medium text-gray-600">הערות</label>
+              <textarea
+                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400 resize-none"
+                rows={3}
+                value={form.notes ?? ""}
+                maxLength={LIMITS.NOTES}
+                onChange={(e) => set("notes", e.target.value)}
               />
-            ))}
+            </div>
           </div>
-        </Field>
+        )}
+
+        {tab === "מפגשים" && (
+          <ClassSlotsTab
+            slots={form.slots ?? []}
+            rooms={rooms}
+            allClasses={allClasses}
+            allTournaments={allTournaments}
+            teacherId={form.teacher_id}
+            currentClassId={classItem?.id}
+            onChange={setSlots}
+          />
+        )}
+
+        {tab === "תלמידים" && (
+          <ClassStudentsTab
+            className={form.name}
+            students={students}
+            allEnrollments={enrollments}
+            allClasses={allClasses}
+            allTournaments={allTournaments}
+            formSlots={form.slots ?? []}
+            currentClassId={classItem?.id}
+            pendingAdd={pendingAdd}
+            pendingRemove={pendingRemove}
+            onAddStudent={(id) => setPendingAdd((p) => [...p, id])}
+            onRemoveEnrollment={(enrollId) => setPendingRemove((p) => [...p, enrollId])}
+            onUndoAdd={(id) => setPendingAdd((p) => p.filter((x) => x !== id))}
+          />
+        )}
       </div>
-
-      <hr className="my-5 border-gray-100" />
-      <SlotEditor
-        slots={form.slots ?? []}
-        rooms={rooms}
-        onAdd={addSlot}
-        onRemove={removeSlot}
-        onChange={handleSlotChange}
-      />
-
-      <hr className="my-5 border-gray-100" />
-      <Field label="הערות">
-        <textarea
-          className={inp}
-          rows={3}
-          value={form.notes ?? ""}
-          maxLength={settings.MAX_NOTE_LENGTH}
-          onChange={(e) => set("notes", e.target.value)}
-        />
-      </Field>
     </Modal>
   );
 }

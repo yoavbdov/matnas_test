@@ -3,18 +3,18 @@
 // all state lives in useStudentFilter and useStudentSave.
 import { useSearchParams } from "next/navigation";
 import PageShell from "@/components/shared/PageShell";
-import StudentsToolbar from "./StudentsToolbar";
-import StudentsTable from "./StudentsTable";
-import StudentFormModal from "./StudentFormModal";
-import StudentDetailModal from "./StudentDetailModal";
-import CSVUploadPanel from "./CSVUploadPanel";
-import StudentAvailabilityModal from "./StudentAvailabilityModal";
+import StudentsToolbar from "@/components/students/StudentsToolbar";
+import StudentsTable from "@/components/students/StudentsTable";
+import StudentFormModal from "@/components/students/StudentFormModal";
+import StudentDetailModal from "@/components/students/StudentDetailModal";
+import CSVUploadPanel from "@/components/students/CSVUploadPanel";
+import StudentAvailabilityModal from "@/components/students/StudentAvailabilityModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { computeStudentStatus } from "@/lib/studentHelpers";
-import { exportStudentsCsv } from "./studentsUtils";
-import { useStudentFilter } from "./useStudentFilter";
-import { useStudentSave } from "./useStudentSave";
+import { exportStudentsCsv } from "@/components/students/studentsUtils";
+import { useStudentFilter } from "@/components/students/useStudentFilter";
+import { useStudentSave } from "@/components/students/useStudentSave";
 
 export default function StudentsPage() {
   const {

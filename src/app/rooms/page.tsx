@@ -3,21 +3,21 @@
 import PageShell from "@/components/shared/PageShell";
 import Table, { Column } from "@/components/shared/Table";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import RoomFormModal from "./RoomFormModal";
-import ResourceFormModal from "./ResourceFormModal";
-import AvailabilityCheckerModal from "./AvailabilityCheckerModal";
-import RoomUploadPanel from "./RoomUploadPanel";
-import EquipmentImportPanel from "./EquipmentImportPanel";
-import RoomAvailabilityModal from "./RoomAvailabilityModal";
-import RoomsToolbar from "./RoomsToolbar";
-import ResourcesToolbar from "./ResourcesToolbar";
-import { exportRoomsCsv } from "./exportRoomsCsv";
-import { exportEquipmentCsv } from "./exportEquipmentCsv";
+import RoomFormModal from "@/components/rooms/RoomFormModal";
+import ResourceFormModal from "@/components/rooms/ResourceFormModal";
+import AvailabilityCheckerModal from "@/components/rooms/AvailabilityCheckerModal";
+import RoomUploadPanel from "@/components/rooms/RoomUploadPanel";
+import EquipmentImportPanel from "@/components/rooms/EquipmentImportPanel";
+import RoomAvailabilityModal from "@/components/rooms/RoomAvailabilityModal";
+import RoomsToolbar from "@/components/rooms/RoomsToolbar";
+import ResourcesToolbar from "@/components/rooms/ResourcesToolbar";
+import { exportRoomsCsv } from "@/components/rooms/exportRoomsCsv";
+import { exportEquipmentCsv } from "@/components/rooms/exportEquipmentCsv";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import type { Room, PhysicalEquipment, Event } from "@/lib/types";
 import { useCollection } from "@/firebase/hooks/useCollection";
-import { useRoomState } from "./useRoomState";
+import { useRoomState } from "@/components/rooms/useRoomState";
 
 type ActiveTab = "rooms" | "equipment";
 

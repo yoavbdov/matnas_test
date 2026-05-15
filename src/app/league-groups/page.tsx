@@ -10,14 +10,14 @@ import Btn from "@/components/shared/Btn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import LeagueGroupFormModal from "./LeagueGroupFormModal";
-import LeagueGroupDetailModal from "./LeagueGroupDetailModal";
-import LeagueGroupImportPanel from "./LeagueGroupImportPanel";
-import CategoryColumn from "./CategoryColumn";
+import LeagueGroupFormModal from "@/components/league-groups/LeagueGroupFormModal";
+import LeagueGroupDetailModal from "@/components/league-groups/LeagueGroupDetailModal";
+import LeagueGroupImportPanel from "@/components/league-groups/LeagueGroupImportPanel";
+import CategoryColumn from "@/components/league-groups/CategoryColumn";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { addDocument, updateDocument, deleteDocument, deleteWhere } from "@/firebase/firestore";
-import { exportLeagueGroupsCsv } from "./exportLeagueGroupsCsv";
+import { exportLeagueGroupsCsv } from "@/components/league-groups/exportLeagueGroupsCsv";
 import type { LeagueGroup, LeagueCategory } from "@/lib/types";
 
 // Default empty form for a new group (no category pre-selected)

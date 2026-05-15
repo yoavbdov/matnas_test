@@ -1,16 +1,16 @@
 "use client";
 // Teachers page — all state lives in useTeacherState.
 import PageShell from "@/components/shared/PageShell";
-import TeachersToolbar from "./TeachersToolbar";
-import TeachersTable from "./TeachersTable";
-import TeacherFormModal from "./TeacherFormModal";
-import TeacherDetailModal from "./TeacherDetailModal";
-import TeacherUploadPanel from "./TeacherUploadPanel";
-import TeacherAvailabilityModal from "./TeacherAvailabilityModal";
+import TeachersToolbar from "@/components/teachers/TeachersToolbar";
+import TeachersTable from "@/components/teachers/TeachersTable";
+import TeacherFormModal from "@/components/teachers/TeacherFormModal";
+import TeacherDetailModal from "@/components/teachers/TeacherDetailModal";
+import TeacherUploadPanel from "@/components/teachers/TeacherUploadPanel";
+import TeacherAvailabilityModal from "@/components/teachers/TeacherAvailabilityModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { exportTeachersCsv } from "./exportTeachersCsv";
-import { useTeacherState } from "./useTeacherState";
+import { exportTeachersCsv } from "@/components/teachers/exportTeachersCsv";
+import { useTeacherState } from "@/components/teachers/useTeacherState";
 
 export default function TeachersPage() {
   const { teachers, classes, enrollments, tournaments, settings } = useData();

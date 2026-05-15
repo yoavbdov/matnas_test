@@ -1,23 +1,23 @@
 "use client";
 // Tournaments & Events page — all state lives in useTournamentState.
 import PageShell from "@/components/shared/PageShell";
-import TournamentsToolbar from "./TournamentsToolbar";
-import TournamentsTable from "./TournamentsTable";
-import TournamentFormModal from "./TournamentFormModal";
-import TournamentDetailModal from "./TournamentDetailModal";
-import TournamentImportPanel from "./TournamentImportPanel";
-import EventsTable from "./events/EventsTable";
-import EventFormModal from "./events/EventFormModal";
-import EventDetailModal from "./events/EventDetailModal";
-import EventImportPanel from "./events/EventImportPanel";
-import TabBtn from "./TabBtn";
+import TournamentsToolbar from "@/components/tournaments/TournamentsToolbar";
+import TournamentsTable from "@/components/tournaments/TournamentsTable";
+import TournamentFormModal from "@/components/tournaments/TournamentFormModal";
+import TournamentDetailModal from "@/components/tournaments/TournamentDetailModal";
+import TournamentImportPanel from "@/components/tournaments/TournamentImportPanel";
+import EventsTable from "@/components/tournaments/events/EventsTable";
+import EventFormModal from "@/components/tournaments/events/EventFormModal";
+import EventDetailModal from "@/components/tournaments/events/EventDetailModal";
+import EventImportPanel from "@/components/tournaments/events/EventImportPanel";
+import TabBtn from "@/components/tournaments/TabBtn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { exportTournamentsCsv } from "./exportTournamentsCsv";
-import { exportEventsCsv } from "./events/exportEventsCsv";
-import { useTournamentState } from "./useTournamentState";
+import { exportTournamentsCsv } from "@/components/tournaments/exportTournamentsCsv";
+import { exportEventsCsv } from "@/components/tournaments/events/exportEventsCsv";
+import { useTournamentState } from "@/components/tournaments/useTournamentState";
 
 export default function TournamentsPage() {
   const { tournaments, students, classes, rooms, teachers, physicalEquipment, events } = useData();

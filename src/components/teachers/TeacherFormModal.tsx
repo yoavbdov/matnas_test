@@ -1,4 +1,5 @@
 "use client";
+// טופס הוספה/עריכה של מדריך
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import TagInput from "@/components/shared/TagInput";
@@ -6,8 +7,7 @@ import Btn from "@/components/shared/Btn";
 import { LIMITS, digitsOnly } from "@/lib/validators";
 import type { Teacher, AppSettings } from "@/lib/types";
 
-const inp =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
+const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
 interface Props {
   mode: "add" | "edit";
@@ -19,15 +19,7 @@ interface Props {
   settings: Required<AppSettings>;
 }
 
-export default function TeacherFormModal({
-  mode,
-  form,
-  setForm,
-  saving,
-  onClose,
-  onSave,
-  settings,
-}: Props) {
+export default function TeacherFormModal({ mode, form, setForm, saving, onClose, onSave, settings }: Props) {
   function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
@@ -37,62 +29,24 @@ export default function TeacherFormModal({
       title={mode === "add" ? "הוספת מדריך" : "עריכת מדריך"}
       onClose={onClose}
       size="md"
-      footer={
-        <>
-          <Btn variant="secondary" onClick={onClose}>
-            ביטול
-          </Btn>
-          <Btn onClick={onSave} loading={saving}>
-            שמור
-          </Btn>
-        </>
-      }
+      footer={<><Btn variant="secondary" onClick={onClose}>ביטול</Btn><Btn onClick={onSave} loading={saving}>שמור</Btn></>}
     >
       <div className="grid grid-cols-2 gap-4">
         <Field label="שם פרטי" required>
-          <input
-            className={inp}
-            value={form.first_name}
-            maxLength={settings.MAX_STRING_LENGTH}
-            onChange={(e) => set("first_name", e.target.value)}
-          />
+          <input className={inp} value={form.first_name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("first_name", e.target.value)} />
         </Field>
         <Field label="שם משפחה" required>
-          <input
-            className={inp}
-            value={form.last_name}
-            maxLength={settings.MAX_STRING_LENGTH}
-            onChange={(e) => set("last_name", e.target.value)}
-          />
+          <input className={inp} value={form.last_name} maxLength={settings.MAX_STRING_LENGTH} onChange={(e) => set("last_name", e.target.value)} />
         </Field>
         <Field label="טלפון" hint="10 ספרות בלבד">
-          <input
-            className={inp}
-            value={form.phone ?? ""}
-            inputMode="numeric"
-            onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))}
-          />
+          <input className={inp} value={form.phone ?? ""} inputMode="numeric" onChange={(e) => set("phone", digitsOnly(e.target.value, LIMITS.PHONE))} />
         </Field>
         <Field label="אימייל" hint={`עד ${LIMITS.EMAIL} תווים`}>
-          <input
-            type="email"
-            className={inp}
-            value={form.email ?? ""}
-            maxLength={LIMITS.EMAIL}
-            onChange={(e) => set("email", e.target.value)}
-          />
+          <input type="email" className={inp} value={form.email ?? ""} maxLength={LIMITS.EMAIL} onChange={(e) => set("email", e.target.value)} />
         </Field>
-        <Field label="סטטוס">
-          <select
-            className={inp}
-            value={form.status}
-            onChange={(e) => set("status", e.target.value as Teacher["status"])}
-          >
-            <option>פעיל</option>
-            <option>לא פעיל</option>
-          </select>
-        </Field>
+        {/* סטטוס מחושב אוטומטית — אי אפשר לערוך ידנית */}
       </div>
+
       <div className="mt-4">
         <Field label="הסמכות" hint="הקלד ולחץ Enter להוספה">
           <TagInput
@@ -103,15 +57,10 @@ export default function TeacherFormModal({
           />
         </Field>
       </div>
+
       <div className="mt-4">
         <Field label="הערות">
-          <textarea
-            className={inp}
-            rows={3}
-            value={form.notes ?? ""}
-            maxLength={settings.MAX_NOTE_LENGTH}
-            onChange={(e) => set("notes", e.target.value)}
-          />
+          <textarea className={inp} rows={3} value={form.notes ?? ""} maxLength={settings.MAX_NOTE_LENGTH} onChange={(e) => set("notes", e.target.value)} />
         </Field>
       </div>
     </Modal>

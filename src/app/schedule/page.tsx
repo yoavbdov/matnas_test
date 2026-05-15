@@ -1,24 +1,24 @@
 "use client";
 // Schedule page — no useState here; all state lives in dedicated hooks.
 import PageShell from "@/components/shared/PageShell";
-import CalendarGrid from "./CalendarGrid";
-import MiniCalendar from "./MiniCalendar";
-import ScheduleFilterBar from "./ScheduleFilterBar";
-import ViewExistingClassDetailModal from "@/app/classes/ViewExistingClassDetailModal";
-import ClassFormModal from "@/app/classes/ClassFormModal";
-import TournamentDetailModal from "@/app/tournaments/TournamentDetailModal";
-import TournamentFormModal from "@/app/tournaments/TournamentFormModal";
-import EventDetailModal from "@/app/tournaments/events/EventDetailModal";
-import EventFormModal from "@/app/tournaments/events/EventFormModal";
-import ScheduleContextMenu from "./ScheduleContextMenu";
+import CalendarGrid from "@/components/schedule/CalendarGrid";
+import MiniCalendar from "@/components/schedule/MiniCalendar";
+import ScheduleFilterBar from "@/components/schedule/ScheduleFilterBar";
+import ViewExistingClassDetailModal from "@/components/classes/ViewExistingClassDetailModal";
+import ClassFormModal from "@/components/classes/ClassFormModal";
+import TournamentDetailModal from "@/components/tournaments/TournamentDetailModal";
+import TournamentFormModal from "@/components/tournaments/TournamentFormModal";
+import EventDetailModal from "@/components/tournaments/events/EventDetailModal";
+import EventFormModal from "@/components/tournaments/events/EventFormModal";
+import ScheduleContextMenu from "@/components/schedule/ScheduleContextMenu";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
 import { updateDocument, addDocument, deleteDocument } from "@/firebase/firestore";
-import { toDateStr } from "./schedulePageUtils";
-import { useScheduleFilters } from "./useScheduleFilters";
-import { useScheduleCalendar } from "./useScheduleCalendar";
-import { useScheduleModals } from "./useScheduleModals";
-import { buildContextMenuHandlers } from "./useScheduleContextMenus";
+import { toDateStr } from "@/components/schedule/schedulePageUtils";
+import { useScheduleFilters } from "@/components/schedule/useScheduleFilters";
+import { useScheduleCalendar } from "@/components/schedule/useScheduleCalendar";
+import { useScheduleModals } from "@/components/schedule/useScheduleModals";
+import { buildContextMenuHandlers } from "@/components/schedule/useScheduleContextMenus";
 
 export default function SchedulePage() {
   const {
