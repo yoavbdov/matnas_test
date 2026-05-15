@@ -1,11 +1,5 @@
 "use client";
-/*
-  דף תחרויות ואירועים — שני טאבים:
-  1. תחרויות (הלוגיקה הקיימת)
-  2. אירועים (חדש)
-*/
-import { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+// Tournaments & Events page — all state lives in useTournamentState.
 import PageShell from "@/components/shared/PageShell";
 import TournamentsToolbar from "./TournamentsToolbar";
 import TournamentsTable from "./TournamentsTable";
@@ -16,326 +10,131 @@ import EventsTable from "./events/EventsTable";
 import EventFormModal from "./events/EventFormModal";
 import EventDetailModal from "./events/EventDetailModal";
 import EventImportPanel from "./events/EventImportPanel";
-import { useData } from "@/context/DataContext";
-import { useToast } from "@/context/ToastContext";
-import { addDocument, updateDocument, deleteDocument } from "@/firebase/firestore";
-import { validateTimeRange } from "@/lib/validators";
-import { exportTournamentsCsv } from "./exportTournamentsCsv";
-import { exportEventsCsv } from "./events/exportEventsCsv";
+import TabBtn from "./TabBtn";
 import CsvExportBtn from "@/components/shared/CsvExportBtn";
 import CsvImportBtn from "@/components/shared/CsvImportBtn";
-import type { Tournament, Event } from "@/lib/types";
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-// --- Tab Button ---
-function TabBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-5 py-2.5 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${
-        active
-          ? "border-teal-600 text-teal-700 bg-white"
-          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
+import { useData } from "@/context/DataContext";
+import { useToast } from "@/context/ToastContext";
+import { exportTournamentsCsv } from "./exportTournamentsCsv";
+import { exportEventsCsv } from "./events/exportEventsCsv";
+import { useTournamentState } from "./useTournamentState";
 
 export default function TournamentsPage() {
   const { tournaments, students, classes, rooms, teachers, physicalEquipment, events } = useData();
   const { showToast } = useToast();
-  const searchParams = useSearchParams();
 
-  // --- Tab state — מסונכרן עם #hash בURL (כמו דף החדרים) ---
-  const [activeTab, setActiveTabState] = useState<"tournaments" | "events">("tournaments");
-
-  useEffect(() => {
-    // קרא את ה-hash בטעינה ראשונית
-    if (window.location.hash === "#events") setActiveTabState("events");
-  }, []);
-
-  function setActiveTab(tab: "tournaments" | "events") {
-    setActiveTabState(tab);
-    window.location.hash = tab === "events" ? "events" : "";
-  }
-
-  // --- Tournaments state ---
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<Tournament["status"] | "הכל">("הכל");
-  const [todayActive, setTodayActive] = useState(false);
-  const [showAddTournament, setShowAddTournament] = useState(false);
-  const [detailTournament, setDetailTournament] = useState<Tournament | null>(null);
-  const [editTournament, setEditTournament] = useState<Tournament | null>(null);
-  const [savingTournament, setSavingTournament] = useState(false);
-
-  // --- Tournaments CSV state ---
-  const [showTournamentImport, setShowTournamentImport] = useState(false);
-
-  // --- Events state ---
-  const [showAddEvent, setShowAddEvent] = useState(false);
-  const [detailEvent, setDetailEvent] = useState<Event | null>(null);
-  const [editEvent, setEditEvent] = useState<Event | null>(null);
-  const [savingEvent, setSavingEvent] = useState(false);
-
-  // --- Events CSV state ---
-  const [showEventImport, setShowEventImport] = useState(false);
-
-  // אם הגענו מלוח הבקרה עם ?today=true — הפעל פילטר "היום"
-  useEffect(() => {
-    if (searchParams.get("today") === "true") setTodayActive(true);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const today = todayStr();
-
-  // --- Filtered tournaments ---
-  const filteredTournaments = useMemo(() => {
-    return tournaments.filter((t) => {
-      if (statusFilter !== "הכל" && t.status !== statusFilter) return false;
-      if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (todayActive) {
-        if (t.status === "בוטל") return false;
-        const hasToday = t.is_recurring
-          ? t.recurring_date === today
-          : t.rounds.some((r) => r.date === today);
-        if (!hasToday) return false;
-      }
-      return true;
-    });
-  }, [tournaments, search, statusFilter, todayActive, today]);
-
-  // --- Tournament CRUD ---
-  // Returns error message for invalid time ranges, or null if all OK
-  function validateTournamentTimes(data: Omit<Tournament, "id">): string | null {
-    if (data.is_recurring) {
-      const start = data.recurring_start_time ?? "";
-      const end = data.recurring_end_time ?? "";
-      if (validateTimeRange(start, end)) return "שעת הסיום חייבת להיות אחרי שעת ההתחלה בתחרות החוזרת";
-    } else {
-      const badRound = (data.rounds ?? []).find((r) => validateTimeRange(r.start_time, r.end_time));
-      if (badRound) return `שעת הסיום חייבת להיות אחרי שעת ההתחלה (סיבוב ${badRound.round_number})`;
-    }
-    return null;
-  }
-
-  async function handleAddTournament(data: Omit<Tournament, "id">) {
-    if (!data.name.trim()) { showToast("שם התחרות הוא שדה חובה", "error"); return; }
-    const timeErr = validateTournamentTimes(data);
-    if (timeErr) { showToast(timeErr, "error"); return; }
-    setSavingTournament(true);
-    try {
-      await addDocument("tournaments", data);
-      showToast("התחרות נוצרה בהצלחה", "success");
-      setShowAddTournament(false);
-    } catch (err) {
-      showToast(`שגיאה ביצירת תחרות: ${err instanceof Error ? err.message : err}`, "error");
-    } finally { setSavingTournament(false); }
-  }
-
-  async function handleEditTournament(data: Omit<Tournament, "id">) {
-    if (!editTournament) return;
-    if (!data.name.trim()) { showToast("שם התחרות הוא שדה חובה", "error"); return; }
-    const timeErr = validateTournamentTimes(data);
-    if (timeErr) { showToast(timeErr, "error"); return; }
-    setSavingTournament(true);
-    try {
-      await updateDocument("tournaments", editTournament.id, data);
-      showToast("התחרות עודכנה בהצלחה", "success");
-      setEditTournament(null);
-    } catch (err) {
-      showToast(`שגיאה בשמירת התחרות: ${err instanceof Error ? err.message : err}`, "error");
-    } finally { setSavingTournament(false); }
-  }
-
-  async function handleDeleteTournament(t: Tournament) {
-    try {
-      await deleteDocument("tournaments", t.id);
-      showToast("התחרות נמחקה", "success");
-      setDetailTournament(null);
-    } catch (err) {
-      showToast(`שגיאה במחיקת התחרות: ${err instanceof Error ? err.message : err}`, "error");
-    }
-  }
-
-  // --- Event CRUD ---
-  async function handleAddEvent(data: Omit<Event, "id">) {
-    if (!data.name.trim()) { showToast("שם האירוע הוא שדה חובה", "error"); return; }
-    setSavingEvent(true);
-    try {
-      await addDocument("events", { ...data, created_at: new Date().toISOString() });
-      showToast("האירוע נוצר בהצלחה", "success");
-      setShowAddEvent(false);
-    } catch (err) {
-      showToast(`שגיאה ביצירת אירוע: ${err instanceof Error ? err.message : err}`, "error");
-    } finally { setSavingEvent(false); }
-  }
-
-  async function handleEditEvent(data: Omit<Event, "id">) {
-    if (!editEvent) return;
-    if (!data.name.trim()) { showToast("שם האירוע הוא שדה חובה", "error"); return; }
-    setSavingEvent(true);
-    try {
-      await updateDocument("events", editEvent.id, data);
-      showToast("האירוע עודכן בהצלחה", "success");
-      setEditEvent(null);
-    } catch (err) {
-      showToast(`שגיאה בשמירת האירוע: ${err instanceof Error ? err.message : err}`, "error");
-    } finally { setSavingEvent(false); }
-  }
-
-  async function handleDeleteEvent(ev: Event) {
-    try {
-      await deleteDocument("events", ev.id);
-      showToast("האירוע נמחק", "success");
-      setDetailEvent(null);
-    } catch (err) {
-      showToast(`שגיאה במחיקת האירוע: ${err instanceof Error ? err.message : err}`, "error");
-    }
-  }
+  // All state (tab + filter + modals + CRUD) lives here
+  const s = useTournamentState({ tournaments, events }, { showToast });
 
   return (
     <PageShell title="תחרויות ואירועים">
 
-      {/* טאבים */}
+      {/* Tab bar */}
       <div className="flex gap-1 border-b border-gray-200 mb-5" dir="rtl">
-        <TabBtn label="🏆 תחרויות" active={activeTab === "tournaments"} onClick={() => setActiveTab("tournaments")} />
-        <TabBtn label="📅 אירועים" active={activeTab === "events"} onClick={() => setActiveTab("events")} />
+        <TabBtn label="🏆 תחרויות" active={s.activeTab === "tournaments"} onClick={() => s.setActiveTab("tournaments")} />
+        <TabBtn label="📅 אירועים" active={s.activeTab === "events"} onClick={() => s.setActiveTab("events")} />
       </div>
 
-      {/* ===== טאב תחרויות ===== */}
-      {activeTab === "tournaments" && (
+      {/* Tournaments tab */}
+      {s.activeTab === "tournaments" && (
         <>
           <TournamentsToolbar
-            search={search}
-            onSearch={setSearch}
-            statusFilter={statusFilter}
-            onStatusFilter={setStatusFilter}
-            todayActive={todayActive}
-            onToggleToday={() => setTodayActive((p) => !p)}
-            onAdd={() => setShowAddTournament(true)}
-            onExport={() => exportTournamentsCsv(filteredTournaments)}
-            onImport={() => setShowTournamentImport(true)}
+            search={s.search} onSearch={s.setSearch}
+            statusFilter={s.statusFilter} onStatusFilter={s.setStatusFilter}
+            todayActive={s.todayActive} onToggleToday={() => s.setTodayActive((p) => !p)}
+            onAdd={() => s.setShowAddTournament(true)}
+            onExport={() => exportTournamentsCsv(s.filteredTournaments)}
+            onImport={() => s.setShowTournamentImport(true)}
           />
-          <TournamentsTable tournaments={filteredTournaments} onRowClick={setDetailTournament} />
+          <TournamentsTable tournaments={s.filteredTournaments} onRowClick={s.setDetailTournament} />
         </>
       )}
 
-      {/* ===== טאב אירועים ===== */}
-      {activeTab === "events" && (
+      {/* Events tab */}
+      {s.activeTab === "events" && (
         <>
-          {/* סרגל כלים: כפתורי CSV + הוספת אירוע */}
           <div className="flex items-center gap-2 mb-4" dir="rtl">
             <button
               type="button"
-              onClick={() => setShowAddEvent(true)}
+              onClick={() => s.setShowAddEvent(true)}
               className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700"
             >
               + אירוע חדש
             </button>
             <div className="flex-1" />
-            <CsvImportBtn onClick={() => setShowEventImport(true)} />
+            <CsvImportBtn onClick={() => s.setShowEventImport(true)} />
             <CsvExportBtn onClick={() => exportEventsCsv(events)} />
           </div>
-          <EventsTable events={events} onRowClick={setDetailEvent} />
+          <EventsTable events={events} onRowClick={s.setDetailEvent} />
         </>
       )}
 
-      {/* ===== מודאלי CSV ===== */}
-      {showTournamentImport && (
-        <TournamentImportPanel onClose={() => setShowTournamentImport(false)} />
-      )}
-      {showEventImport && (
-        <EventImportPanel onClose={() => setShowEventImport(false)} />
-      )}
+      {/* CSV import panels */}
+      {s.showTournamentImport && <TournamentImportPanel onClose={() => s.setShowTournamentImport(false)} />}
+      {s.showEventImport && <EventImportPanel onClose={() => s.setShowEventImport(false)} />}
 
-      {/* ===== מודאלים — תחרויות ===== */}
-      {showAddTournament && (
+      {/* Tournament modals */}
+      {s.showAddTournament && (
         <TournamentFormModal
           mode="add"
-          allStudents={students}
-          allClasses={classes}
-          allTournaments={tournaments}
-          allEvents={events}
-          allRooms={rooms}
-          allTeachers={teachers}
+          allStudents={students} allClasses={classes} allTournaments={tournaments}
+          allEvents={events} allRooms={rooms} allTeachers={teachers}
           physicalEquipment={physicalEquipment}
-          saving={savingTournament}
-          onClose={() => setShowAddTournament(false)}
-          onSave={handleAddTournament}
+          saving={s.savingTournament}
+          onClose={() => s.setShowAddTournament(false)}
+          onSave={s.handleAddTournament}
         />
       )}
-      {editTournament && (
+      {s.editTournament && (
         <TournamentFormModal
           mode="edit"
-          tournament={editTournament}
-          allStudents={students}
-          allClasses={classes}
-          allTournaments={tournaments}
-          allEvents={events}
-          allRooms={rooms}
-          allTeachers={teachers}
+          tournament={s.editTournament}
+          allStudents={students} allClasses={classes} allTournaments={tournaments}
+          allEvents={events} allRooms={rooms} allTeachers={teachers}
           physicalEquipment={physicalEquipment}
-          saving={savingTournament}
-          onClose={() => setEditTournament(null)}
-          onSave={handleEditTournament}
-          onDelete={async () => {
-            await handleDeleteTournament(editTournament!);
-            setEditTournament(null);
-          }}
+          saving={s.savingTournament}
+          onClose={() => s.setEditTournament(null)}
+          onSave={s.handleEditTournament}
+          onDelete={async () => { await s.handleDeleteTournament(s.editTournament!); s.setEditTournament(null); }}
         />
       )}
-      {detailTournament && (
+      {s.detailTournament && (
         <TournamentDetailModal
-          tournament={detailTournament}
-          allStudents={students}
-          allTeachers={teachers}
-          physicalEquipment={physicalEquipment}
-          allClasses={classes}
-          allTournaments={tournaments}
-          onEdit={() => { setEditTournament(detailTournament); setDetailTournament(null); }}
-          onDelete={() => handleDeleteTournament(detailTournament)}
-          onClose={() => setDetailTournament(null)}
+          tournament={s.detailTournament}
+          allStudents={students} allTeachers={teachers}
+          physicalEquipment={physicalEquipment} allClasses={classes} allTournaments={tournaments}
+          onEdit={() => { s.setEditTournament(s.detailTournament); s.setDetailTournament(null); }}
+          onDelete={() => s.handleDeleteTournament(s.detailTournament!)}
+          onClose={() => s.setDetailTournament(null)}
         />
       )}
 
-      {/* ===== מודאלים — אירועים ===== */}
-      {/* DetailModal מרונדר ראשון — FormModal (add/edit) תמיד מעל */}
-      {detailEvent && !editEvent && !showAddEvent && (
+      {/* Event modals */}
+      {s.detailEvent && !s.editEvent && !s.showAddEvent && (
         <EventDetailModal
-          event={detailEvent}
-          onEdit={() => { setEditEvent(detailEvent); setDetailEvent(null); }}
-          onDelete={() => handleDeleteEvent(detailEvent)}
-          onClose={() => setDetailEvent(null)}
+          event={s.detailEvent}
+          onEdit={() => { s.setEditEvent(s.detailEvent); s.setDetailEvent(null); }}
+          onDelete={() => s.handleDeleteEvent(s.detailEvent!)}
+          onClose={() => s.setDetailEvent(null)}
         />
       )}
-      {showAddEvent && (
+      {s.showAddEvent && (
         <EventFormModal
           mode="add"
-          allClasses={classes}
-          allTournaments={tournaments}
-          allEvents={events}
-          rooms={rooms}
-          saving={savingEvent}
-          onClose={() => setShowAddEvent(false)}
-          onSave={handleAddEvent}
+          allClasses={classes} allTournaments={tournaments} allEvents={events} rooms={rooms}
+          saving={s.savingEvent}
+          onClose={() => s.setShowAddEvent(false)}
+          onSave={s.handleAddEvent}
         />
       )}
-      {editEvent && (
+      {s.editEvent && (
         <EventFormModal
           mode="edit"
-          event={editEvent}
-          allClasses={classes}
-          allTournaments={tournaments}
-          allEvents={events}
-          rooms={rooms}
-          saving={savingEvent}
-          onClose={() => setEditEvent(null)}
-          onSave={handleEditEvent}
+          event={s.editEvent}
+          allClasses={classes} allTournaments={tournaments} allEvents={events} rooms={rooms}
+          saving={s.savingEvent}
+          onClose={() => s.setEditEvent(null)}
+          onSave={s.handleEditEvent}
         />
       )}
 

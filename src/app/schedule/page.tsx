@@ -1,509 +1,89 @@
 "use client";
-import { useState, useMemo } from "react";
+// Schedule page — no useState here; all state lives in dedicated hooks.
 import PageShell from "@/components/shared/PageShell";
 import CalendarGrid from "./CalendarGrid";
 import MiniCalendar from "./MiniCalendar";
-import ScheduleFilterBar, { type ActiveFilter, type FilterOption } from "./ScheduleFilterBar";
+import ScheduleFilterBar from "./ScheduleFilterBar";
 import ViewExistingClassDetailModal from "@/app/classes/ViewExistingClassDetailModal";
 import ClassFormModal from "@/app/classes/ClassFormModal";
 import TournamentDetailModal from "@/app/tournaments/TournamentDetailModal";
 import TournamentFormModal from "@/app/tournaments/TournamentFormModal";
 import EventDetailModal from "@/app/tournaments/events/EventDetailModal";
 import EventFormModal from "@/app/tournaments/events/EventFormModal";
-import ScheduleContextMenu, { type ContextMenuTarget } from "./ScheduleContextMenu";
+import ScheduleContextMenu from "./ScheduleContextMenu";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { updateDocument, addDocument, deleteDocument, deleteWhere } from "@/firebase/firestore";
-import { getSlotsForDates, slotOccursOnDate } from "@/lib/scheduleHelpers";
-import { getConflictingClassIds, getClassIdsConflictingWithEvents } from "@/lib/classHelpers";
-import { getConflictingRoundIds, recurringTournamentOccursOnDate } from "@/lib/tournamentHelpers";
-import {
-  getClassIdsWithTournamentConflicts,
-  getTournamentIdsWithClassConflicts,
-} from "@/lib/crossConflictHelpers";
-import { eventOccursOnDate } from "@/lib/eventHelpers";
-import type { Class, Tournament, Event, TournamentRound } from "@/lib/types";
-import type { DayData } from "./calendarTypes";
-
-// --- helpers ---
-
-// Check if two HH:MM time ranges overlap
-function timesOverlapLocal(s1: string, e1: string, s2: string, e2: string): boolean {
-  const toMins = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
-  return toMins(s1) < toMins(e2) && toMins(s2) < toMins(e1);
-}
-
-// Use local date parts — toISOString() returns UTC and shifts the date in UTC+2/3 (Israel)
-function toDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-/** Returns the Set of date strings for the whole week that contains `date` (Sun–Sat) */
-function weekOf(date: Date): Set<string> {
-  const sunday = new Date(date);
-  sunday.setDate(date.getDate() - date.getDay()); // go to Sunday
-  sunday.setHours(0, 0, 0, 0);
-  const set = new Set<string>();
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(sunday);
-    d.setDate(sunday.getDate() + i);
-    set.add(toDateStr(d));
-  }
-  return set;
-}
-
-// --- page ---
+import { updateDocument, addDocument, deleteDocument } from "@/firebase/firestore";
+import { toDateStr } from "./schedulePageUtils";
+import { useScheduleFilters } from "./useScheduleFilters";
+import { useScheduleCalendar } from "./useScheduleCalendar";
+import { useScheduleModals } from "./useScheduleModals";
+import { buildContextMenuHandlers } from "./useScheduleContextMenus";
 
 export default function SchedulePage() {
-  const { classes, teachers, rooms, physicalEquipment, students, enrollments, settings, tournaments, events: allEvents } = useData();
-
-  // Selected dates — default: current week (Sun–Sat)
-  const [selectedDates, setSelectedDates] = useState<Set<string>>(() => weekOf(new Date()));
-  const [detailClass, setDetailClass] = useState<Class | null>(null);
-  const [detailTournament, setDetailTournament] = useState<Tournament | null>(null);
-  // For recurring tournaments: the specific calendar date the user clicked
-  const [detailOccurrenceDate, setDetailOccurrenceDate] = useState<string | null>(null);
-  const [detailEvent, setDetailEvent] = useState<Event | null>(null);
-  const [editEvent, setEditEvent] = useState<Event | null>(null);
-  const [savingEvent, setSavingEvent] = useState(false);
-  const [editTournament, setEditTournament] = useState<Tournament | null>(null);
-  const [editTarget, setEditTarget] = useState<Class | null>(null);
-  const [saving, setSaving] = useState(false);
-  // Active filter — null means "show all"
-  const [activeFilter, setActiveFilter] = useState<ActiveFilter | null>(null);
-  // תפריט הקשר של לחיצה ימנית
-  const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(null);
+  const {
+    classes, teachers, rooms, physicalEquipment, students, enrollments,
+    settings, tournaments, events: allEvents,
+  } = useData();
   const { showToast } = useToast();
 
   const todayStr = toDateStr(new Date());
 
-  // Replace the selection with a dragged consecutive range (always at least 1 date)
-  const selectRange = (dates: string[]) => {
-    if (dates.length > 0) setSelectedDates(new Set(dates));
-  };
+  // ── Filter options + visibility sets (also owns activeFilter state) ──
+  const filters = useScheduleFilters({ classes, tournaments, enrollments, rooms, students, teachers });
 
-  // Conflict detection — class-vs-class + class-vs-tournament + class-vs-event
-  const conflictIds = useMemo(() => {
-    const ids = new Set<string>();
+  // ── Calendar: selectedDates state + conflicts + day data ──
+  const calendar = useScheduleCalendar({
+    classes, tournaments, events: allEvents, enrollments, rooms, teachers,
+    todayStr,
+    visibleClassIds: filters.visibleClassIds,
+    visibleTournamentIds: filters.visibleTournamentIds,
+  });
 
-    // Class vs class (room + time same day-of-week)
-    for (const cls of classes) {
-      if (getConflictingClassIds(cls, classes).length > 0) ids.add(cls.id);
-    }
+  // ── All modal state ──
+  const modals = useScheduleModals();
 
-    // Class vs tournament (room, teacher, students, equipment) on selected dates
-    const crossConflicts = getClassIdsWithTournamentConflicts(
-      classes, tournaments, rooms, enrollments, Array.from(selectedDates)
-    );
-    crossConflicts.forEach((id) => ids.add(id));
+  // ── Right-click context menu handlers ──
+  const { openClassContextMenu, openTournamentContextMenu, openEventContextMenu } =
+    buildContextMenuHandlers(modals.setContextMenu, showToast);
 
-    // Class vs event (room + time + day-of-week)
-    const eventConflicts = getClassIdsConflictingWithEvents(classes, allEvents, rooms);
-    eventConflicts.forEach((id) => ids.add(id));
-
-    return ids;
-  }, [classes, tournaments, rooms, enrollments, selectedDates, allEvents]);
-
-  // Fetch slots for exactly the selected dates
-  const slots = useMemo(
-    () => getSlotsForDates(classes, Array.from(selectedDates)),
-    [classes, selectedDates]
+  const totalEvents = calendar.days.reduce(
+    (n, d) => n + d.events.length + (d.tournamentEvents?.length ?? 0) + (d.eventItems?.length ?? 0),
+    0,
   );
-
-  // Tournament IDs that conflict with any class on selected dates (cross-entity)
-  const tournamentCrossConflictIds = useMemo(
-    () => getTournamentIdsWithClassConflicts(
-      tournaments, classes, rooms, enrollments, Array.from(selectedDates)
-    ),
-    [tournaments, classes, rooms, enrollments, selectedDates]
-  );
-
-  // Pre-compute conflicting round IDs for all tournaments (round-vs-class + round-vs-round + round-vs-event)
-  const tournamentConflictMap = useMemo(() => {
-    const map = new Map<string, Set<string>>(); // tournamentId → Set<roundId>
-    for (const t of tournaments) {
-      map.set(t.id, getConflictingRoundIds(t, classes, tournaments, allEvents));
-    }
-    return map;
-  }, [tournaments, classes, allEvents]);
-
-  /**
-   * Check if a recurring tournament conflicts with any other tournament on a SPECIFIC date.
-   * For non-recurring tournaments: check if any round falls on that exact date.
-   * This avoids false positives from past rounds that already happened.
-   */
-  function recurringTournamentHasConflictOnDate(t: Tournament, dateStr: string): boolean {
-    if (!t.room || !t.recurring_start_time || !t.recurring_end_time) return false;
-    for (const other of tournaments) {
-      if (other.id === t.id || other.status === "בוטל") continue;
-      if (other.is_recurring) {
-        // Other recurring: must be on the same date (both recur today) + same room + time overlap
-        if (!recurringTournamentOccursOnDate(other, dateStr)) continue;
-        if (other.room !== t.room) continue;
-        if (timesOverlapLocal(t.recurring_start_time, t.recurring_end_time, other.recurring_start_time ?? "", other.recurring_end_time ?? "")) {
-          return true;
-        }
-      } else {
-        // Non-recurring: only the round on this exact date can conflict
-        for (const round of other.rounds ?? []) {
-          if (round.date !== dateStr) continue;
-          const roundRoom = round.location || other.room;
-          if (roundRoom && roundRoom !== t.room) continue;
-          if (timesOverlapLocal(t.recurring_start_time, t.recurring_end_time, round.start_time, round.end_time)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  // ---- Filter option lists (for the filter bar dropdowns) ----
-
-  const studentOptions: FilterOption[] = useMemo(() =>
-    students.map((s) => ({ id: s.id, label: `${s.first_name} ${s.last_name}` })),
-    [students]
-  );
-
-  const teacherOptions: FilterOption[] = useMemo(() =>
-    teachers.map((t) => ({ id: t.id, label: `${t.first_name} ${t.last_name}` })),
-    [teachers]
-  );
-
-  const roomOptions: FilterOption[] = useMemo(() =>
-    rooms.map((r) => ({ id: r.id, label: r.name })),
-    [rooms]
-  );
-
-  const classOptions: FilterOption[] = useMemo(() =>
-    classes.map((c) => ({ id: c.id, label: c.name })),
-    [classes]
-  );
-
-  const tournamentOptions: FilterOption[] = useMemo(() =>
-    tournaments.map((t) => ({ id: t.id, label: t.name })),
-    [tournaments]
-  );
-
-  // ---- Classes that match the active filter ----
-  // Returns a Set of class IDs that should be visible.
-  // null = show all, empty Set = show none.
-  const visibleClassIds: Set<string> | null = useMemo(() => {
-    if (!activeFilter) return null;
-
-    if (activeFilter.category === "class") {
-      return new Set([activeFilter.option.id]);
-    }
-    if (activeFilter.category === "teacher") {
-      return new Set(classes.filter((c) => c.teacher_id === activeFilter.option.id).map((c) => c.id));
-    }
-    if (activeFilter.category === "room") {
-      return new Set(
-        classes
-          .filter((c) => c.slots.some((s) => s.room_id === activeFilter.option.id))
-          .map((c) => c.id)
-      );
-    }
-    if (activeFilter.category === "student") {
-      return new Set(
-        enrollments
-          .filter((e) => e.student_id === activeFilter.option.id && e.status === "פעיל")
-          .map((e) => e.class_id)
-      );
-    }
-    // tournament filter — hide all classes, show only that tournament
-    if (activeFilter.category === "tournament") {
-      return new Set(); // empty = no classes shown
-    }
-
-    return null;
-  }, [activeFilter, classes, enrollments]);
-
-  // ---- Tournaments that match the active filter ----
-  // null = show all, empty Set = show none, Set with IDs = show only those.
-  const visibleTournamentIds: Set<string> | null = useMemo(() => {
-    if (!activeFilter) return null;
-
-    if (activeFilter.category === "tournament") {
-      // show only the selected tournament
-      return new Set([activeFilter.option.id]);
-    }
-
-    if (activeFilter.category === "student") {
-      // show tournaments the student participates in
-      return new Set(
-        tournaments.filter((t) => t.participant_ids.includes(activeFilter.option.id)).map((t) => t.id)
-      );
-    }
-
-    if (activeFilter.category === "teacher") {
-      // show tournaments where this teacher is the judge/arbiter
-      return new Set(
-        tournaments.filter((t) => t.judge_id === activeFilter.option.id).map((t) => t.id)
-      );
-    }
-
-    if (activeFilter.category === "room") {
-      // tournament.room is used for recurring tournaments; round.location for per-round ones.
-      // Both store the room name as a free-text string (not a room_id).
-      const roomName = rooms.find((r) => r.id === activeFilter.option.id)?.name ?? "";
-      return new Set(
-        tournaments
-          .filter((t) =>
-            t.room === roomName ||
-            (t.rounds ?? []).some((r) => r.location === roomName)
-          )
-          .map((t) => t.id)
-      );
-    }
-
-    // class filter — tournaments are unrelated to a specific class
-    return new Set();
-  }, [activeFilter, tournaments, rooms]);
-
-  // Build DayData for the grid — sorted Sun→Sat; dir="rtl" on the grid puts Sunday on the right naturally
-  const days: DayData[] = useMemo(() => {
-    const sortedDates = Array.from(selectedDates).sort();
-    return sortedDates.map((dateStr) => {
-      const date = new Date(dateStr + "T00:00:00");
-
-      // Class events for this date — apply visibleClassIds filter if set
-      const events = slots
-        .filter((s) => s.date === dateStr && (visibleClassIds === null || visibleClassIds.has(s.classId)))
-        .map(({ classId, slot }) => {
-          const classItem = classes.find((c) => c.id === classId);
-          if (!classItem) return null;
-          return {
-            classItem,
-            slot,
-            teacher: teachers.find((t) => t.id === classItem.teacher_id),
-            room: rooms.find((r) => r.id === slot.room_id),
-            enrollCount: enrollments.filter(
-              (e) => e.class_id === classId && e.status === "פעיל"
-            ).length,
-            hasConflict: conflictIds.has(classId),
-          };
-        })
-        .filter(Boolean) as DayData["events"];
-
-      // Tournament round events for this date — filtered by visibleTournamentIds
-      const tournamentEvents: DayData["tournamentEvents"] = [];
-      for (const t of tournaments) {
-        // null = show all; empty set = show none; set with ids = show only those
-        if (visibleTournamentIds !== null && !visibleTournamentIds.has(t.id)) {
-          continue;
-        }
-
-        if (t.is_recurring) {
-          // Recurring tournament: no rounds — show on every matching weekday
-          if (recurringTournamentOccursOnDate(t, dateStr)) {
-            // Build a synthetic round from recurring fields for rendering
-            const syntheticRound = {
-              id: `recurring-${t.id}-${dateStr}`,
-              round_number: 0, // sentinel: means "recurring occurrence"
-              date: dateStr,
-              start_time: t.recurring_start_time ?? "00:00",
-              end_time: t.recurring_end_time ?? "01:00",
-              location: t.room,
-            };
-            tournamentEvents.push({
-              tournament: t,
-              round: syntheticRound,
-              // Conflict with a class OR with another tournament on this specific date
-              hasConflict: tournamentCrossConflictIds.has(t.id) || recurringTournamentHasConflictOnDate(t, dateStr),
-              isRecurring: true,
-            });
-          }
-        } else {
-          // Regular tournament with fixed rounds
-          const conflictRounds = tournamentConflictMap.get(t.id) ?? new Set<string>();
-          for (const round of t.rounds ?? []) {
-            if (round.date === dateStr) {
-              tournamentEvents.push({
-                tournament: t,
-                round,
-                // Flag if the round conflicts with another round OR if the tournament conflicts with any class
-                hasConflict: conflictRounds.has(round.id) || tournamentCrossConflictIds.has(t.id),
-              });
-            }
-          }
-        }
-      }
-
-      // אירועים (events) ליום זה — עם בדיקת קונפליקט מול חוגים ותחרויות
-      const eventItems = allEvents
-        .filter((ev) => eventOccursOnDate(ev, dateStr))
-        .map((ev) => {
-          // בדוק אם האירוע מתנגש עם חוג באותו יום/חדר/שעה
-          const conflictsWithClass = classes.some((cls) =>
-            (cls.slots ?? []).some((slot) => {
-              if (rooms.find((r) => r.id === slot.room_id)?.name !== ev.room) return false;
-              if (!slotOccursOnDate(slot, dateStr)) return false;
-              return timesOverlapLocal(ev.start_time, ev.end_time, slot.start_time, slot.end_time);
-            })
-          );
-          // בדוק אם האירוע מתנגש עם תחרות באותו יום/חדר/שעה
-          const conflictsWithTournament = tournaments.some((t) => {
-            if (t.status === "בוטל" || t.room !== ev.room) return false;
-            if (t.is_recurring) {
-              return recurringTournamentOccursOnDate(t, dateStr) &&
-                timesOverlapLocal(ev.start_time, ev.end_time, t.recurring_start_time ?? "", t.recurring_end_time ?? "");
-            }
-            return (t.rounds ?? []).some((r) =>
-              r.date === dateStr && timesOverlapLocal(ev.start_time, ev.end_time, r.start_time, r.end_time)
-            );
-          });
-          // בדוק אם האירוע מתנגש עם אירוע אחר באותו יום/חדר/שעה
-          const conflictsWithEvent = allEvents.some((other) => {
-            if (other.id === ev.id || other.room !== ev.room) return false;
-            if (!eventOccursOnDate(other, dateStr)) return false;
-            return timesOverlapLocal(ev.start_time, ev.end_time, other.start_time, other.end_time);
-          });
-          return { event: ev, hasConflict: conflictsWithClass || conflictsWithTournament || conflictsWithEvent };
-        });
-
-      return { date, dateStr, isToday: dateStr === todayStr, events, tournamentEvents, eventItems };
-    });
-  }, [selectedDates, slots, classes, teachers, rooms, enrollments, conflictIds, todayStr, tournaments, tournamentConflictMap, tournamentCrossConflictIds, visibleClassIds, visibleTournamentIds, allEvents]);
-
-  const totalEvents = days.reduce((n, d) => n + d.events.length + (d.tournamentEvents?.length ?? 0) + (d.eventItems?.length ?? 0), 0);
-
-  // --- פתיחת תפריט הקשר עבור חוג ---
-  function openClassContextMenu(e: React.MouseEvent, cls: Class, dateStr: string) {
-    const isRecurring = cls.slots.some((s) => s.recurrence !== "חד פעמי");
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      label: cls.name,
-      dateStr,
-      isRecurring,
-      // מחק מפגש נוכחי: הוסף את התאריך ל-cancelled_dates של החוג
-      onDeleteSingle: async () => {
-        try {
-          const cancelled = [...(cls.cancelled_dates ?? []), dateStr];
-          await updateDocument("classes", cls.id, { cancelled_dates: cancelled });
-          showToast("המפגש בוטל", "success");
-        } catch { showToast("שגיאה בביטול המפגש", "error"); }
-      },
-      // מחק את כל החוג + רישומים
-      onDeleteAll: async () => {
-        try {
-          await deleteDocument("classes", cls.id);
-          await deleteWhere("enrollments", "class_id", cls.id);
-          showToast("החוג נמחק", "success");
-        } catch { showToast("שגיאה במחיקה", "error"); }
-      },
-    });
-  }
-
-  // --- פתיחת תפריט הקשר עבור תחרות ---
-  function openTournamentContextMenu(e: React.MouseEvent, t: Tournament, round: TournamentRound, dateStr: string) {
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      label: t.name,
-      dateStr,
-      isRecurring: !!t.is_recurring,
-      // מחק מפגש נוכחי: לתחרות חוזרת — הוסף ל-cancelled_dates; לאחרת — מחק את הסיבוב
-      onDeleteSingle: async () => {
-        try {
-          if (t.is_recurring) {
-            const cancelled = [...(t.cancelled_dates ?? []), dateStr];
-            await updateDocument("tournaments", t.id, { cancelled_dates: cancelled });
-            showToast("המפגש בוטל", "success");
-          } else {
-            const updatedRounds = (t.rounds ?? []).filter((r) => r.id !== round.id);
-            await updateDocument("tournaments", t.id, { rounds: updatedRounds });
-            showToast("הסיבוב נמחק", "success");
-          }
-        } catch { showToast("שגיאה במחיקה", "error"); }
-      },
-      // מחק את כל התחרות
-      onDeleteAll: async () => {
-        try {
-          await deleteDocument("tournaments", t.id);
-          showToast("התחרות נמחקה", "success");
-        } catch { showToast("שגיאה במחיקה", "error"); }
-      },
-    });
-  }
-
-  // --- פתיחת תפריט הקשר עבור אירוע ---
-  function openEventContextMenu(e: React.MouseEvent, ev: Event, dateStr: string) {
-    const isRecurring = ev.recurrence_type === "חוזר";
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      label: ev.name,
-      dateStr,
-      isRecurring,
-      // מחק מפגש נוכחי: לאירוע חוזר — הוסף ל-cancelled_dates; לחד-פעמי — מחק לגמרי
-      onDeleteSingle: async () => {
-        try {
-          if (isRecurring) {
-            const cancelled = [...(ev.cancelled_dates ?? []), dateStr];
-            await updateDocument("events", ev.id, { cancelled_dates: cancelled });
-            showToast("המפגש בוטל", "success");
-          } else {
-            await deleteDocument("events", ev.id);
-            showToast("האירוע נמחק", "success");
-          }
-        } catch { showToast("שגיאה במחיקה", "error"); }
-      },
-      // מחק את כל האירוע
-      onDeleteAll: async () => {
-        try {
-          await deleteDocument("events", ev.id);
-          showToast("האירוע נמחק", "success");
-        } catch { showToast("שגיאה במחיקה", "error"); }
-      },
-    });
-  }
 
   return (
     <PageShell title="לוח זמנים">
 
-      {/* Filter bar */}
       <ScheduleFilterBar
-        studentOptions={studentOptions}
-        teacherOptions={teacherOptions}
-        roomOptions={roomOptions}
-        classOptions={classOptions}
-        tournamentOptions={tournamentOptions}
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
+        studentOptions={filters.studentOptions}
+        teacherOptions={filters.teacherOptions}
+        roomOptions={filters.roomOptions}
+        classOptions={filters.classOptions}
+        tournamentOptions={filters.tournamentOptions}
+        activeFilter={filters.activeFilter}
+        onFilterChange={filters.setActiveFilter}
       />
 
-      {/* Summary line */}
       <p className="text-xs text-gray-400 mb-3 text-right">
-        {selectedDates.size === 1
-          ? `תאריך אחד נבחר`
-          : `${selectedDates.size} ימים נבחרו`}
+        {calendar.selectedDates.size === 1 ? "תאריך אחד נבחר" : `${calendar.selectedDates.size} ימים נבחרו`}
         {" • "}
         {totalEvents} מפגשים
       </p>
 
-      {/* Two-column layout: mini calendar (right) + grid (left) */}
       <div className="flex gap-4 items-start" dir="rtl">
 
-        {/* Mini calendar sidebar */}
-        <MiniCalendar
-          selectedDates={selectedDates}
-          onSelectRange={selectRange}
-        />
+        <MiniCalendar selectedDates={calendar.selectedDates} onSelectRange={calendar.selectRange} />
 
-        {/* Main calendar grid — takes remaining space */}
         <div className="flex-1 min-w-0">
           <CalendarGrid
-            days={days}
-            onEventClick={setDetailClass}
+            days={calendar.days}
+            onEventClick={modals.setDetailClass}
             onTournamentClick={(t, dateStr) => {
-              setDetailTournament(t);
-              // For recurring tournaments, store the exact calendar date clicked
-              // so the detail modal can show date-specific equipment availability.
-              setDetailOccurrenceDate(t.is_recurring ? dateStr : null);
+              modals.setDetailTournament(t);
+              modals.setDetailOccurrenceDate(t.is_recurring ? dateStr : null);
             }}
-            onEventItemClick={setDetailEvent}
+            onEventItemClick={modals.setDetailEvent}
             onEventContextMenu={openClassContextMenu}
             onTournamentContextMenu={openTournamentContextMenu}
             onEventItemContextMenu={openEventContextMenu}
@@ -513,164 +93,139 @@ export default function SchedulePage() {
       </div>
 
       {/* Class detail modal */}
-      {detailClass && (
+      {modals.detailClass && (
         <ViewExistingClassDetailModal
-          classItem={detailClass}
-          teachers={teachers}
-          rooms={rooms}
-          physicalEquipment={physicalEquipment}
-          students={students}
-          enrollments={enrollments}
-          allClasses={classes}
-          allTournaments={tournaments}
-          onClose={() => setDetailClass(null)}
-          onEdit={(c) => { setEditTarget(c); setDetailClass(null); }}
+          classItem={modals.detailClass}
+          teachers={teachers} rooms={rooms} physicalEquipment={physicalEquipment}
+          students={students} enrollments={enrollments}
+          allClasses={classes} allTournaments={tournaments}
+          onClose={() => modals.setDetailClass(null)}
+          onEdit={(c) => { modals.setEditTarget(c); modals.setDetailClass(null); }}
         />
       )}
 
-      {/* Tournament detail modal — opened by clicking a tournament round in the calendar */}
-      {detailTournament && (
+      {/* Tournament detail modal */}
+      {modals.detailTournament && (
         <TournamentDetailModal
-          tournament={detailTournament}
-          allStudents={students}
-          allTeachers={teachers}
-          physicalEquipment={physicalEquipment}
-          allClasses={classes}
-          allTournaments={tournaments}
-          occurrenceDate={detailOccurrenceDate ?? undefined}
+          tournament={modals.detailTournament}
+          allStudents={students} allTeachers={teachers}
+          physicalEquipment={physicalEquipment} allClasses={classes} allTournaments={tournaments}
+          occurrenceDate={modals.detailOccurrenceDate ?? undefined}
           onEdit={() => {
-            setEditTournament(detailTournament);
-            setDetailTournament(null);
-            setDetailOccurrenceDate(null);
+            modals.setEditTournament(modals.detailTournament);
+            modals.setDetailTournament(null);
+            modals.setDetailOccurrenceDate(null);
           }}
           onDelete={async () => {
             try {
-              await deleteDocument("tournaments", detailTournament.id);
+              await deleteDocument("tournaments", modals.detailTournament!.id);
               showToast("התחרות נמחקה בהצלחה", "success");
-            } catch {
-              showToast("שגיאה במחיקה, נסה שוב", "error");
-            }
-            setDetailTournament(null);
-            setDetailOccurrenceDate(null);
+            } catch { showToast("שגיאה במחיקה, נסה שוב", "error"); }
+            modals.setDetailTournament(null);
+            modals.setDetailOccurrenceDate(null);
           }}
-          onClose={() => { setDetailTournament(null); setDetailOccurrenceDate(null); }}
+          onClose={() => { modals.setDetailTournament(null); modals.setDetailOccurrenceDate(null); }}
         />
       )}
 
       {/* Tournament edit modal */}
-      {editTournament && (
+      {modals.editTournament && (
         <TournamentFormModal
           mode="edit"
-          tournament={editTournament}
-          allStudents={students}
-          allClasses={classes}
-          allTournaments={tournaments}
-          allEvents={allEvents}
-          allRooms={rooms}
-          allTeachers={teachers}
+          tournament={modals.editTournament}
+          allStudents={students} allClasses={classes} allTournaments={tournaments}
+          allEvents={allEvents} allRooms={rooms} allTeachers={teachers}
           physicalEquipment={physicalEquipment}
-          saving={saving}
-          onClose={() => setEditTournament(null)}
+          saving={modals.saving}
+          onClose={() => modals.setEditTournament(null)}
           onSave={async (data) => {
-            setSaving(true);
+            modals.setSaving(true);
             try {
-              await updateDocument("tournaments", editTournament.id, data);
+              await updateDocument("tournaments", modals.editTournament!.id, data);
               showToast("התחרות עודכנה בהצלחה", "success");
-              setEditTournament(null);
+              modals.setEditTournament(null);
             } catch { showToast("שגיאה בשמירה, נסה שוב", "error"); }
-            finally { setSaving(false); }
+            finally { modals.setSaving(false); }
           }}
         />
       )}
 
       {/* Event detail modal */}
-      {detailEvent && !editEvent && (
+      {modals.detailEvent && !modals.editEvent && (
         <EventDetailModal
-          event={detailEvent}
-          onEdit={() => { setEditEvent(detailEvent); setDetailEvent(null); }}
+          event={modals.detailEvent}
+          onEdit={() => { modals.setEditEvent(modals.detailEvent); modals.setDetailEvent(null); }}
           onDelete={async () => {
             try {
-              await deleteDocument("events", detailEvent.id);
+              await deleteDocument("events", modals.detailEvent!.id);
               showToast("האירוע נמחק", "success");
-            } catch {
-              showToast("שגיאה במחיקה, נסה שוב", "error");
-            }
-            setDetailEvent(null);
+            } catch { showToast("שגיאה במחיקה, נסה שוב", "error"); }
+            modals.setDetailEvent(null);
           }}
-          onClose={() => setDetailEvent(null)}
+          onClose={() => modals.setDetailEvent(null)}
         />
       )}
 
       {/* Event edit modal */}
-      {editEvent && (
+      {modals.editEvent && (
         <EventFormModal
           mode="edit"
-          event={editEvent}
-          allClasses={classes}
-          allTournaments={tournaments}
-          allEvents={allEvents}
-          rooms={rooms}
-          saving={savingEvent}
-          onClose={() => setEditEvent(null)}
+          event={modals.editEvent}
+          allClasses={classes} allTournaments={tournaments} allEvents={allEvents} rooms={rooms}
+          saving={modals.savingEvent}
+          onClose={() => modals.setEditEvent(null)}
           onSave={async (data) => {
             if (!data.name.trim()) { showToast("שם האירוע הוא שדה חובה", "error"); return; }
-            setSavingEvent(true);
+            modals.setSavingEvent(true);
             try {
-              await updateDocument("events", editEvent.id, data);
+              await updateDocument("events", modals.editEvent!.id, data);
               showToast("האירוע עודכן בהצלחה", "success");
-              setEditEvent(null);
-            } catch {
-              showToast("שגיאה בשמירה, נסה שוב", "error");
-            } finally {
-              setSavingEvent(false);
-            }
+              modals.setEditEvent(null);
+            } catch { showToast("שגיאה בשמירה, נסה שוב", "error"); }
+            finally { modals.setSavingEvent(false); }
           }}
         />
       )}
 
-      {/* תפריט הקשר — נפתח בלחיצה ימנית על כל אירוע בלוח */}
-      {contextMenu && (
-        <ScheduleContextMenu
-          target={contextMenu}
-          onClose={() => setContextMenu(null)}
-        />
+      {/* Right-click context menu */}
+      {modals.contextMenu && (
+        <ScheduleContextMenu target={modals.contextMenu} onClose={() => modals.setContextMenu(null)} />
       )}
 
-      {/* Edit class modal — נפתח בלחיצה על "עריכה" בחלון הפרטים */}
-      {editTarget && (
+      {/* Class edit modal — opened via the detail modal's "edit" button */}
+      {modals.editTarget && (
         <ClassFormModal
           mode="edit"
-          classItem={editTarget}
-          teachers={teachers}
-          rooms={rooms}
-          physicalEquipment={physicalEquipment}
-          students={students}
-          enrollments={enrollments}
-          allClasses={classes}
-          allTournaments={tournaments}
+          classItem={modals.editTarget}
+          teachers={teachers} rooms={rooms} physicalEquipment={physicalEquipment}
+          students={students} enrollments={enrollments}
+          allClasses={classes} allTournaments={tournaments}
           settings={settings}
-          saving={saving}
-          onClose={() => setEditTarget(null)}
+          saving={modals.saving}
+          onClose={() => modals.setEditTarget(null)}
           onSave={async (form, enrollmentChanges) => {
             if (!form.name.trim()) { showToast("שם החוג הוא שדה חובה", "error"); return; }
             if (!form.teacher_id) { showToast("יש לבחור מדריך", "error"); return; }
-            setSaving(true);
+            modals.setSaving(true);
             try {
-              await updateDocument("classes", editTarget.id, form);
+              await updateDocument("classes", modals.editTarget!.id, form);
               const today = new Date().toISOString().slice(0, 10);
-              await Promise.all(enrollmentChanges.toAdd.map((sid) =>
-                addDocument("enrollments", { student_id: sid, class_id: editTarget.id, enrolled_at: today, status: "פעיל" })
-              ));
-              await Promise.all(enrollmentChanges.toRemove.map((eid) =>
-                deleteDocument("enrollments", eid)
-              ));
+              await Promise.all(
+                enrollmentChanges.toAdd.map((sid) =>
+                  addDocument("enrollments", { student_id: sid, class_id: modals.editTarget!.id, enrolled_at: today, status: "פעיל" }),
+                ),
+              );
+              await Promise.all(
+                enrollmentChanges.toRemove.map((eid) => deleteDocument("enrollments", eid)),
+              );
               showToast("החוג עודכן בהצלחה", "success");
-              setEditTarget(null);
+              modals.setEditTarget(null);
             } catch { showToast("שגיאה בשמירה, נסה שוב", "error"); }
-            finally { setSaving(false); }
+            finally { modals.setSaving(false); }
           }}
         />
       )}
+
     </PageShell>
   );
 }

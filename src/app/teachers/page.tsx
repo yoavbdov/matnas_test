@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+// Teachers page — all state lives in useTeacherState.
 import PageShell from "@/components/shared/PageShell";
 import TeachersToolbar from "./TeachersToolbar";
 import TeachersTable from "./TeachersTable";
@@ -9,146 +9,61 @@ import TeacherUploadPanel from "./TeacherUploadPanel";
 import TeacherAvailabilityModal from "./TeacherAvailabilityModal";
 import { useData } from "@/context/DataContext";
 import { useToast } from "@/context/ToastContext";
-import { addDocument, updateDocument } from "@/firebase/firestore";
-import { formatPhone } from "@/lib/utils";
-import { validatePhone, VALIDATION_ERRORS } from "@/lib/validators";
-import { computeTeacherStatus } from "@/lib/teacherHelpers";
-import type { Teacher } from "@/lib/types";
-
-function emptyForm(): Omit<Teacher, "id"> {
-  // Status is computed automatically — not stored in the document
-  return { first_name: "", last_name: "", certifications: [] };
-}
+import { exportTeachersCsv } from "./exportTeachersCsv";
+import { useTeacherState } from "./useTeacherState";
 
 export default function TeachersPage() {
   const { teachers, classes, enrollments, tournaments, settings } = useData();
   const { showToast } = useToast();
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"הכל" | "פעיל" | "לא פעיל">("הכל");
-
-  const [formModal, setFormModal] = useState<"add" | "edit" | null>(null);
-  const [detailTeacher, setDetailTeacher] = useState<Teacher | null>(null);
-  const [editTarget, setEditTarget] = useState<Teacher | null>(null);
-  const [form, setForm] = useState<Omit<Teacher, "id">>(emptyForm());
-  const [saving, setSaving] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
-  const [availabilityOpen, setAvailabilityOpen] = useState(false);
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return teachers.filter((t) => {
-      // Compute status dynamically — never read from the stored field
-      const status = computeTeacherStatus(t.id, classes, tournaments);
-      if (statusFilter !== "הכל" && status !== statusFilter) return false;
-      if (!q) return true;
-      return `${t.first_name} ${t.last_name}`.toLowerCase().includes(q) ||
-        (t.email ?? "").toLowerCase().includes(q) || (t.phone ?? "").includes(q);
-    });
-  }, [teachers, classes, tournaments, search, statusFilter]);
-
-  function openAdd() { setForm(emptyForm()); setEditTarget(null); setFormModal("add"); }
-  function openEdit(t: Teacher) { setEditTarget(t); setForm({ ...t, certifications: t.certifications ?? [] }); setFormModal("edit"); setDetailTeacher(null); }
-
-  async function handleSave() {
-    if (!form.first_name.trim() || !form.last_name.trim()) {
-      showToast("שם פרטי ושם משפחה הם שדות חובה", "error"); return;
-    }
-    if (validatePhone(form.phone)) {
-      showToast(VALIDATION_ERRORS.PHONE, "error"); return;
-    }
-    // Format phone as "053-2422215" before writing to Firestore
-    const docData = {
-      ...form,
-      phone: form.phone ? formatPhone(form.phone) : undefined,
-    };
-    setSaving(true);
-    try {
-      if (formModal === "add") {
-        await addDocument("teachers", docData);
-        showToast("המדריך נוסף בהצלחה", "success");
-      } else if (editTarget) {
-        await updateDocument("teachers", editTarget.id, docData);
-        showToast("הפרטים עודכנו בהצלחה", "success");
-      }
-      setFormModal(null);
-    } catch { showToast("שגיאה בשמירה, נסה שוב", "error"); }
-    finally { setSaving(false); }
-  }
-
-  // ייצוא מלא — כולל כל השדות + ספירת חוגים פעילים
-  function exportCSV() {
-    const headers = ["שם פרטי", "שם משפחה", "סטטוס", "טלפון", "אימייל", "הסמכות", "הערות", "חוגים פעילים"];
-    const rows = filtered.map((t) => {
-      const activeClasses = classes.filter((c) => c.teacher_id === t.id && c.status === "פעיל").length;
-      // סטטוס מחושב: חוג פעיל OR שופט בתחרות = פעיל
-      const status = computeTeacherStatus(t.id, classes, tournaments);
-      return [
-        t.first_name, t.last_name, status,
-        t.phone ?? "", t.email ?? "",
-        (t.certifications ?? []).join("|"),
-        t.notes ?? "", activeClasses,
-      ];
-    });
-    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "מדריכים.csv"; a.click();
-  }
+  // All state (filter + modal + form + save) lives here
+  const s = useTeacherState({ teachers, classes, tournaments, settings }, { showToast });
 
   return (
     <PageShell title="מדריכים">
       <TeachersToolbar
-        search={search}
-        onSearch={setSearch}
-        statusFilter={statusFilter}
-        onFilterStatus={setStatusFilter}
-        onAddTeacher={openAdd}
-        onCheckAvailability={() => setAvailabilityOpen(true)}
-        onExport={exportCSV}
-        onImport={() => setImportOpen(true)}
+        search={s.search} onSearch={s.setSearch}
+        statusFilter={s.statusFilter} onFilterStatus={s.setStatusFilter}
+        onAddTeacher={s.openAdd}
+        onCheckAvailability={() => s.setAvailabilityOpen(true)}
+        onExport={() => exportTeachersCsv(s.filteredTeachers, classes, tournaments)}
+        onImport={() => s.setImportOpen(true)}
       />
 
-      <p className="text-xs text-gray-400 mb-3">{filtered.length} מדריכים</p>
+      <p className="text-xs text-gray-400 mb-3">{s.filteredTeachers.length} מדריכים</p>
 
       <TeachersTable
-        teachers={filtered}
+        teachers={s.filteredTeachers}
         classes={classes}
         tournaments={tournaments}
-        onRowClick={setDetailTeacher}
+        onRowClick={s.setDetailTeacher}
       />
 
-      {formModal && (
+      {s.formModal && (
         <TeacherFormModal
-          mode={formModal}
-          form={form}
-          setForm={setForm}
-          saving={saving}
-          onClose={() => setFormModal(null)}
-          onSave={handleSave}
+          mode={s.formModal} form={s.form} setForm={s.setForm}
+          saving={s.saving} onClose={() => s.setFormModal(null)} onSave={s.handleSave}
           settings={settings}
         />
       )}
 
-      {importOpen && (
-        <TeacherUploadPanel onClose={() => setImportOpen(false)} />
-      )}
+      {s.importOpen && <TeacherUploadPanel onClose={() => s.setImportOpen(false)} />}
 
-      {availabilityOpen && (
+      {s.availabilityOpen && (
         <TeacherAvailabilityModal
-          teachers={teachers}
-          classes={classes}
-          onClose={() => setAvailabilityOpen(false)}
+          teachers={teachers} classes={classes}
+          onClose={() => s.setAvailabilityOpen(false)}
         />
       )}
 
-      {detailTeacher && (
+      {s.detailTeacher && (
         <TeacherDetailModal
-          teacher={detailTeacher}
+          teacher={s.detailTeacher}
           classes={classes}
           enrollments={enrollments}
           tournaments={tournaments}
-          onClose={() => setDetailTeacher(null)}
-          onEdit={openEdit}
+          onClose={() => s.setDetailTeacher(null)}
+          onEdit={s.openEdit}
         />
       )}
     </PageShell>
