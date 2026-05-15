@@ -10,11 +10,11 @@ import {
   TEMPLATE_HEADERS,
   TEMPLATE_EXAMPLE,
 } from "./parseStudentCSV";
-import type { AppSettings } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 interface Props {
   onClose: () => void;
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
 }
 
 // הורדת קובץ תבנית CSV לדוגמה

@@ -13,13 +13,13 @@ import ClassSlotsTab from "./ClassSlotsTab";
 import ClassStudentsTab from "./ClassStudentsTab";
 import { CLASS_COLORS } from "@/lib/constants";
 import { LIMITS } from "@/lib/validators";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 import type {
   Class,
   Teacher,
   Room,
   PhysicalEquipment,
   ScheduleSlot,
-  AppSettings,
   ResourceAssignment,
   Tournament,
   Student,
@@ -44,7 +44,7 @@ interface Props {
   enrollments: Enrollment[];
   allClasses: Class[];
   allTournaments: Tournament[];
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
   saving: boolean;
   onClose: () => void;
   onSave: (form: FormData, enrollmentChanges: EnrollmentChanges) => void;

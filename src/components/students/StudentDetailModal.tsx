@@ -14,11 +14,11 @@ import type {
   Student,
   Class,
   Enrollment,
-  AppSettings,
   Tournament,
   LeagueGroup,
   LeagueGroupMember,
 } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 import type { StudentStatus } from "@/lib/studentHelpers";
 
 interface Props {
@@ -31,7 +31,7 @@ interface Props {
   computedStatus: StudentStatus;
   onClose: () => void;
   onEdit: (s: Student) => void;
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
 }
 
 type Tab = "details" | "classes" | "tournaments" | "league";

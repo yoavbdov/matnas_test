@@ -5,7 +5,8 @@ import { addDocument, updateDocument } from "@/firebase/firestore";
 import { formatPhone } from "@/lib/utils";
 import { validatePhone, VALIDATION_ERRORS } from "@/lib/validators";
 import { computeTeacherStatus } from "@/lib/teacherHelpers";
-import type { Teacher, Class, Tournament, AppSettings } from "@/types";
+import type { Teacher, Class, Tournament } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 function emptyForm(): Omit<Teacher, "id"> {
   return { first_name: "", last_name: "", certifications: [] };
@@ -15,7 +16,7 @@ interface Data {
   teachers: Teacher[];
   classes: Class[];
   tournaments: Tournament[];
-  settings: AppSettings;
+  settings: typeof DEFAULT_SETTINGS;
 }
 
 interface Deps {

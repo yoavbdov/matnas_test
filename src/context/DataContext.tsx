@@ -17,7 +17,6 @@ import type {
   Event,
   LeagueGroup,
   LeagueGroupMember,
-  AppSettings,
 } from "@/types";
 import { DEFAULT_SETTINGS } from "@/lib/config";
 
@@ -32,7 +31,7 @@ interface DataContextProps {
   events: Event[];
   leagueGroups: LeagueGroup[];
   leagueGroupMembers: LeagueGroupMember[];
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
   loading: boolean;
   error: string | null; // surfaces first Firestore error (e.g. permission denied)
 }
@@ -76,7 +75,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // surface the first error (e.g. "Missing or insufficient permissions")
   const error = e1 ?? e2 ?? null;
   // settings are fixed at compile time — no Firestore sync needed
-  const settings: Required<AppSettings> = DEFAULT_SETTINGS;
+  const settings = DEFAULT_SETTINGS;
 
   return (
     <DataContext.Provider

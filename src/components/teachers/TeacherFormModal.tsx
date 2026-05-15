@@ -5,7 +5,8 @@ import Field from "@/components/shared/Field";
 import TagInput from "@/components/shared/TagInput";
 import Btn from "@/components/shared/Btn";
 import { LIMITS, digitsOnly } from "@/lib/validators";
-import type { Teacher, AppSettings } from "@/types";
+import type { Teacher } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
@@ -16,7 +17,7 @@ interface Props {
   saving: boolean;
   onClose: () => void;
   onSave: () => void;
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
 }
 
 export default function TeacherFormModal({ mode, form, setForm, saving, onClose, onSave, settings }: Props) {

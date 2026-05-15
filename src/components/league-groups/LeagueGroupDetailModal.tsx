@@ -12,8 +12,8 @@ import type {
   LeagueGroup,
   LeagueGroupMember,
   Student,
-  AppSettings,
 } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 interface Props {
   group: LeagueGroup;
@@ -22,7 +22,7 @@ interface Props {
   onClose: () => void;
   onEdit: (group: LeagueGroup) => void;
   onDelete: (group: LeagueGroup) => void;
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
 }
 
 export default function LeagueGroupDetailModal({

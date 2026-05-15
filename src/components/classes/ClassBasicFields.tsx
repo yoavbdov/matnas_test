@@ -2,7 +2,8 @@
 // כל שורה קומפקטית — טווחים מוצגים כ-min–max בשורה אחת
 import { CLASS_COLORS } from "@/lib/constants";
 import { LIMITS } from "@/lib/validators";
-import type { Class, Teacher, AppSettings } from "@/types";
+import type { Class, Teacher } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 // קלאס אחיד לשדות קלט
 const inp =
@@ -13,7 +14,7 @@ type FormData = Omit<Class, "id">;
 interface Props {
   form: FormData;
   teachers: Teacher[];
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
   onChange: <K extends keyof FormData>(k: K, v: FormData[K]) => void;
 }
 

@@ -3,7 +3,7 @@
 
 import { CHESS_TITLES, GRADE_LABELS } from "@/lib/constants";
 import { formatPhone } from "@/lib/utils";
-import type { AppSettings } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 export interface ParsedRow {
   lineNum: number;
@@ -92,7 +92,7 @@ function parseDateStr(raw: string): string | null {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-export function parseStudentCSV(text: string, settings: Required<AppSettings>): ParsedRow[] {
+export function parseStudentCSV(text: string, settings: typeof DEFAULT_SETTINGS): ParsedRow[] {
   const lines = text.split(/\r?\n/).filter(Boolean);
   // שורה ראשונה היא הכותרת — מדלגים עליה
   if (lines.length < 2) return [];

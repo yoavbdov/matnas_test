@@ -10,7 +10,7 @@
 import { timeToMins } from "./utils";
 import { slotOccursOnDate } from "./scheduleHelpers";
 import { recurringTournamentOccursOnDate } from "./tournamentHelpers";
-import type { Class, Tournament, Room, ScheduleSlot, Enrollment, ResourceAssignment } from "./types";
+import type { Class, Tournament, Room, ScheduleSlot, Enrollment, ResourceAssignment } from "@/types";
 
 // Hebrew day names indexed by JS getDay() (0=Sunday)
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];

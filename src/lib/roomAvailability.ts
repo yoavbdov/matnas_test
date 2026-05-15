@@ -10,7 +10,7 @@
 
 import { timeToMins } from "./utils";
 import { slotOccursOnDate } from "./scheduleHelpers";
-import type { Room, Class, Tournament, Event } from "./types";
+import type { Room, Class, Tournament, Event } from "@/types";
 
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 

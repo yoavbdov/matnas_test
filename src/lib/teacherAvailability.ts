@@ -9,7 +9,7 @@
 
 import { timeToMins } from "./utils";
 import { slotOccursOnDate } from "./scheduleHelpers";
-import type { Teacher, Class } from "./types";
+import type { Teacher, Class } from "@/types";
 
 export interface TeacherAvailabilityResult {
   teacher: Teacher;

@@ -6,7 +6,7 @@
 import { timeToMins } from "./utils";
 import { slotOccursOnDate } from "./scheduleHelpers";
 import { eventOccursOnDate } from "./eventHelpers";
-import type { Tournament, TournamentRound, Class, Event } from "./types";
+import type { Tournament, TournamentRound, Class, Event } from "@/types";
 
 /** Check if two time ranges overlap (exclusive boundaries) */
 function timesOverlap(

@@ -5,7 +5,8 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { computeStudentStatus } from "@/lib/studentHelpers";
 import { effectiveGrade, parseStatusParam } from "./studentsUtils";
-import type { Student, Enrollment, Tournament, LeagueGroupMember, LeagueGroup, AppSettings } from "@/types";
+import type { Student, Enrollment, Tournament, LeagueGroupMember, LeagueGroup } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 import type { SortCol, SortDir } from "./StudentsTable";
 
 // URL param values that pre-fill the filters on mount (e.g. ?status=active&minRating=1200)
@@ -23,7 +24,7 @@ interface Data {
   tournaments: Tournament[];
   leagueGroupMembers: LeagueGroupMember[];
   leagueGroups: LeagueGroup[];
-  settings: AppSettings;
+  settings: typeof DEFAULT_SETTINGS;
 }
 
 export function useStudentFilter(initial: InitialFilters, data: Data) {

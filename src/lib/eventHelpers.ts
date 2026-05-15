@@ -7,7 +7,7 @@ import { timeToMins } from "./utils";
 import { slotOccursOnDate } from "./scheduleHelpers";
 import { recurringTournamentOccursOnDate } from "./tournamentHelpers";
 import { DAYS } from "./constants";
-import type { Event, Class, Tournament, Room } from "./types";
+import type { Event, Class, Tournament, Room } from "@/types";
 
 // Maps Hebrew day names to JS Date.getDay() (0=Sunday)
 const DAY_TO_INDEX: Record<string, number> = {

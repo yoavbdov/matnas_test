@@ -14,7 +14,7 @@
 
 import { db } from "@/firebase/firebase";
 import { collection, getDocs, writeBatch, doc } from "firebase/firestore";
-import type { Student } from "./types";
+import type { Student } from "@/types";
 
 // ── Shared types ──
 

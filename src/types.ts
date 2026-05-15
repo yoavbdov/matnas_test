@@ -230,23 +230,3 @@ export interface Event {
 
   created_at?: string;
 }
-
-export interface AppSettings {
-  MAX_STRING_LENGTH?: number;
-  MAX_NOTE_LENGTH?: number;
-  MAX_SEARCH_LENGTH?: number;
-  MAX_INT_INPUT?: number;
-  MAX_AGE?: number;
-  MAX_ROOM_CAPACITY?: number;
-  ID_NUMBER_LENGTH?: number;
-  MAX_TAG_LENGTH?: number;
-  MAX_TAGS_PER_FIELD?: number;
-  MAX_PHONE_LENGTH?: number;
-  DATE_PAST_YEARS?: number;
-  DATE_FUTURE_YEARS?: number;
-  GRADE_FIRST_AGE?: number;
-  GRADE_ADULT_AGE?: number;
-  DEFAULT_AGE_MIN?: number;
-  DEFAULT_AGE_MAX?: number;
-  CLASS_NEAR_FULL_THRESHOLD?: number;
-}

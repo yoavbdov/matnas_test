@@ -6,7 +6,7 @@
   - לא פעיל — אחרת
 */
 
-import type { Class, Tournament } from "./types";
+import type { Class, Tournament } from "@/types";
 
 export type TeacherStatus = "פעיל" | "לא פעיל";
 

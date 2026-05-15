@@ -1,6 +1,5 @@
-import type { AppSettings } from "./types";
-
-export const DEFAULT_SETTINGS: Required<AppSettings> = {
+// All app-wide limit constants. Use typeof DEFAULT_SETTINGS where a type is needed.
+export const DEFAULT_SETTINGS = {
   MAX_STRING_LENGTH: 50,   // all name fields (student, teacher, class, etc.)
   MAX_NOTE_LENGTH: 300,    // all notes/הערות fields
   MAX_SEARCH_LENGTH: 100,

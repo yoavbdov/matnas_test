@@ -3,7 +3,8 @@
 import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
-import type { PhysicalEquipment, AppSettings } from "@/types";
+import type { PhysicalEquipment } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 const inp = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400";
 
@@ -15,7 +16,7 @@ interface Props {
   onClose: () => void;
   onSave: () => void;
   onDelete?: () => void; // זמין רק במצב עריכה
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
 }
 
 export default function ResourceFormModal({ mode, form, setForm, saving, onClose, onSave, onDelete, settings }: Props) {

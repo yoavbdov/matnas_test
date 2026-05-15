@@ -5,7 +5,8 @@ import Modal from "@/components/shared/Modal";
 import Field from "@/components/shared/Field";
 import Btn from "@/components/shared/Btn";
 import { LIMITS } from "@/lib/validators";
-import type { LeagueGroup, LeagueCategory, LeagueType, AppSettings } from "@/types";
+import type { LeagueGroup, LeagueCategory, LeagueType } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 // Shared input style — matches all other form modals in the app
 const inp =
@@ -27,7 +28,7 @@ interface Props {
   saving: boolean;
   onClose: () => void;
   onSave: () => void;
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
 }
 
 export default function LeagueGroupFormModal({

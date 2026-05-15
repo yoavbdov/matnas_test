@@ -7,7 +7,7 @@
   - לא פעיל   — אחרת
 */
 
-import type { Enrollment, Tournament, LeagueGroupMember } from "./types";
+import type { Enrollment, Tournament, LeagueGroupMember } from "@/types";
 
 export type StudentStatus = "פעיל" | "ליגה בלבד" | "לא פעיל";
 

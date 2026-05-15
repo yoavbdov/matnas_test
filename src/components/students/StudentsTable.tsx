@@ -8,8 +8,8 @@ import type {
   Tournament,
   LeagueGroup,
   LeagueGroupMember,
-  AppSettings,
 } from "@/types";
+import { DEFAULT_SETTINGS } from "@/lib/config";
 
 export type SortCol =
   | "name"
@@ -30,7 +30,7 @@ interface Props {
   leagueGroups: LeagueGroup[];
   leagueGroupMembers: LeagueGroupMember[];
   onRowClick: (s: Student) => void;
-  settings: Required<AppSettings>;
+  settings: typeof DEFAULT_SETTINGS;
   sortCol: SortCol;
   sortDir: SortDir;
   onSort: (col: SortCol) => void;

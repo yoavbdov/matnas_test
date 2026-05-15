@@ -1,5 +1,5 @@
 import { DAYS } from "./constants";
-import type { Class, ScheduleSlot } from "./types";
+import type { Class, ScheduleSlot } from "@/types";
 
 function parseDate(dateStr: string): Date {
   const [y, m, d] = dateStr.split("-").map(Number);

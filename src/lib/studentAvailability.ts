@@ -9,7 +9,7 @@
 
 import { timeToMins } from "./utils";
 import { slotOccursOnDate } from "./scheduleHelpers";
-import type { Student, Class, Tournament, Enrollment } from "./types";
+import type { Student, Class, Tournament, Enrollment } from "@/types";
 
 export interface StudentConflict {
   label: string;       // e.g. "חוג שחמט" or "תחרות קיץ"
