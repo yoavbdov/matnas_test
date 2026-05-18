@@ -78,7 +78,15 @@ export default function TournamentBasicFields({
           onValueChange={(v: string) => onChange({ judge_id: v === "__none__" ? undefined : v })}
         >
           <SelectTrigger className="w-full h-8 text-sm">
-            <SelectValue />
+            {/* render label explicitly — avoids showing Firestore doc ID */}
+            <SelectValue>
+              {form.judge_id
+                ? (() => {
+                    const t = allTeachers.find((t) => t.id === form.judge_id);
+                    return t ? `${t.first_name} ${t.last_name}` : "— ללא שופט —";
+                  })()
+                : "— ללא שופט —"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__none__">— ללא שופט —</SelectItem>

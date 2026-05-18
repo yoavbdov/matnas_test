@@ -18,10 +18,18 @@ import {
 import type { Class } from "@/types";
 
 // עוטף לכל פילטר: תווית + שדה לצידו
-function FilterItem({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterItem({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{label}</span>
+      <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+        {label}
+      </span>
       {children}
     </div>
   );
@@ -52,11 +60,27 @@ interface Props {
 }
 
 export default function StudentsToolbar({
-  search, onSearch, statusFilter, onFilterStatus,
-  classFilter, onFilterClass, gradeFilter, onFilterGrade,
-  minRating, onFilterMinRating, maxRating, onFilterMaxRating,
-  minFideRating, onFilterMinFideRating, maxFideRating, onFilterMaxFideRating,
-  classes, onAddStudent, onExport, onImport, onCheckAvailability,
+  search,
+  onSearch,
+  statusFilter,
+  onFilterStatus,
+  classFilter,
+  onFilterClass,
+  gradeFilter,
+  onFilterGrade,
+  minRating,
+  onFilterMinRating,
+  maxRating,
+  onFilterMaxRating,
+  minFideRating,
+  onFilterMinFideRating,
+  maxFideRating,
+  onFilterMaxFideRating,
+  classes,
+  onAddStudent,
+  onExport,
+  onImport,
+  onCheckAvailability,
 }: Props) {
   return (
     <div className="flex flex-col gap-3 mb-5">
@@ -72,7 +96,10 @@ export default function StudentsToolbar({
           <CheckAvailabilityBtn onClick={onCheckAvailability} />
           <CsvImportBtn onClick={onImport} />
           <CsvExportBtn onClick={onExport} />
-          <Btn onClick={onAddStudent}><Plus size={15} />הוסף שחקן</Btn>
+          <Btn onClick={onAddStudent}>
+            <Plus size={15} />
+            הוסף שחקן
+          </Btn>
         </div>
       </div>
 
@@ -81,7 +108,9 @@ export default function StudentsToolbar({
         <FilterItem label="סטטוס:">
           <Select
             value={statusFilter}
-            onValueChange={(v: string) => onFilterStatus(v as typeof statusFilter)}
+            onValueChange={(v: string) =>
+              onFilterStatus(v as typeof statusFilter)
+            }
           >
             <SelectTrigger className="text-sm h-8">
               <SelectValue />
@@ -97,33 +126,44 @@ export default function StudentsToolbar({
 
         <FilterItem label="חוג:">
           <Select
-            value={classFilter || "__all__"}
-            onValueChange={(v: string) => onFilterClass(v === "__all__" ? "" : v)}
+            value={classFilter || "בחר"}
+            onValueChange={(v: string) => onFilterClass(v === "בחר" ? "" : v)}
           >
             <SelectTrigger className="text-sm h-8">
-              <SelectValue />
+              {/* render label explicitly — avoids showing Firestore doc ID when async data loads */}
+              <SelectValue>
+                {classFilter
+                  ? classes.find((c) => c.id === classFilter)?.name ?? "הכל"
+                  : "הכל"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">הכל</SelectItem>
-              {classes.filter((c) => c.status === "פעיל").map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
+              <SelectItem value="בחר">הכל</SelectItem>
+              {classes
+                .filter((c) => c.status === "פעיל")
+                .map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </FilterItem>
 
         <FilterItem label="כיתה:">
           <Select
-            value={gradeFilter || "__all__"}
-            onValueChange={(v: string) => onFilterGrade(v === "__all__" ? "" : v)}
+            value={gradeFilter || "בחר"}
+            onValueChange={(v: string) => onFilterGrade(v === "בחר" ? "" : v)}
           >
             <SelectTrigger className="text-sm h-8">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">הכל</SelectItem>
+              <SelectItem value="בחר">הכל</SelectItem>
               {GRADE_LABELS.map((g) => (
-                <SelectItem key={g} value={g}>{g}</SelectItem>
+                <SelectItem key={g} value={g}>
+                  {g}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

@@ -1,0 +1,600 @@
+============================================================
+  CHESS NIMBUS — PROJECT FILES GUIDE
+  A short explanation of every file and why it exists
+============================================================
+
+This is a Chess School Management System built with:
+  Next.js (App Router) + React 19 + Tailwind CSS + Firebase (Auth + Firestore)
+  UI library: shadcn/ui   Language: TypeScript (.tsx)   Direction: RTL / Hebrew
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ROOT CONFIGURATION FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+package.json
+  Project manifest. Lists all npm dependencies (Next.js, React, Firebase,
+  Tailwind, shadcn, etc.) and the scripts: dev, build, start.
+
+tsconfig.json
+  TypeScript compiler settings. Sets strict mode and defines the path alias
+  @/* → ./src/* so imports look like "@/components/..." instead of "../../../".
+
+next.config.ts
+  Next.js build configuration. Currently disables Turbopack and uses Webpack.
+
+eslint.config.mjs
+  ESLint rules for code quality and catching common mistakes.
+
+postcss.config.mjs
+  PostCSS config needed by Tailwind CSS to process utility classes.
+
+components.json
+  shadcn/ui configuration. Tells the shadcn CLI where to put new components,
+  which base color to use, and how to resolve imports.
+
+.env.local  (git-ignored)
+  Firebase secrets (API key, project ID, etc.). Copy from .env.local.example
+  and fill in from the Firebase Console. Never commit this file.
+
+.env.local.example
+  Template showing which environment variables are required for Firebase.
+
+next-env.d.ts  (auto-generated)
+  TypeScript declarations for Next.js built-in types. Do not edit manually.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/middleware.ts
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Runs on every incoming request before the page renders. Currently auth-guard
+logic is disabled so all routes are public. This is the place to add route
+protection (e.g. redirect unauthenticated users to /login) when needed.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/app/  — PAGES (Next.js App Router)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+layout.tsx
+  Root layout that wraps every page. Sets up RTL direction, loads the global
+  font, and wraps everything in the three providers: AuthProvider,
+  DataProvider, and ToastProvider.
+
+globals.css
+  Global CSS resets and Tailwind base styles applied to the whole app.
+
+page.tsx
+  The "/" route. Just redirects the user to /dashboard.
+
+dashboard/page.tsx
+  Main overview page. Shows stat cards (total students, active classes, etc.),
+  today's sessions, enrollment status per class, and a rating distribution chart.
+
+students/page.tsx
+  Manages all students. Includes the students table, toolbar (search + filter),
+  add/edit modal, detail modal, availability checker, and CSV import/export.
+
+teachers/page.tsx
+  Manages all teachers. Same pattern as students: table + toolbar + modals +
+  CSV import/export.
+
+classes/page.tsx
+  Manages all classes. Shows class list with enrollment counts, lets you
+  add/edit classes, manage schedule slots, assign resources, and enroll students.
+
+attendance/page.tsx
+  Attendance tracking. Three-panel layout: pick a class on the left, see past
+  sessions in the middle, and fill in today's attendance on the right.
+
+rooms/page.tsx
+  Manages rooms and physical equipment in two tabs. Supports availability
+  checking, CSV import/export, and add/edit modals for both.
+
+schedule/page.tsx
+  Weekly calendar view showing all classes, tournaments, and events. Includes
+  conflict detection and filter controls.
+
+tournaments/page.tsx
+  Manages tournaments and one-time/recurring events in two tabs. Handles
+  participants, rounds, and equipment assignments.
+
+league-groups/page.tsx
+  Manages league groups split into three categories (Adults / Youth / Women).
+  Players can be assigned to groups from the student list.
+
+login/page.tsx
+  Email + password login form backed by Firebase Authentication.
+
+settings/page.tsx
+  Settings page (minimal — placeholder for future configuration options).
+
+api/sync-chess-ratings/route.ts
+  Next.js API route (server-side). Fetches updated ratings from the Israeli
+  Chess Federation and FIDE, then writes them back to Firestore.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/context/  — REACT CONTEXT PROVIDERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AuthContext.tsx
+  Provides the current Firebase Auth user (or null) to the whole app.
+  Any component can call useAuth() to know who is logged in.
+
+DataContext.tsx
+  Provides all Firestore collections as live arrays (students, teachers,
+  classes, rooms, etc.) to the whole app. Uses useCollection hooks internally
+  so data updates in real-time without manual fetching.
+
+ToastContext.tsx
+  Provides a showToast(message, type) function to the whole app, backed by
+  the Sonner notification library. Any component can trigger a toast without
+  prop-drilling.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/firebase/  — ALL FIREBASE CODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+firebase.ts
+  Initializes the Firebase app from env variables and exports the two
+  singletons: auth (Firebase Auth) and db (Firestore database).
+
+firestore.ts
+  Generic Firestore CRUD helpers: addDocument, updateDocument, deleteDocument.
+  All pages that write data call these functions — never the Firestore SDK directly.
+
+hooks/useAuth.ts
+  React hook that listens to Firebase Auth state changes and returns the
+  current user. Used by AuthContext.
+
+hooks/useCollection.ts
+  React hook that subscribes to a Firestore collection in real-time. Returns
+  an array of documents that auto-updates when Firestore changes. Used by DataContext.
+
+hooks/useDocument.ts
+  Like useCollection but for a single Firestore document. Returns one object
+  that updates in real-time.
+
+hooks/useAttendance.ts
+  Specialized hook that fetches attendance sessions for a given class and
+  sorts them newest-first. Used by the attendance page.
+
+hooks/useRatingThresholds.ts
+  Fetches the customizable chess rating tier thresholds from Firestore. Used by
+  the dashboard's rating distribution chart.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/types/  — TYPESCRIPT INTERFACES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+index.ts
+  Barrel file — just re-exports everything from the other type files so you
+  can import from "@/types" in one line.
+
+people.ts      Student and Teacher interfaces (name, phone, chess rating, etc.)
+classes.ts     Class and ScheduleSlot interfaces (name, capacity, recurrence, etc.)
+tournaments.ts Tournament, TournamentRound, and ManualParticipant interfaces
+resources.ts   Room, PhysicalEquipment, and ResourceAssignment interfaces
+attendance.ts  Attendance session and AttendanceRecord interfaces
+events.ts      Event interface (one-time or recurring calendar events)
+league.ts      LeagueGroup, LeagueCategory, and LeagueType interfaces
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/lib/  — BUSINESS LOGIC & UTILITIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+utils.ts
+  Single export: the cn() helper that merges Tailwind class strings (from
+  shadcn). Used by nearly every UI component.
+
+utils/utils.ts
+  General utility functions used across the app:
+    - formatPhone()    formats "0532422215" → "053-2422215"
+    - calcAge()        computes age from a birth date string
+    - timeToMinutes()  converts "HH:MM" to an integer for comparisons
+
+config/config.ts
+  App-wide numeric limits and defaults used in forms and validation
+  (e.g. MAX_STRING_LENGTH, MAX_AGE, MAX_INT_INPUT).
+
+config/constants.ts
+  Static lookup tables used throughout the UI:
+  day names, color options, recurrence options, chess titles, grade labels.
+
+helpers/studentHelpers.ts
+  Derives a student's status (active / league-only / inactive) by checking
+  whether they have any active class enrollments or tournament registrations.
+
+helpers/teacherHelpers.ts
+  Derives a teacher's status (active / inactive) by checking whether they
+  are currently teaching any class.
+
+schedule/scheduleHelpers.ts
+  Pure functions for recurring schedule logic: given a ScheduleSlot and a
+  date, decide whether the slot occurs on that date. Handles weekly, biweekly,
+  etc. recurrence patterns.
+
+schedule/classHelpers.ts
+  Additional helpers specific to classes (e.g. building a flat list of all
+  occurrences within a date range).
+
+validation/validators.ts
+  The single source of truth for form validation:
+    - LIMITS object (max lengths for every field type)
+    - VALIDATION_ERRORS object (all Hebrew error message strings)
+    - Helper functions: validatePhone(), digitsOnly(), etc.
+
+validation/validators.test.ts
+  Unit tests for the validator functions.
+
+availability/studentAvailability.ts
+  Pure function that, given a time slot and the full students + classes data,
+  returns which students are free and which are busy.
+
+availability/teacherAvailability.ts
+  Same as above but for teachers.
+
+availability/roomAvailability.ts
+  Same as above but for rooms.
+
+chess/chessSync.ts
+  Logic for calling the Israeli Chess Federation API and FIDE to pull updated
+  ratings for each player. Called by the sync-chess-ratings API route.
+
+conflicts/tournamentHelpers.ts
+  Detects scheduling conflicts within tournament rounds (two rounds at the
+  same time in the same room, etc.).
+
+conflicts/eventHelpers.ts
+  Detects scheduling conflicts for events (overlapping event times).
+
+conflicts/crossConflictHelpers.ts
+  Detects conflicts between different entity types — e.g. a class slot that
+  overlaps with a tournament round in the same room.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/layout/  — APP SHELL COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Sidebar.tsx
+  Left navigation bar with links to every page (Dashboard, Students, Teachers,
+  etc.) and a logout button.
+
+TopBar.tsx
+  Top header bar showing the current page title and the logged-in user's email.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/shared/  — REUSABLE UI BUILDING BLOCKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PageShell.tsx
+  Wraps every page with the Sidebar on the left and a scrollable main content
+  area on the right. Every page renders inside this shell.
+
+Modal.tsx
+  Generic modal dialog built on shadcn Dialog. Accepts a title, children, and
+  a size variant (sm / md / lg / xl / full). Used by every feature's modals.
+
+Table.tsx
+  Generic data table. Accepts column definitions and row data. Handles column
+  header click for sorting and row click for opening detail modals.
+
+Btn.tsx
+  Styled button with variants (primary, danger, ghost, etc.). Wraps shadcn Button.
+
+Badge.tsx
+  Small colored tag for displaying status (active, inactive, etc.).
+
+Field.tsx
+  Form field wrapper that places a label above an input and shows a character
+  counter or error message below it.
+
+SearchInput.tsx
+  Search box with a magnifying-glass icon. Used in every page toolbar.
+
+CsvExportBtn.tsx
+  Green "ייצוא" (Export) button with a download icon. Every CSV export in the
+  app uses this component — never custom-styled inline buttons.
+
+CsvImportBtn.tsx
+  Green "ייבוא" (Import) button with an upload icon. Same rule as CsvExportBtn.
+
+CsvImportPanel.tsx
+  Drag-and-drop file upload panel used inside import modals.
+
+ConfirmDialog.tsx
+  "Are you sure?" dialog for destructive actions like deleting a record.
+
+StatCard.tsx
+  Dashboard card showing a large number with a label (e.g. "47 Students").
+
+TagInput.tsx
+  Input that lets the user add and remove string tags (used for phone numbers
+  list, etc.).
+
+CheckAvailabilityBtn.tsx
+  Button that opens an availability checking modal for students, teachers, or rooms.
+
+ClockTimePicker.tsx
+  Visual analog-clock style time picker.
+
+TimePicker24.tsx
+  24-hour format time picker (used in slot and event forms).
+
+TimeSelect.tsx
+  Simple hour:minute dropdown selector.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/ui/  — SHADCN BASE COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+These are the raw shadcn/ui primitives. They are installed once and generally
+not modified. The app's shared components (above) wrap or use these.
+
+button.tsx      Base button
+input.tsx       Base text input
+label.tsx       Form label
+dialog.tsx      Modal dialog primitive
+alert-dialog.tsx  Confirmation dialog primitive
+card.tsx        Card container
+badge.tsx       Status badge
+checkbox.tsx    Checkbox input
+select.tsx      Dropdown select
+textarea.tsx    Multi-line text input
+table.tsx       Table primitives (thead, tbody, tr, td, etc.)
+separator.tsx   Horizontal/vertical divider line
+sonner.tsx      Wrapper for the Sonner toast library (used by ToastContext)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/dashboard/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TodaySessionsTable.tsx
+  Shows which classes meet today, calculated from schedule slots.
+
+EnrollmentStatusList.tsx
+  Lists each class with its current enrollment vs capacity (e.g. "12 / 20").
+
+RatingDistribution.tsx
+  Bar chart showing how many students fall into each chess rating tier.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/students/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+StudentsTable.tsx       Table of all students with sortable columns.
+StudentsToolbar.tsx     Search box, status/class/rating filters, and action buttons.
+StudentFormModal.tsx    Add/edit student form (name, phone, ID, rating, etc.).
+StudentDetailModal.tsx  Read-only detail view of a student with their enrollments.
+StudentAvailabilityModal.tsx  Shows which students are free at a selected time.
+EnrollModal.tsx         Enrolls a student in a chosen class.
+EnrollTournamentModal.tsx  Registers a student in a tournament.
+CSVUploadPanel.tsx      Handles the CSV file upload flow for bulk student import.
+
+useStudentFilter.ts     Hook: manages search/filter state, syncs with URL params.
+useStudentSave.ts       Hook: handles add/edit/delete operations and modal open state.
+studentsUtils.ts        Helpers: builds CSV export rows, maps data for display.
+parseStudentCSV.ts      Parses a CSV file into Student objects for bulk import.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/teachers/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TeachersTable.tsx           Table of all teachers.
+TeachersToolbar.tsx         Search, filter, and action buttons.
+TeacherFormModal.tsx        Add/edit teacher form.
+TeacherDetailModal.tsx      Read-only detail view of a teacher.
+TeacherAvailabilityModal.tsx  Shows which teachers are free at a selected time.
+TeacherUploadPanel.tsx      CSV bulk import upload panel.
+
+useTeacherState.ts          Hook: manages all teacher page state (filters, modals, CRUD).
+exportTeachersCsv.ts        Builds the CSV download for teachers.
+parseTeacherCSV.ts          Parses a CSV file into Teacher objects.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/classes/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ClassesTable.tsx              Table of all classes with enrollment count.
+ClassesToolbar.tsx            Search, status filter, and action buttons.
+ClassFormModal.tsx            Add/edit class form (multi-tab modal).
+ViewExistingClassDetailModal.tsx  Detail view of an existing class.
+ClassUploadPanel.tsx          CSV bulk import upload panel.
+
+ClassBasicFields.tsx          Form section: name, description, teacher, capacity.
+ClassEnrollmentPanel.tsx      Shows the enrolled student list with status badges.
+ClassEnrollmentsModal.tsx     Full modal for managing enrollments (add/remove students).
+AddStudentsModal.tsx          Lets you pick multiple students to add at once.
+ClassScheduleSlots.tsx        Displays all schedule slots for a class.
+ClassSlotsTab.tsx             Tab inside the class modal for viewing/editing slots.
+ClassStudentsTab.tsx          Tab inside the class modal for viewing enrolled students.
+ClassResources.tsx            Shows equipment assigned to the class.
+SlotEditor.tsx                Form for creating or editing a single schedule slot
+                              (day, time, recurrence pattern).
+
+useClassFilter.ts             Hook: manages search/filter state.
+useClassSave.ts               Hook: handles class CRUD and modal state.
+exportClassesCsv.ts           Builds the CSV download for classes.
+parseClassCSV.ts              Parses a CSV file into Class objects.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/rooms/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RoomsToolbar.tsx           Toolbar for the rooms tab.
+ResourcesToolbar.tsx       Toolbar for the equipment tab.
+RoomFormModal.tsx          Add/edit room form (name, capacity, notes).
+ResourceFormModal.tsx      Add/edit equipment form (name, quantity, notes).
+RoomUploadPanel.tsx        CSV bulk import for rooms.
+EquipmentImportPanel.tsx   CSV bulk import for equipment.
+AvailabilityCheckerModal.tsx  Lets you pick a day/time and see which rooms are free.
+RoomAvailabilityModal.tsx  Shows the full occupancy schedule of a single room.
+
+useRoomState.ts            Hook: manages all rooms/equipment page state.
+exportRoomsCsv.ts          Builds the CSV download for rooms.
+exportEquipmentCsv.ts      Builds the CSV download for equipment.
+parseRoomCSV.ts            Parses a CSV file into Room objects.
+parseEquipmentCSV.ts       Parses a CSV file into Equipment objects.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/schedule/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CalendarGrid.tsx          The main weekly grid with hour rows and day columns.
+MiniCalendar.tsx          Small month calendar for jumping to a week.
+DayColumn.tsx             Renders all events for one day inside the grid.
+DayHeaderRow.tsx          Header row showing Mon/Tue/... dates above the grid.
+TimeColumn.tsx            Left column showing 07:00, 08:00, ... hour labels.
+CalendarEvent.tsx         A colored block on the calendar representing a class slot.
+EventCalendarEvent.tsx    A colored block representing a one-time or recurring event.
+TournamentCalendarEvent.tsx  A colored block representing a tournament round.
+ScheduleCard.tsx          Pop-up card shown when you hover/click a calendar event.
+ScheduleFilterBar.tsx     Checkboxes/dropdowns for showing/hiding classes, events, tournaments.
+ScheduleContextMenu.tsx   Right-click menu on a calendar event (edit, delete, etc.).
+
+useScheduleCalendar.ts    Hook: computes the full layout — which events appear on which
+                          day/time pixel positions and handles overlap stacking.
+useScheduleFilters.ts     Hook: manages which types of items are visible.
+useScheduleModals.ts      Hook: manages which modal is open (edit class, edit event, etc.).
+useScheduleContextMenus.ts  Hook: manages right-click menu position and target.
+useScheduleDays.ts        Hook: tracks the currently viewed week and navigation.
+useScheduleConflicts.ts   Hook: runs conflict detection and returns a list of conflicts.
+
+calendarTypes.ts          TypeScript interfaces for the calendar (CalendarItem, etc.).
+calendarUtils.ts          Pure utilities: convert slot to pixel position, build event list, etc.
+schedulePageUtils.ts      Page-level helpers used only by the schedule page.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/tournaments/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TournamentsTable.tsx           Table of all tournaments with status and round count.
+TournamentsToolbar.tsx         Search, filter, and action buttons.
+TournamentFormModal.tsx        Add/edit tournament form (multi-section modal).
+TournamentDetailModal.tsx      Detail view showing rounds, participants, equipment.
+TournamentImportPanel.tsx      CSV bulk import panel for tournaments.
+TournamentBasicFields.tsx      Form section: name, description, status.
+TournamentPlayersPanel.tsx     Shows registered participants with add/remove.
+TournamentParticipantsModal.tsx  Full modal for managing the participant list.
+TournamentRoundsEditor.tsx     UI for adding/editing tournament rounds (date, time, room).
+TournamentRoundsModal.tsx      Modal wrapper for the rounds editor.
+TournamentEquipmentSelect.tsx  Dropdown for assigning equipment to a tournament.
+AddPlayersModal.tsx            Multi-select student picker to add to a tournament.
+FindSuitablePlayersModal.tsx   Filters students by rating/age to suggest tournament participants.
+TabBtn.tsx                     Small tab button used to switch between Tournaments / Events.
+
+useTournamentState.ts          Hook: manages all tournament page state.
+exportTournamentsCsv.ts        Builds the CSV download for tournaments.
+parseTournamentCSV.ts          Parses a CSV file into Tournament objects.
+
+  events/  (sub-folder — calendar events, not tournaments)
+  ─────────────────────────────────────────────────────────
+  EventsTable.tsx              Table of all events with recurrence info.
+  EventFormModal.tsx           Add/edit event form (one-time or recurring).
+  EventDetailModal.tsx         Detail view of an event.
+  EventImportPanel.tsx         CSV bulk import panel for events.
+  EventOneTimeFields.tsx       Form section for one-time event (date, start, end).
+  EventRecurringFields.tsx     Form section for recurring event (day of week, interval).
+  exportEventsCsv.ts           Builds the CSV download for events.
+  parseEventCSV.ts             Parses a CSV file into Event objects.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/league-groups/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LeagueGroupsTable.tsx       Table of groups within one category.
+LeagueGroupFormModal.tsx    Add/edit league group form.
+LeagueGroupDetailModal.tsx  Detail view showing group members.
+LeagueGroupImportPanel.tsx  CSV bulk import panel for league groups.
+CategoryColumn.tsx          Renders the full list of groups for one category
+                            (Adults / Youth / Women) as a column.
+AddPlayerModal.tsx          Modal for assigning a student to a league group.
+
+exportLeagueGroupsCsv.ts    Builds the CSV download for league groups.
+parseLeagueGroupCSV.ts      Parses a CSV file into LeagueGroup objects.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/components/attendance/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AttendanceSheet.tsx          The main attendance form: lists enrolled students with
+                             present / absent / late toggles and a save button.
+AttendanceStudentRow.tsx     A single row inside AttendanceSheet for one student.
+ClassSelector.tsx            Dropdown that lets the user pick which class to track.
+SessionList.tsx              Shows previous attendance sessions for the selected class,
+                             clickable to load and review a past session.
+ExportCsvModal.tsx           Modal for choosing date range and downloading attendance CSV.
+ImportAttendanceCsvModal.tsx  Modal for uploading a CSV to bulk-load past attendance data.
+
+attendanceHelpers.ts         Business logic: computes attendance statistics, merges
+                             records, determines present/absent counts.
+exportAttendanceCsv.ts       Builds the CSV file contents for attendance export.
+parseAttendanceCsv.ts        Parses an uploaded CSV into AttendanceRecord objects.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  scripts/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+seed.ts / seed.mjs
+  Development-only script that populates Firestore with realistic demo data
+  (students, teachers, classes, rooms, etc.) so you can test the app without
+  entering everything manually.
+  Run with: npx ts-node scripts/seed.ts
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  public/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+chess nimbus logo.png
+  The application logo image, displayed in the sidebar.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  OTHER FILES AT ROOT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CLAUDE.md
+  Instructions for Claude Code (the AI assistant). Contains project
+  conventions, field limits, phone format rules, and coding standards.
+
+object_props.txt
+  Documents the shape of each Firestore document (which fields each
+  collection has). Useful reference when writing queries or seed data.
+
+component-audit.md
+  A snapshot audit of components — used to track which components follow
+  the coding conventions and which need refactoring.
+
+firebase-admin-sdk.json  (git-ignored)
+  Firebase service account key for admin operations (used by seed scripts).
+
+package-lock.json
+  Auto-generated. Locks exact versions of every npm dependency. Commit this
+  file so everyone on the team uses the same versions.
+
+tsconfig.tsbuildinfo  (auto-generated)
+  TypeScript incremental build cache. Speeds up tsc compilation. Safe to delete.
+
+
+============================================================
+  END OF GUIDE
+============================================================

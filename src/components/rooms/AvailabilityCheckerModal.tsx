@@ -137,7 +137,15 @@ export default function AvailabilityCheckerModal({ physicalEquipment, classes, t
               <Field label="ציוד לבדיקה">
                 <Select value={equipmentId} onValueChange={setEquipmentId}>
                   <SelectTrigger className="w-full">
-                    <SelectValue />
+                    {/* render label explicitly — avoids showing Firestore doc ID */}
+                    <SelectValue>
+                      {equipmentId
+                        ? (() => {
+                            const e = physicalEquipment.find((e) => e.id === equipmentId);
+                            return e ? `${e.name} — ${e.quantity} יחידות` : "בחר ציוד";
+                          })()
+                        : "בחר ציוד"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {physicalEquipment.map((e) => (

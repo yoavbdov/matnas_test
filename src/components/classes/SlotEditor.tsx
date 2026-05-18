@@ -101,7 +101,12 @@ export default function SlotEditor({
                     }
                   >
                     <SelectTrigger className="w-full text-sm">
-                      <SelectValue />
+                      {/* render label explicitly — avoids showing Firestore doc ID */}
+                      <SelectValue>
+                        {slot.room_id
+                          ? rooms.find((r) => r.id === slot.room_id)?.name ?? "חדר לא ידוע"
+                          : "ללא חדר"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {rooms.map((r) => (

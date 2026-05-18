@@ -16,10 +16,18 @@ import {
 } from "@/components/ui/select";
 
 // עוטף תווית + שדה לצד שמאל
-function FilterItem({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterItem({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{label}</span>
+      <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+        {label}
+      </span>
       {children}
     </div>
   );
@@ -42,11 +50,19 @@ interface Props {
 }
 
 export default function RoomsToolbar({
-  search, onSearch,
-  minCapacity, onFilterMinCapacity,
-  maxCapacity, onFilterMaxCapacity,
-  featureFilter, onFilterFeature, allFeatures,
-  onAdd, onImport, onExport, onCheckAvailability,
+  search,
+  onSearch,
+  minCapacity,
+  onFilterMinCapacity,
+  maxCapacity,
+  onFilterMaxCapacity,
+  featureFilter,
+  onFilterFeature,
+  allFeatures,
+  onAdd,
+  onImport,
+  onExport,
+  onCheckAvailability,
 }: Props) {
   return (
     <div className="flex flex-col gap-3 mb-5">
@@ -62,7 +78,10 @@ export default function RoomsToolbar({
           <CheckAvailabilityBtn onClick={onCheckAvailability} />
           <CsvImportBtn onClick={onImport} />
           <CsvExportBtn onClick={onExport} />
-          <Btn onClick={onAdd}><Plus size={15} />הוסף חדר</Btn>
+          <Btn onClick={onAdd}>
+            <Plus size={15} />
+            הוסף חדר
+          </Btn>
         </div>
       </div>
 
@@ -71,16 +90,18 @@ export default function RoomsToolbar({
         {/* פילטר לפי תכונה */}
         <FilterItem label="תכונה:">
           <Select
-            value={featureFilter || "__all__"}
-            onValueChange={(v: string) => onFilterFeature(v === "__all__" ? "" : v)}
+            value={featureFilter || "בחר"}
+            onValueChange={(v: string) => onFilterFeature(v === "בחר" ? "" : v)}
           >
             <SelectTrigger className="text-sm h-8">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">הכל</SelectItem>
+              <SelectItem value="בחר">הכל</SelectItem>
               {allFeatures.map((f) => (
-                <SelectItem key={f} value={f}>{f}</SelectItem>
+                <SelectItem key={f} value={f}>
+                  {f}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

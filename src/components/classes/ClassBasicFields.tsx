@@ -65,7 +65,13 @@ export default function ClassBasicFields({
           onValueChange={(v: string) => onChange("teacher_id", v)}
         >
           <SelectTrigger className="w-full">
-            <SelectValue />
+            {/* render label explicitly — avoids showing Firestore doc ID */}
+            <SelectValue>
+              {(() => {
+                const t = teachers.find((t) => t.id === form.teacher_id);
+                return t ? `${t.first_name} ${t.last_name}` : "בחר מדריך";
+              })()}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {teachers

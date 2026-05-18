@@ -19,7 +19,7 @@ import {
 const DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 // sentinel for "all teachers" in teacher filter
-const SENTINEL_ALL = "__all__";
+const SENTINEL_ALL = "בחר";
 
 // עוטף לכל פילטר: תווית + שדה לצידו
 function FilterItem({
@@ -121,7 +121,9 @@ export default function ClassesToolbar({
         <FilterItem label="סטטוס:">
           <Select
             value={statusFilter}
-            onValueChange={(v: string) => onFilterStatus(v as typeof statusFilter)}
+            onValueChange={(v: string) =>
+              onFilterStatus(v as typeof statusFilter)
+            }
           >
             <SelectTrigger className="w-28 text-sm h-8 px-2">
               <SelectValue />
@@ -139,10 +141,20 @@ export default function ClassesToolbar({
         <FilterItem label="מדריך:">
           <Select
             value={teacherFilter || SENTINEL_ALL}
-            onValueChange={(v: string) => onFilterTeacher(v === SENTINEL_ALL ? "" : v)}
+            onValueChange={(v: string) =>
+              onFilterTeacher(v === SENTINEL_ALL ? "" : v)
+            }
           >
             <SelectTrigger className="w-32 text-sm h-8 px-2">
-              <SelectValue />
+              {/* render label explicitly — avoids showing Firestore doc ID when async data loads */}
+              <SelectValue>
+                {teacherFilter
+                  ? (() => {
+                      const t = teachers.find((t) => t.id === teacherFilter);
+                      return t ? `${t.first_name} ${t.last_name}` : "הכל";
+                    })()
+                  : "הכל"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={SENTINEL_ALL}>הכל</SelectItem>

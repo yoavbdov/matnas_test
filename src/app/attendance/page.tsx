@@ -53,12 +53,14 @@ export default function AttendancePage() {
       return;
     }
 
-    // Prefer the most recent session that is missing or incomplete (has לא הוזן entries)
+    // Prefer the most recent session that is missing or incomplete (לא הוזן entries)
     const classEnrolledCount = enrollments.filter(
-      (e) => e.class_id === classId && e.status === "פעיל"
+      (e) => e.class_id === classId && e.status === "פעיל",
     ).length;
     const attendanceMap = new Map(
-      allAttendance.filter((a) => a.class_id === classId).map((a) => [a.date, a])
+      allAttendance
+        .filter((a) => a.class_id === classId)
+        .map((a) => [a.date, a]),
     );
     const firstMissing = dates.find((d) => {
       const doc = attendanceMap.get(d);
@@ -84,7 +86,9 @@ export default function AttendancePage() {
     return map;
   }, [allAttendance, selectedClassId]);
 
-  const existingForDate = selectedDate ? (attendanceByDate.get(selectedDate) ?? null) : null;
+  const existingForDate = selectedDate
+    ? (attendanceByDate.get(selectedDate) ?? null)
+    : null;
   const selectedClass = classes.find((c) => c.id === selectedClassId);
 
   return (
@@ -116,8 +120,10 @@ export default function AttendancePage() {
         <CsvExportBtn onClick={() => setShowExportModal(true)} />
       </div>
 
-      <div className="flex gap-0 h-[calc(100vh-8.5rem)] overflow-hidden" dir="rtl">
-
+      <div
+        className="flex gap-0 h-[calc(100vh-8.5rem)] overflow-hidden"
+        dir="rtl"
+      >
         {/* ── Panel 1: Class list ── */}
         <div className="w-52 shrink-0 border-l border-gray-200 pl-4 pr-2 overflow-y-auto">
           <ClassSelector
@@ -136,9 +142,11 @@ export default function AttendancePage() {
             <SessionList
               dates={sessionDates}
               attendanceByDate={attendanceByDate}
-              enrolledCount={enrollments.filter(
-                (e) => e.class_id === selectedClassId && e.status === "פעיל"
-              ).length}
+              enrolledCount={
+                enrollments.filter(
+                  (e) => e.class_id === selectedClassId && e.status === "פעיל",
+                ).length
+              }
               selectedDate={selectedDate}
               onSelect={setSelectedDate}
             />
@@ -162,7 +170,7 @@ export default function AttendancePage() {
                 // After saving, move to the next incomplete session automatically.
                 // We don't know the exact saved record count yet, so just skip the current date.
                 const enrolledCount = enrollments.filter(
-                  (e) => e.class_id === selectedClassId && e.status === "פעיל"
+                  (e) => e.class_id === selectedClassId && e.status === "פעיל",
                 ).length;
                 const nextMissing = sessionDates.find((d) => {
                   if (d === selectedDate) return false;
@@ -175,12 +183,13 @@ export default function AttendancePage() {
           ) : (
             <div className="flex items-center justify-center h-40">
               <p className="text-sm text-gray-400">
-                {selectedClass ? "בחר שיעור מהרשימה" : "בחר חוג ושיעור כדי לדווח נוכחות"}
+                {selectedClass
+                  ? "בחר שיעור מהרשימה"
+                  : "בחר חוג ושיעור כדי לדווח נוכחות"}
               </p>
             </div>
           )}
         </div>
-
       </div>
     </PageShell>
   );
